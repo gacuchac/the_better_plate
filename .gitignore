@@ -11,3 +11,6 @@ dist/
 coverage/
 playwright-report/
 test-results/
+
+# QA evidence stays out of git (public repo; see docs/OWNER_PREFLIGHT.md N2)
+artifacts/
