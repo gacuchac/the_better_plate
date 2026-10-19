@@ -21,6 +21,8 @@ test("an invited account uses the included companion without its own key", async
   await panel.getByLabel("Ask me to build a recipe").fill("Make me a chicken recipe");
   await panel.getByRole("button", { name: "Send" }).click();
   await expect(panel).toContainText("g of protein per serving", { timeout: 20_000 });
+  // No navigate tool on the included companion: the app opens the saved recipe itself.
+  await expect(page).toHaveURL(/#\/recipe\/[0-9a-f-]{36}$/);
   await shot(page, info, "companion-included", "Companion answering on the included key, no own key connected");
 });
 

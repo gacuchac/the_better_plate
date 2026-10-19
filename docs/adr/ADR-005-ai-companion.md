@@ -39,3 +39,7 @@ Owner decision: "we can have our own key set up for luna and limit usage at firs
 - Counters live in `ai_house_usage`; they survive account deletion without the account link so deleting and re-creating accounts can't reset the monthly total.
 - Photo generation stays on people's own keys (about $0.04 per image).
 - Privacy: messages and the recipe and meal details the companion reads go to OpenAI under The Better Plate's account; AI settings says so.
+
+### Addendum (2026-10-19): fewer tools on the included companion
+
+Owner decision: "just having a couple of tools for luna should be enough". The included companion is offered only `search_foods`, `list_recipes`, `save_recipe`, `plan_meal`, `log_meal` and `get_day`, with a shorter system prompt. Every turn sends fewer tool definitions, which costs less and gives the small model fewer ways to go wrong. The server refuses any other tool call on that provider. Since there is no `navigate`, the app opens the saved recipe or the planned or logged day itself. `list_recipes` stays because logging a meal needs an existing recipe's id. Own-key companions keep the full set. Not available on the included companion: editing an existing recipe (no `get_recipe`), photos, targets and deletes. Its answer points people to the app for those.

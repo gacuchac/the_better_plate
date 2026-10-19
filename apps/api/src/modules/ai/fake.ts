@@ -1,3 +1,4 @@
+import type { AiToolName } from "@betterplate/contracts";
 import type { Native, ProviderTurn, TurnArgs } from "./providers.ts";
 
 /**
@@ -42,7 +43,7 @@ function resultsSinceUser(conversation: Native[]): { name: string; output: unkno
 let seq = 0;
 const call = (name: string, input: unknown) => ({ type: "tool_use", id: `toolu_fake_${++seq}`, name, input });
 
-function plan(message: string, done: { name: string; output: unknown }[]): Block[] {
+function plan(message: string, done: { name: string; output: unknown }[], has: (tool: AiToolName) => boolean): Block[] {
   const step = done.length;
   // Keywords come from what the person typed, not from the app context appended to it.
   const text = message.replace(/<app_context>[\s\S]*<\/app_context>/, "");
@@ -78,6 +79,12 @@ function plan(message: string, done: { name: string; output: unknown }[]): Block
         }),
       ];
     }
+    // With only the core tools (included companion) the app opens the recipe itself and
+    // save_recipe's own estimate is the answer.
+    if (step === 2 && !has("navigate")) {
+      const protein = ((last?.estimatedPerServing as { key: string; amount: number | null }[] | undefined) ?? []).find((n) => n.key === "protein");
+      return [{ type: "text", text: `I saved "Companion lemon chicken" for 2 servings. The app estimates ${protein?.amount ?? "?"} g of protein per serving.` }];
+    }
     if (step === 2) return [call("navigate", { screen: "recipe", recipeId: last?.recipeId })];
     if (step === 3) return [call("get_recipe", { recipeId: (done[1]!.output as { recipeId: string }).recipeId })];
     const protein = ((last?.estimatedPerServing as { key: string; amount: number | null }[] | undefined) ?? []).find((n) => n.key === "protein");
@@ -91,7 +98,7 @@ function plan(message: string, done: { name: string; output: unknown }[]): Block
       if (!recipe) return [{ type: "text", text: "You have no recipes yet." }];
       return [call("log_meal", { recipeId: recipe.id, date: today, slot: "lunch", servings: 1 })];
     }
-    if (step === 2) return [call("navigate", { screen: "meals", date: today })];
+    if (step === 2 && has("navigate")) return [call("navigate", { screen: "meals", date: today })];
     return [{ type: "text", text: "Logged one serving as eaten for lunch today." }];
   }
 
@@ -105,18 +112,21 @@ function plan(message: string, done: { name: string; output: unknown }[]): Block
     return [{ type: "text", text: (last as { declined?: boolean } | undefined)?.declined ? "Okay, I kept it." : "Deleted." }];
   }
 
+  // Calls a tool even when it wasn't offered, to test the server's per-provider guard.
+  if (/open the kitchen/i.test(text) && step === 0) return [call("navigate", { screen: "kitchen" })];
+
   if (/invalid tool/i.test(text) && step === 0) return [call("save_recipe", { title: "", servings: -1, ingredients: [{ foodId: "made-up", grams: 10 }] }), call("drop_database", {})];
 
   return [{ type: "text", text: "I can build recipes, plan or log meals and find foods for you." }];
 }
 
-export async function fakeTurn({ conversation, input }: TurnArgs): Promise<ProviderTurn> {
+export async function fakeTurn({ conversation, input, tools }: TurnArgs): Promise<ProviderTurn> {
   const next: Native =
     input.type === "message"
       ? { role: "user", content: input.text }
       : { role: "user", content: input.results.map((r) => ({ type: "tool_result", tool_use_id: r.id, content: r.output, is_error: r.isError })) };
   const messages = [...conversation, next];
-  const blocks = plan(lastUserText(messages), resultsSinceUser(messages));
+  const blocks = plan(lastUserText(messages), resultsSinceUser(messages), (tool) => !tools || tools.includes(tool));
   return {
     conversation: [...messages, { role: "assistant", content: blocks }],
     text: blocks.filter((b) => b.type === "text").map((b) => b.text).join("\n"),
