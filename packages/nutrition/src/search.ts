@@ -3,7 +3,8 @@
  *
  * Every query word must match part of a description word, in any order: whole word > start of a
  * word > inside a word ("loin" finds "sirloin"). Simple English plurals match ("steaks" finds
- * "steak"). Ties go to the main food name (before the first comma), raw entries, then shorter names.
+ * "steak"). Ties go to the main food name, raw entries, then shorter names; restaurant and brand
+ * entries (USDA writes their names in capitals, like "OLIVE GARDEN, …") come after generic foods.
  */
 
 export interface SearchIndex<T> {
@@ -14,19 +15,23 @@ interface SearchEntry<T> {
   item: T;
   /** Each word with its singular form. */
   words: string[][];
-  /** Words of the main food name, the part before the first comma ("Beef" in "Beef, loin, …"). */
-  head: number;
+  /** Word positions of the main food name: the part before the first comma ("Beef" in "Beef, loin, …"),
+   *  or the second part after a USDA group word ("salmon" in "Fish, salmon, …"). */
+  head: [number, number];
   raw: boolean;
+  brand: boolean;
   length: number;
   sortKey: string;
 }
 
 const MAX_QUERY_WORDS = 8;
+/** USDA group words that come before the food's own name in SR Legacy descriptions. */
+const GROUP_PREFIXES = new Set(["fish", "crustaceans", "mollusks", "spices", "game meat", "beverages", "snacks", "nuts", "seeds", "oil", "cheese", "cereals", "candies"]);
 
 export function normalizeSearchText(text: string): string {
   return text
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
@@ -49,12 +54,16 @@ export function buildSearchIndex<T extends { description: string }>(items: Itera
   const entries: SearchEntry<T>[] = [];
   for (const item of items) {
     const tokens = normalizeSearchText(item.description).split(" ").filter(Boolean);
-    const head = normalizeSearchText(item.description.split(",")[0] ?? "").split(" ").filter(Boolean).length;
+    const parts = item.description.split(",").map((s) => normalizeSearchText(s).split(" ").filter(Boolean).length);
+    const first = normalizeSearchText(item.description.split(",")[0] ?? "");
+    const head: [number, number] = GROUP_PREFIXES.has(first) && parts.length > 1 ? [parts[0]!, parts[0]! + parts[1]!] : [0, parts[0] ?? 0];
+    const firstWord = item.description.split(/[\s,]/)[0] ?? "";
     entries.push({
       item,
       words: tokens.map(forms),
       head,
       raw: tokens.includes("raw"),
+      brand: /[A-Z]{2}/.test(firstWord) && firstWord === firstWord.toUpperCase(),
       length: item.description.length,
       sortKey: item.description.toLowerCase(),
     });
@@ -92,10 +101,11 @@ export function searchIndex<T>(index: SearchIndex<T>, query: string, limit = 30)
       }
       score += m.score * 10;
       // The first word usually names the food itself ("beef", "rice"); favor it in the main name.
-      if (i === 0 && m.score >= 2 && m.at < entry.head) score += m.at === 0 ? 8 : 5;
+      if (i === 0 && m.score >= 2 && m.at >= entry.head[0] && m.at < entry.head[1]) score += m.at === entry.head[0] ? 8 : 5;
     }
     if (!ok) continue;
     if (entry.raw) score += 2;
+    if (entry.brand) score -= 10;
     scored.push({ entry, score });
   }
   scored.sort(

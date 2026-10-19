@@ -164,6 +164,10 @@ test("explore foods with per-100 g values and provenance", async ({ page }, info
   await page.getByLabel("Search foods").fill("dragonfruit");
   await expect(page.getByTestId("not-in-catalog")).toContainText("isn't in our list yet");
   await shot(page, info, "explore-not-in-catalog", "No match: honest note, no estimated nutrients");
+  // Words in any order and plurals, across all of USDA SR Legacy on the device.
+  await page.getByLabel("Search foods").fill("steaks sirloin");
+  await expect(page.getByRole("button", { name: /^Beef, top sirloin, steak/ }).first()).toBeVisible();
+  await shot(page, info, "explore-search-steak", "Search: \"steaks sirloin\" finds USDA sirloin steak cuts");
   await page.getByLabel("Search foods").fill("salmon");
   await page.getByRole("button", { name: /Fish, salmon, Atlantic, farmed, raw/ }).click();
   const dialog = page.getByRole("dialog");

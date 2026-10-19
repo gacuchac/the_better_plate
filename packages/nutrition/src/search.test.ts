@@ -15,6 +15,9 @@ const names = [
   "Jalapeño peppers, raw",
   "Oil, olive, salad or cooking",
   "Olives, ripe, canned (small-extra large)",
+  "Salmon nuggets, breaded, frozen, heated",
+  "Fish, salmon, Atlantic, farmed, raw",
+  "OLIVE GARDEN, spaghetti with meat sauce",
 ].map((description, i) => ({ id: `fx:${i}`, description }));
 const index = buildSearchIndex(names);
 const search = (q: string, limit?: number) => searchIndex(index, q, limit).map((f) => f.description);
@@ -36,8 +39,13 @@ describe("food search", () => {
 
   it("puts the food itself before dishes that mention it, and raw first", () => {
     expect(search("broccoli")).toEqual(["Broccoli, raw", "Broccoli, cooked, boiled, drained, without salt", "Soup, cream of broccoli, canned"]);
-    expect(search("olive")[0]).toBe("Olives, ripe, canned (small-extra large)");
     expect(search("olive oil")[0]).toBe("Oil, olive, salad or cooking");
+    // "Fish, salmon, …": the food's own name follows USDA's group word.
+    expect(search("salmon")[0]).toBe("Fish, salmon, Atlantic, farmed, raw");
+  });
+
+  it("puts restaurant and brand entries after generic foods", () => {
+    expect(search("olive").at(-1)).toBe("OLIVE GARDEN, spaghetti with meat sauce");
   });
 
   it("ignores case, accents and punctuation", () => {

@@ -16,7 +16,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.1 | Data export | Unsynced-draft export only (You screen) | none | implemented-unverified; full export not-started |
 | §2.1 | Clear local data on logout/account change | `store.tsx` per-account IndexedDB | E2E isolation checks IndexedDB is gone | verified |
 | §2.1 | Privacy notice versions, consent events, admin MFA, passkeys | — | — | not-started |
-| §2.2 | Official USDA records, IDs, per-100 g, portions, source URL/date | `scripts/usda/import_starter.py`, `data/catalog/` | API "catalog" tests; importer `--check` | verified (149 SR Legacy foods) |
+| §2.2 | Official USDA records, IDs, per-100 g, portions, source URL/date | `scripts/usda/import_starter.py`, `data/catalog/` | API "catalog" tests; importer `--check` | verified (all 7,793 SR Legacy foods) |
 | §2.2 | Versioned catalog on device: all of SR Legacy (owner decision, ADR-003) | catalog version + `GET /v1/catalog/manifest`, gzip bundle | API manifest/bundle/ETag/gzip | verified |
 | §2.2 | Search: words in any order, partial words, plurals; same ranking offline and online | `packages/nutrition/src/search.ts`, `GET /v1/foods`, `FoodPicker.tsx` | Unit "food search"; API search/paging; E2E ingredient search | verified |
 | §2.2 | Missing nutrients flagged, never zero | importer omits unreported; engine statuses | ENG "never treats a missing nutrient as zero" | verified |
