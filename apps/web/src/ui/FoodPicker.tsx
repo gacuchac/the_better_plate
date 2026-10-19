@@ -33,8 +33,21 @@ export function FoodPicker({ foods, onPick, online }: { foods: Map<string, FoodR
             </button>
           </li>
         ))}
-        {results.length === 0 && <li className="hint">No match on this device. Try a simpler word.</li>}
+        {results.length === 0 && (
+          <li>
+            <NotInCatalog />
+          </li>
+        )}
       </ul>
     </div>
+  );
+}
+
+/** Shown when a search has no match: we never estimate nutrients for a food without a sourced record. */
+export function NotInCatalog() {
+  return (
+    <p className="hint" data-testid="not-in-catalog">
+      No match in the USDA starter foods. Try a simpler word, like "rice" instead of "jasmine rice". If it's still missing, it isn't in our list yet, and we don't estimate nutrients for foods without a USDA source.
+    </p>
   );
 }

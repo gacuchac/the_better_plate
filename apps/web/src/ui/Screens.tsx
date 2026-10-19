@@ -4,7 +4,7 @@ import { ApiRequestError, api } from "../api.ts";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp, useSyncStatus } from "../store.tsx";
 import { EmptyState, navigate, Sheet } from "./common.tsx";
-import { searchFoods } from "./FoodPicker.tsx";
+import { NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 
 const STATE_LABEL: Record<LocalRecipe["state"], string> = {
   synced: "Synced",
@@ -102,6 +102,7 @@ export function Explore() {
           </li>
         ))}
       </ul>
+      {results.length === 0 && <NotInCatalog />}
       {open && (
         <Sheet title={open.description} onClose={() => setOpen(null)}>
           <p className="hint">Per 100 g, as published by USDA. "Not reported" means USDA has no value for this food.</p>

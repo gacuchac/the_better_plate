@@ -161,6 +161,9 @@ test("conflicting edits from two devices ask before overwriting", async ({ brows
 test("explore foods with per-100 g values and provenance", async ({ page }, info) => {
   await signIn(page, newEmail("explore"));
   await page.getByRole("link", { name: "Explore" }).click();
+  await page.getByLabel("Search foods").fill("dragonfruit");
+  await expect(page.getByTestId("not-in-catalog")).toContainText("isn't in our list yet");
+  await shot(page, info, "explore-not-in-catalog", "No match: honest note, no estimated nutrients");
   await page.getByLabel("Search foods").fill("salmon");
   await page.getByRole("button", { name: /Fish, salmon, Atlantic, farmed, raw/ }).click();
   const dialog = page.getByRole("dialog");
