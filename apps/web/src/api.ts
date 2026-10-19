@@ -78,6 +78,7 @@ export const api = {
   sendCode: (email: string) => request<{ success: boolean }>("/v1/auth/email-otp/send-verification-otp", { method: "POST", json: { email, type: "sign-in" } }),
   signIn: (email: string, otp: string) => request<unknown>("/v1/auth/sign-in/email-otp", { method: "POST", json: { email, otp } }),
   signOut: () => request<unknown>("/v1/auth/sign-out", { method: "POST", json: {} }),
+  exportData: () => request<{ format: string; exportedAt: string }>("/v1/me/export", { cache: "no-store" }),
   deleteAccount: () => request<void>("/v1/me", { method: "DELETE" }),
   manifest: () => request<Omit<CatalogBundle, "foods"> & { bundleUrl: string }>("/v1/catalog/manifest"),
   bundle: (url: string) => request<CatalogBundle>(url),

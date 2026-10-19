@@ -22,10 +22,10 @@ export function FoodPicker({ foods, onPick, online }: { foods: Map<string, FoodR
       <p className="hint">
         Searching {foods.size} USDA foods saved on this device.{!online && " You're offline, so only these foods are available."}
       </p>
-      <ul className="food-results" role="listbox" aria-label="Foods">
+      <ul className="food-results" aria-label="Foods">
         {results.map((f) => (
           <li key={f.id}>
-            <button type="button" role="option" aria-selected="false" onClick={() => onPick(f)}>
+            <button type="button" onClick={() => onPick(f)}>
               <span>{f.description}</span>
               <small>{f.category}</small>
             </button>

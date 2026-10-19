@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { addIngredient, API, expectSynced, newEmail, saveAndSync, shot, signIn, waitForServiceWorker } from "./helpers.ts";
 
@@ -103,6 +104,13 @@ test("accounts are isolated on a shared device and on the server", async ({ page
   const aliceRecipeId = recipes[0].id as string;
 
   await page.getByRole("link", { name: "You", exact: true }).click();
+  // Data portability: everything in the account, as a JSON file.
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download all my data" }).click()]);
+  expect(download.suggestedFilename()).toMatch(/^better-plate-export-\d{4}-\d{2}-\d{2}\.json$/);
+  const exported = JSON.parse(readFileSync((await download.path())!, "utf8"));
+  expect(exported.format).toBe("betterplate.export/1");
+  expect(exported.recipes.map((r: { title: string }) => r.title)).toEqual(["Alice's private stew"]);
+  await shot(page, info, "you-screen", "You: download all my data, export unsynced, sign out, delete account");
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Cook what you love, know what's in it" })).toBeVisible();
   const leftover = await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name));

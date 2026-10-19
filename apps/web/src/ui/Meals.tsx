@@ -290,10 +290,10 @@ function PickRecipeToPlan({ date, onClose }: { date: string; onClose: () => void
       {recipes.length === 0 ? (
         <p className="hint">Save a recipe first, then plan it here.</p>
       ) : (
-        <ul className="food-results" role="listbox" aria-label="Your recipes">
+        <ul className="food-results" aria-label="Your recipes">
           {recipes.map((r) => (
             <li key={r.id}>
-              <button type="button" role="option" aria-selected={false} onClick={() => setPicked(r.id)}>
+              <button type="button" onClick={() => setPicked(r.id)}>
                 <span>{r.body.title}</span>
                 <small>{r.body.servings === 1 ? "1 serving" : `${r.body.servings} servings`}</small>
               </button>

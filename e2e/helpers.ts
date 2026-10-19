@@ -48,7 +48,7 @@ export async function addIngredient(page: Page, search: string, exact: string) {
   await page.getByRole("button", { name: "Add ingredient" }).click();
   const dialog = page.getByRole("dialog", { name: "Add ingredient" });
   await dialog.getByLabel("Search foods").fill(search);
-  await dialog.getByRole("option", { name: new RegExp(`^${exact.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`) }).first().click();
+  await dialog.getByRole("list", { name: "Foods" }).getByRole("button", { name: new RegExp(`^${exact.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`) }).first().click();
   await expect(dialog).toBeHidden();
 }
 
