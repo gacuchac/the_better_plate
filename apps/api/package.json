@@ -15,6 +15,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
     "@betterplate/contracts": "workspace:*",
     "@betterplate/nutrition": "workspace:*",
     "@hono/node-server": "^1.19.17",

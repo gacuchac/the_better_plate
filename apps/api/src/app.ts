@@ -17,6 +17,7 @@ import { feedbackRoutes } from "./modules/feedback.ts";
 import { mealRoutes } from "./modules/meals.ts";
 import { sharePageRoutes, shareRoutes } from "./modules/shares.ts";
 import { syncRoutes } from "./modules/sync.ts";
+import { aiRoutes, MAX_TURN_BYTES } from "./modules/ai/routes.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -43,7 +44,11 @@ export function createApp() {
       maxAge: 600,
     }),
   );
-  app.use("*", bodyLimit({ maxSize: 512 * 1024, onError: (c) => c.json(errorBody(c as never, "payload_too_large", "Request body is too large"), 413) }));
+  const tooLarge = (c: Parameters<typeof errorBody>[0]) => c.json(errorBody(c, "payload_too_large", "Request body is too large"), 413);
+  const defaultLimit = bodyLimit({ maxSize: 512 * 1024, onError: (c) => tooLarge(c as never) });
+  // The companion sends its conversation back each step, so that one route takes more.
+  const turnLimit = bodyLimit({ maxSize: MAX_TURN_BYTES, onError: (c) => tooLarge(c as never) });
+  app.use("*", (c, next) => (c.req.path === "/v1/ai/turn" ? turnLimit(c, next) : defaultLimit(c, next)));
   app.use("*", async (c, next) => {
     const started = performance.now();
     await next();
@@ -84,6 +89,7 @@ export function createApp() {
   app.route("/", mealRoutes);
   app.route("/", shareRoutes);
   app.route("/", syncRoutes);
+  app.route("/", aiRoutes);
   app.route("/", accountRoutes);
   app.route("/", devRoutes);
 

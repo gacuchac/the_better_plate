@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, u
 import type { FoodRecord } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError, type CatalogBundle, type Me } from "./api.ts";
 import { clearTargets } from "./targets.ts";
+import { endSession } from "./agent.ts";
 import { deleteUserDb, isQuotaError, openUserDb, readCatalog, STORAGE_FULL_EVENT, requestPersistentStorage, writeCatalog, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
 import { SyncEngine } from "./sync.ts";
 
@@ -203,6 +204,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(ACCOUNT_KEY);
     setAccountState(null);
     setEngine(null);
+    endSession();
     // Personal records leave the device with the account; the shared catalog stays.
     if (id) {
       clearTargets(id);

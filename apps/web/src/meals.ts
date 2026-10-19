@@ -30,6 +30,15 @@ export const SLOTS: { value: MealSlot }[] = [{ value: "breakfast" }, { value: "l
 const SLOT_KEYS = { breakfast: "slot.breakfast", lunch: "slot.lunch", dinner: "slot.dinner", snack: "slot.snack" } as const;
 export const slotLabel = (s: MealSlot) => t(SLOT_KEYS[s]);
 
+/** When something was eaten on a day, as an ISO time with the person's offset: now for today, midday otherwise. */
+export function eatenAtFor(date: string, now = new Date()): string {
+  const eatenAt = date === localDate(now) ? now : new Date(`${date}T12:00:00`);
+  const off = -eatenAt.getTimezoneOffset();
+  const sign = off >= 0 ? "+" : "-";
+  const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, "0");
+  return `${localDate(eatenAt)}T${pad(eatenAt.getHours())}:${pad(eatenAt.getMinutes())}:${pad(eatenAt.getSeconds())}${sign}${pad(off / 60)}:${pad(off % 60)}`;
+}
+
 /** A sensible default slot for "I ate this" right now; the person can change it. */
 export function slotForNow(d = new Date()): MealSlot {
   const h = d.getHours();

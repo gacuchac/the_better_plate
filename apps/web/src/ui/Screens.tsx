@@ -1,3 +1,4 @@
+import { useAiSettings } from "./Companion.tsx";
 import { useEffect, useMemo, useState } from "react";
 import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
 import { ApiRequestError, api } from "../api.ts";
@@ -189,6 +190,7 @@ export function Explore() {
 export function You() {
   const { account, engine, signOut, online } = useApp();
   const targets = useTargets(account?.id);
+  const ai = useAiSettings(account?.id, online);
   const t = useT();
   const status = useSyncStatus(engine);
   const [busy, setBusy] = useState(false);
@@ -255,6 +257,14 @@ export function You() {
         <dd data-testid="targets-summary">
           {targets.length ? t("targets.count", { n: targets.length }) : t("targets.noneSet")} <a href="#/targets">{targets.length ? t("targets.change") : t("targets.set")}</a>
         </dd>
+        {ai !== false && (
+          <>
+            <dt>{t("ai.status")}</dt>
+            <dd data-testid="ai-summary">
+              {ai?.activeProvider ? t("ai.statusOn", { provider: ai.activeProvider === "anthropic" ? "Anthropic" : "OpenAI" }) : t("ai.statusOff")} <a href="#/ai">{t("ai.manage")}</a>
+            </dd>
+          </>
+        )}
         <dt>{t("lang.label")}</dt>
         <dd>
           <LanguagePicker id="you-language" hideLabel />

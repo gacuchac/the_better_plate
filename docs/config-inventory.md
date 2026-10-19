@@ -24,8 +24,8 @@ Living registry of every runtime and CI setting. **Last revised:** 2026-10-19 (M
 | `USDA_FDC_API_BASE_URL` | FoodData Central API base. | api, jobs | server | none | default | Absolute `https://` URL. |
 | `USDA_FDC_API_KEY` | api.data.gov key for online food search/lookup. Not needed for the bulk-download starter catalog. | api, jobs | secret | dev, production | owner (preflight S6) | `GET /foods/search?query=apple` returns 200 with the key. Public exposure gets the key deactivated, so server-only. |
 | `FEATURE_CHEF_ENABLED` | Server-enforced kill switch for chef commerce; database flags cannot override it to ON. | api | server | none (`false`) | default | Must be `false` in production until owner approval; flag-off penetration tests run in CI. |
-| `FEATURE_AI_COMPANION_ENABLED` | Enables BYOK AI routes. | api | server | none (`false`) | default | When `true`, startup requires `BYOK_ENCRYPTION_KEY`. |
-| `BYOK_ENCRYPTION_KEY` | Key-encryption key for per-user AI provider keys stored encrypted in the database. | api | secret | only when AI enabled | agent (generated per environment, written into Railway) | Correct length for the chosen cipher; round-trip self-test at startup; rotation procedure documented. |
+| `FEATURE_AI_COMPANION_ENABLED` | Enables the BYOK AI companion routes (ADR-005). | api | server | local, test, dev (`true`); production `false` | default / agent (dev) | When `true` outside local/test, startup requires `BYOK_ENCRYPTION_KEY`. |
+| `BYOK_ENCRYPTION_KEY` | Key-encryption key for per-user AI provider keys stored encrypted in the database. | api | secret | only when AI enabled | agent (generated per environment, written into Railway) | AES-256-GCM: 32 bytes as 64 hex characters or base64; startup refuses any other length. Rotating it makes stored keys unreadable, so people reconnect (no re-encryption job yet). Local runs derive it from `SESSION_SECRET`. |
 | `ERROR_MONITORING_DSN` | Optional hosted error tracker. | api, web (public DSN variant only if the provider's DSN is designed to be public) | secret | none | owner (preflight O1) | Test event received with PII scrubbed. |
 
 ## Local and test-only settings (not in `.env.example`)
@@ -59,7 +59,7 @@ Living registry of every runtime and CI setting. **Last revised:** 2026-10-19 (M
 | Email | console mailer | console mailer | provider sandbox/test sender | provider, verified domain |
 | `USDA_FDC_API_KEY` | empty (DEMO_KEY) or owner key in local `.env` | empty; tests use labeled fixtures | owner key | owner key |
 | `FEATURE_CHEF_ENABLED` | `false` (may be `true` locally with fake providers) | both values tested | `false` (staged allowlist only) | `false` |
-| `FEATURE_AI_COMPANION_ENABLED` | `false` | both values tested | per milestone | `false` until released |
+| `FEATURE_AI_COMPANION_ENABLED` | `true` | `true` (both values tested) | `true` | `false` until released |
 
 ## Deferred (no variable until an ADR decides)
 

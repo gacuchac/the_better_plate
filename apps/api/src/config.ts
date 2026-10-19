@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { hkdfSync } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -42,6 +43,22 @@ function googleConfig(): { clientId: string; clientSecret: string } | null {
   return { clientId, clientSecret };
 }
 
+/**
+ * BYOK_ENCRYPTION_KEY: 32 bytes as base64 or hex. Required outside local/test when the AI
+ * companion is on. Local runs without one derive a throwaway key from SESSION_SECRET.
+ */
+function byokEncryptionKey(isLocal: boolean, enabled: boolean, sessionSecret: string): Buffer | null {
+  if (!enabled) return null;
+  const raw = process.env.BYOK_ENCRYPTION_KEY?.trim() ?? "";
+  if (!raw) {
+    if (!isLocal) throw new Error("FEATURE_AI_COMPANION_ENABLED=true needs BYOK_ENCRYPTION_KEY (32 bytes, base64 or hex)");
+    return Buffer.from(hkdfSync("sha256", sessionSecret, "betterplate", "byok-local", 32));
+  }
+  const key = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, "hex") : Buffer.from(raw, "base64");
+  if (key.length !== 32) throw new Error("BYOK_ENCRYPTION_KEY must decode to exactly 32 bytes");
+  return key;
+}
+
 function loadConfig() {
   const appEnv = (process.env.APP_ENV ?? "local") as AppEnv;
   if (!APP_ENVS.includes(appEnv)) throw new Error(`APP_ENV must be one of ${APP_ENVS.join(", ")}`);
@@ -63,6 +80,9 @@ function loadConfig() {
     console.warn(JSON.stringify({ level: "warning", msg: "email not configured: set EMAIL_PROVIDER, EMAIL_PROVIDER_API_KEY and AUTH_EMAIL_FROM" }));
   }
 
+  const aiEnabled = process.env.FEATURE_AI_COMPANION_ENABLED === "true";
+  const byokKey = byokEncryptionKey(isLocal, aiEnabled, sessionSecret);
+
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
 
@@ -83,7 +103,9 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: process.env.FEATURE_AI_COMPANION_ENABLED === "true" },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled },
+    /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
+    byokKey,
     /** Relaxed limits for automated local/test runs only. */
     rateLimitMultiplier: isLocal ? Number(process.env.RATE_LIMIT_MULTIPLIER ?? 10) : 1,
   };

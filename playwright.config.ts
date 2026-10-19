@@ -16,6 +16,8 @@ const apiEnv = {
   SESSION_SECRET: randomBytes(32).toString("hex"),
   BETTERPLATE_SKIP_ENV_FILE: "1",
   RATE_LIMIT_MULTIPLIER: "50",
+  // Companion on with a derived local key; journeys use the scripted fake provider.
+  FEATURE_AI_COMPANION_ENABLED: "true",
   // Fake OAuth client: the journey stops at Google's door (intercepted), never calls Google.
   GOOGLE_CLIENT_ID: "e2e-client.apps.googleusercontent.com",
   GOOGLE_CLIENT_SECRET: "e2e-only-google-secret",
