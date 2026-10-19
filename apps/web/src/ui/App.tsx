@@ -8,6 +8,7 @@ import { Meals } from "./Meals.tsx";
 import { ReportIssue } from "./ReportIssue.tsx";
 import { RecipeEditor } from "./RecipeEditor.tsx";
 import { Explore, Kitchen, You } from "./Screens.tsx";
+import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
 
 const NAV: { path: string; label: string; icon: IconName }[] = [
@@ -26,6 +27,17 @@ export function App() {
   useEffect(() => {
     if (route === "/create") navigate(`/recipe/${crypto.randomUUID()}`);
   }, [route]);
+
+  // Shared recipes open for anyone with the link, signed in or not.
+  const sharedMatch = /^\/shared\/([^/]+)$/.exec(route);
+  if (sharedMatch) {
+    return (
+      <>
+        <SharedRecipePage key={sharedMatch[1]} shareId={sharedMatch[1]!} />
+        <ReportIssue route="/shared" />
+      </>
+    );
+  }
 
   if (!account) {
     if (!accountChecked) return <p className="hint pad">Opening your kitchen…</p>;

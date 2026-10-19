@@ -1,4 +1,4 @@
-import type { Recipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse } from "@betterplate/contracts";
+import type { Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
 import { API_URL } from "./env.ts";
@@ -84,5 +84,9 @@ export const api = {
   syncBatch: (body: SyncBatchRequest) => request<SyncBatchResponse>("/v1/sync/batch", { method: "POST", json: body }),
   changes: (cursor: string) => request<SyncChangesResponse>(`/v1/sync/changes?cursor=${encodeURIComponent(cursor)}&limit=200`),
   recipe: (id: string) => request<Recipe>(`/v1/recipes/${id}`),
+  createShare: (recipeId: string, body: ShareCreate) => request<Share>(`/v1/recipes/${recipeId}/share`, { method: "POST", json: body }),
+  shares: (recipeId: string) => request<{ shares: Share[] }>(`/v1/shares?recipeId=${recipeId}`),
+  revokeShare: (shareId: string) => request<void>(`/v1/shares/${shareId}`, { method: "DELETE" }),
+  shared: (shareId: string) => request<SharedRecipe>(`/v1/shared/${shareId}`, { cache: "no-store" }),
   feedback: (report: FeedbackReport) => request<{ id: string; receivedAt: string; duplicate: boolean }>("/v1/feedback", { method: "POST", json: report }),
 };

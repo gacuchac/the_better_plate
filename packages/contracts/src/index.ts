@@ -176,6 +176,47 @@ export const SyncChangesResponseSchema = z.object({
   hasMore: z.boolean(),
 });
 
+// ---------- share links: revocable read-only snapshots ----------
+
+export const ShareCreateSchema = z.object({
+  /** The method is the cook's own words; it is shared only when the owner ticks it. */
+  includeMethod: z.boolean(),
+  /** Optional automatic expiry; null keeps the link until it is revoked. */
+  expiresInDays: z.number().int().min(1).max(365).nullable().default(null),
+});
+
+export const SharedIngredientSchema = RecipeIngredientSchema.pick({ id: true, foodId: true, quantity: true, unit: true, portionIndex: true, role: true, oilDiscardedGrams: true }).extend({
+  /** USDA description, so a viewer without the catalog can read the list. */
+  name: z.string(),
+  portionLabel: z.string().nullable(),
+});
+
+/** Exactly what a link holder can read: no account, email, meals or other recipes. */
+export const SharedRecipeSchema = z.object({
+  shareId: z.uuid(),
+  title: z.string(),
+  servings: z.number(),
+  ingredients: z.array(SharedIngredientSchema),
+  method: z.string().nullable(),
+  nutrition: RecipeNutritionSchema,
+  /** Display names for the nutrient keys, so the page reads without the food catalog. */
+  nutrientNames: z.record(z.string(), z.string()),
+  source: z.object({ name: z.string(), url: z.string() }),
+  sharedAt: z.string(),
+  expiresAt: z.string().nullable(),
+});
+
+export const ShareSchema = z.object({
+  shareId: z.uuid(),
+  recipeId: z.uuid(),
+  recipeVersion: z.number().int().positive(),
+  title: z.string(),
+  includeMethod: z.boolean(),
+  url: z.string(),
+  createdAt: z.string(),
+  expiresAt: z.string().nullable(),
+});
+
 export const ErrorSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -200,3 +241,6 @@ export type SyncResult = z.infer<typeof SyncResultSchema>;
 export type SyncBatchResponse = z.infer<typeof SyncBatchResponseSchema>;
 export type SyncChange = z.infer<typeof SyncChangeSchema>;
 export type SyncChangesResponse = z.infer<typeof SyncChangesResponseSchema>;
+export type ShareCreate = z.input<typeof ShareCreateSchema>;
+export type SharedRecipe = z.infer<typeof SharedRecipeSchema>;
+export type Share = z.infer<typeof ShareSchema>;

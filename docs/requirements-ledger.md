@@ -11,7 +11,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.1 | Session revocation / sign-out | Better Auth sign-out; web clears personal DB | E2E "accounts are isolated" | verified |
 | §2.1 | Per-record ownership, no cross-user access | `modules/recipes.ts`, `modules/sync.ts` | API "account isolation"; E2E isolation | verified |
 | §2.1 | CSRF / CORS / cookies | `lib/http.ts`, `app.ts`, ADR-002 | API "request safety" | verified |
-| §2.1 | Rate limiting | `lib/http.ts` (memory), Better Auth limits | Headers present; no dedicated 429 test yet | implemented-unverified |
+| §2.1 | Rate limiting | `lib/http.ts` (memory), Better Auth limits | API "rate limiting" (429 + Retry-After) | verified (single instance; shared store needed before scaling out) |
 | §2.1 | Account deletion | `DELETE /v1/me` | API "account deletion" | verified (UI button untested) |
 | §2.1 | Data export | Unsynced-draft export only (You screen) | none | implemented-unverified; full export not-started |
 | §2.1 | Clear local data on logout/account change | `store.tsx` per-account IndexedDB | E2E isolation checks IndexedDB is gone | verified |
@@ -40,7 +40,8 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.6 | Planned meals (versioned, conflict UI) and immutable, idempotent consumption events with server nutrition snapshots; never coalesced; retractable with tombstones | `003_meals.sql`, `modules/meals.ts`, `modules/sync.ts`, `sync.ts`, `GET /v1/meals` | API "planned and eaten meals" (9 tests); SYNC "meals" (4 tests); E2E meals journey incl. offline | verified |
 | §2.7 | Recommendations, evidence claim registry, nutrient education | — | — | not-started |
 | §2.8 | BYOK AI companion, image generation | — | — | not-started (later) |
-| §2.9 | Recipe share links | — | — | not-started |
+| §2.9 | Revocable read-only share links: owner reviews the exact fields, method opt-in, optional expiry, random UUID, snapshot frozen at the shared version, revoke erases the snapshot, recipe delete ends its links, no owner identity; link preview page with escaped title; native share with copy/email/text fallbacks; online only | `005_shares.sql`, `modules/shares.ts`, `ui/Share.tsx` | API "recipe share links" (7 tests); E2E "share a recipe…" (offline refusal, guest view, revoke) | verified (local) |
+| §2.9 | Public metadata image, share revisions history | — | — | not-started (no licensed food photography yet) |
 | §2.10 | Chef module OFF with server enforcement | `/v1/chef/*` kill switch, config refuses ON in production | API "keeps unreleased chef features off" | verified (module itself not-started) |
 | §2.11 | Report issue on every screen (incl. sign-in and cook mode): bug / feedback / suggestion, readable removable recent steps, optional previewed screenshot with typed text hidden, request ids, sanitized error, offline queue with idempotent retry | `modules/feedback.ts`, `004_feedback.sql`, `ui/ReportIssue.tsx`, `activity.ts`, `feedbackQueue.ts` | API "issue reports" (4 tests); E2E "report an issue…" (sent + offline queue) | verified |
 | §2.11 | Admin triage of reports (statuses exist in schema), admin console | — | — | not-started (needs admin role and MFA) |
@@ -49,8 +50,8 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §3 | Typed client library generated from OpenAPI | shared zod contracts used by web | — | implemented-unverified (no generated client yet) |
 | §3 | Health live/ready | `/v1/health/*` | API readiness test | verified |
 | §4 | UUIDs, versions, indexes, FKs, safe migrations | `001_auth.sql`, `002_catalog_recipes_sync.sql`, migration hash check | API suite runs on a fresh schema | verified |
-| §5 | XSS: names stored as text, rendered escaped | React escaping | API "stores markup as plain text" | implemented-unverified (no browser XSS test yet) |
-| §5 | Secret scanning in CI, keys never in bundles | `.github/workflows/ci.yml` (gitleaks), `PUBLIC_` prefix only | CI pending first run | implemented-unverified |
+| §5 | XSS: names stored as text, rendered escaped | React escaping; share preview page HTML-escapes | API "stores markup as plain text", "escaped link preview page"; E2E "recipe names with markup are shown as text" | verified |
+| §5 | Secret scanning in CI, keys never in bundles | `.github/workflows/ci.yml` (gitleaks), `PUBLIC_` prefix only | CI "Secret scan" job green on every PR | verified |
 | §6 | Four destinations, bottom nav / desktop rail, sync status words; redesign from the Claude Design canvas (Plus Jakarta Sans, self-hosted, OFL) | `ui/App.tsx`, `styles.css`, `SyncChip` | E2E screenshots desktop + mobile, reviewed 2026-10-19 | verified |
 | §6 | Brand colors, 44px targets, Estimated cue, not-reported ≠ 0 | `styles.css`, Nutrition panel | Screenshots reviewed (M1) | verified (visual review) |
 | §6 | WCAG 2.2 AA audit, Spanish-ready strings | — | — | not-started |

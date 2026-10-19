@@ -15,6 +15,7 @@ import { catalogRoutes } from "./modules/catalog.ts";
 import { recipeRoutes } from "./modules/recipes.ts";
 import { feedbackRoutes } from "./modules/feedback.ts";
 import { mealRoutes } from "./modules/meals.ts";
+import { sharePageRoutes, shareRoutes } from "./modules/shares.ts";
 import { syncRoutes } from "./modules/sync.ts";
 
 export const API_VERSION = "0.1.0";
@@ -81,11 +82,13 @@ export function createApp() {
   app.route("/", recipeRoutes);
   app.route("/", feedbackRoutes);
   app.route("/", mealRoutes);
+  app.route("/", shareRoutes);
   app.route("/", syncRoutes);
   app.route("/", accountRoutes);
   app.route("/", devRoutes);
 
   app.doc31("/v1/openapi.json", openApiInfo);
+  app.route("/", sharePageRoutes);
 
   // Single-service hosting (ADR-001): the API also serves the built PWA from the same origin,
   // so session cookies stay first-party. Locally the web app runs on its own port instead.
