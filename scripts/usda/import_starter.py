@@ -37,6 +37,7 @@ REPORT_FILE = ROOT / "data" / "catalog" / "IMPORT_REPORT.md"
 
 DATA_TYPE = "SR Legacy"
 BATCH_SIZE = 20
+FDP_SUFFIX = "(Includes foods for USDA's Food Distribution Program)"
 
 # Nutrients carried into the catalog, keyed by FDC nutrient id.
 # key: stable app nutrient key; FDC ids are the official identifiers.
@@ -134,7 +135,9 @@ def resolve(names: list[str], key: str) -> tuple[dict[str, int], dict[str, list[
             misses[name] = [f"search error: {err}"]
             continue
         foods = result.get("foods", []) if isinstance(result, dict) else []
-        exact = [f for f in foods if f.get("description", "").strip().lower() == name.lower()]
+        # USDA tags some standard entries with the Food Distribution Program note; same food.
+        wanted = {name.lower(), f"{name} {FDP_SUFFIX}".lower()}
+        exact = [f for f in foods if f.get("description", "").strip().lower() in wanted]
         if exact:
             found[name] = int(exact[0]["fdcId"])
         else:

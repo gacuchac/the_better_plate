@@ -1,0 +1,25 @@
+{
+  "name": "the-better-plate",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "bash scripts/dev.sh",
+    "setup": "bash scripts/bootstrap.sh",
+    "start": "bash scripts/serve.sh",
+    "test": "bash scripts/test.sh",
+    "e2e": "bash scripts/e2e.sh",
+    "verify": "bash scripts/verify.sh",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "db:migrate": "pnpm --filter @betterplate/api migrate",
+    "db:seed": "pnpm --filter @betterplate/api seed",
+    "openapi": "pnpm --filter @betterplate/api openapi"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "concurrently": "^9.2.1",
+    "typescript": "~5.9.3"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "@betterplate/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/server.ts",
+    "build": "node build.mjs",
+    "start": "node dist/server.mjs",
+    "migrate": "tsx src/db/cli.ts migrate",
+    "db:setup": "tsx src/db/cli.ts setup",
+    "seed": "tsx src/db/cli.ts seed",
+    "openapi": "tsx src/openapi-cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@betterplate/contracts": "workspace:*",
+    "@betterplate/nutrition": "workspace:*",
+    "@hono/node-server": "^1.19.17",
+    "@hono/zod-openapi": "^1.6.3",
+    "better-auth": "^1.7.11",
+    "hono": "^4.13.13",
+    "pg": "^8.23.1",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@types/pg": "^8.23.1",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.23.15",
+    "vitest": "^3.2.7"
+  }
+}

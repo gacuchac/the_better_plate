@@ -97,9 +97,9 @@ Tortillas, ready-to-bake or -fry, corn
 Cornmeal, whole-grain, yellow
 
 # Meat, fish and eggs
-Chicken, broilers or fryers, breast, meat only, raw
+Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw
 Chicken, broilers or fryers, breast, meat only, cooked, roasted
-Chicken, broilers or fryers, thigh, meat only, raw
+Chicken, broilers or fryers, dark meat, thigh, meat only, raw
 Beef, ground, 85% lean meat / 15% fat, raw
 Beef, ground, 90% lean meat / 10% fat, raw
 Pork, fresh, loin, tenderloin, separable lean only, raw
