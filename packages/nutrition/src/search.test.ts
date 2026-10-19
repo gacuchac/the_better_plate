@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { EVERYDAY_FOODS } from "./everyday-foods.ts";
+import { EVERYDAY_FOODS, SPANISH_SEARCH_WORDS } from "./everyday-foods.ts";
 import { buildSearchIndex, searchIndex, singular } from "./search.ts";
 
 // Descriptions written in USDA SR Legacy style for ranking checks. No nutrient data involved.
@@ -88,5 +88,35 @@ describe("everyday words", () => {
     const catalog = JSON.parse(readFileSync(new URL("../../../data/catalog/starter-catalog.json", import.meta.url), "utf8")) as { foods: { description: string }[] };
     const present = new Set(catalog.foods.map((f) => f.description));
     expect(EVERYDAY_FOODS.filter((d) => !present.has(d))).toEqual([]);
+  });
+});
+
+describe("Spanish search words", () => {
+  const catalog = JSON.parse(readFileSync(new URL("../../../data/catalog/starter-catalog.json", import.meta.url), "utf8")) as {
+    foods: { id: string; description: string; category: string }[];
+  };
+  const index = buildSearchIndex(catalog.foods);
+  const top = (q: string) => searchIndex(index, q, 5, SPANISH_SEARCH_WORDS).map((f) => f.description);
+
+  it("finds everyday foods from Spanish words, against the real USDA catalog", () => {
+    expect(top("huevos")[0]).toBe("Egg, whole, raw, fresh");
+    expect(top("leche")[0]).toBe("Milk, whole, 3.25% milkfat, with added vitamin D");
+    expect(top("carne molida")[0]).toMatch(/^Beef, ground/);
+    expect(top("pechuga de pollo")[0]).toMatch(/^Chicken.*breast/);
+    expect(top("arroz blanco cocido")[0]).toMatch(/^Rice, white.*cooked/);
+    expect(top("brócoli")[0]).toMatch(/^Broccoli/);
+    expect(top("mantequilla sin sal")[0]).toMatch(/^Butter, without salt/);
+  });
+
+  it("maps only to words that appear in USDA food names", () => {
+    const text = catalog.foods.map((f) => ` ${f.description.toLowerCase().replace(/[^a-z0-9]+/g, " ")} `).join("");
+    const missing = Object.values(SPANISH_SEARCH_WORDS)
+      .flatMap((v) => v.split(" "))
+      .filter((w) => w && !text.includes(` ${w} `));
+    expect(missing).toEqual([]);
+  });
+
+  it("leaves English searches alone unless asked", () => {
+    expect(searchIndex(index, "pan", 5).map((f) => f.description).some((d) => /^Bread/.test(d))).toBe(false);
   });
 });

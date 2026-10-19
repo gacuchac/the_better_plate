@@ -420,3 +420,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .notice-section p { margin: 0; line-height: 1.6; color: var(--ink-2); }
 .consent-check { margin-top: 20px; }
 .consent-actions { display: grid; gap: 8px; margin-top: 12px; max-width: 360px; }
+
+/* Language picker: sign-in footer and the You screen */
+.language-picker { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.language-picker label { margin: 0; }
+.language-picker select { width: auto; min-height: 44px; }
+.facts .language-picker { margin: 0; }

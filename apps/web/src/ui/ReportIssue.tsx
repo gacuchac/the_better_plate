@@ -4,12 +4,13 @@ import { ApiRequestError } from "../api.ts";
 import { flushReports, submitReport } from "../feedbackQueue.ts";
 import { Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
+import { tOr, useT, type MessageKey } from "../i18n.ts";
 
 const KINDS = [
-  { value: "bug", label: "Something's wrong" },
-  { value: "feedback", label: "General feedback" },
-  { value: "suggestion", label: "Suggestion" },
-] as const;
+  { value: "bug", label: "report.kindBug" },
+  { value: "feedback", label: "report.kindFeedback" },
+  { value: "suggestion", label: "report.kindSuggestion" },
+] as const satisfies readonly { value: string; label: MessageKey }[];
 
 const deviceClass = (): "phone" | "tablet" | "desktop" => (innerWidth < 600 ? "phone" : innerWidth < 1024 ? "tablet" : "desktop");
 
@@ -41,6 +42,7 @@ async function captureScreen(): Promise<string | null> {
 }
 
 function ReportSheet({ route, shot, onClose }: { route: string; shot: string | null; onClose: () => void }) {
+  const t = useT();
   const [kind, setKind] = useState<(typeof KINDS)[number]["value"]>("bug");
   const [message, setMessage] = useState("");
   const [steps, setSteps] = useState(() => snapshot().events.slice(-12));
@@ -72,7 +74,7 @@ function ReportSheet({ route, shot, onClose }: { route: string; shot: string | n
       track(outcome === "sent" ? "Sent an issue report" : "Saved an issue report to send later");
       setDone(outcome);
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : "Couldn't send the report. Try again.");
+      setError(err instanceof ApiRequestError ? err.message : t("report.failed"));
     } finally {
       setBusy(false);
     }
@@ -80,13 +82,11 @@ function ReportSheet({ route, shot, onClose }: { route: string; shot: string | n
 
   if (done) {
     return (
-      <Sheet title="Thanks for telling us" onClose={onClose}>
-        <p data-testid="report-done">
-          {done === "sent" ? "Your report was sent. It helps us fix things faster." : "You're offline, so your report is saved on this device. It will be sent when you're back online."}
-        </p>
+      <Sheet title={t("report.thanks")} onClose={onClose}>
+        <p data-testid="report-done">{done === "sent" ? t("report.sent") : t("report.queued")}</p>
         <div className="sheet-actions">
           <button type="button" className="btn-primary" onClick={onClose}>
-            Done
+            {t("common.done")}
           </button>
         </div>
       </Sheet>
@@ -94,49 +94,50 @@ function ReportSheet({ route, shot, onClose }: { route: string; shot: string | n
   }
 
   return (
-    <Sheet title="Report an issue" onClose={onClose}>
-      <div className="choice-row" role="group" aria-label="Kind of report">
+    <Sheet title={t("report.title")} onClose={onClose}>
+      <div className="choice-row" role="group" aria-label={t("report.kind")}>
         {KINDS.map((k) => (
           <button key={k.value} type="button" aria-pressed={kind === k.value} onClick={() => setKind(k.value)}>
-            {k.label}
+            {t(k.label)}
           </button>
         ))}
       </div>
-      <label htmlFor="report-message">What happened?</label>
-      <textarea id="report-message" rows={4} value={message} maxLength={4000} placeholder="What you were doing and what you expected" onChange={(e) => setMessage(e.target.value)} />
+      <label htmlFor="report-message">{t("report.what")}</label>
+      <textarea id="report-message" rows={4} value={message} maxLength={4000} placeholder={t("report.placeholder")} onChange={(e) => setMessage(e.target.value)} />
 
-      <h3 style={{ marginTop: 18 }}>Recent steps we'll include</h3>
+      <h3 style={{ marginTop: 18 }}>{t("report.steps")}</h3>
       {steps.length === 0 ? (
-        <p className="hint">No recent steps.</p>
+        <p className="hint">{t("report.noSteps")}</p>
       ) : (
         <ol className="report-steps" data-testid="report-steps">
           {steps.map((s, i) => (
             <li key={`${s.at}-${i}`}>
-              <span>{s.event}</span>
-              <button type="button" className="icon-btn" aria-label={`Leave out "${s.event}"`} onClick={() => setSteps(steps.filter((_, j) => j !== i))}>
+              {/* Steps are recorded in English for support; shown in the interface language. */}
+              <span>{tOr(`activity.${s.event}`, s.event)}</span>
+              <button type="button" className="icon-btn" aria-label={t("report.leaveOut", { step: tOr(`activity.${s.event}`, s.event) })} onClick={() => setSteps(steps.filter((_, j) => j !== i))}>
                 <Icon name="close" size={16} />
               </button>
             </li>
           ))}
         </ol>
       )}
-      <p className="hint">Steps never include what you type, your recipes' contents or anything you ate.</p>
+      <p className="hint">{t("report.stepsPrivacy")}</p>
 
       {shot ? (
         <>
           <label className="check">
             <input type="checkbox" checked={attach} onChange={(e) => setAttach(e.target.checked)} />
-            Include a screenshot of this screen
+            {t("report.includeShot")}
           </label>
           {attach && (
             <figure className="report-shot">
-              <img src={shot} alt="Screenshot that will be sent, with typed text hidden" />
-              <figcaption className="hint">Text you typed into fields and your email are hidden. Everything else on the screen is visible, so check it first. Uncheck to leave it out.</figcaption>
+              <img src={shot} alt={t("report.shotAlt")} />
+              <figcaption className="hint">{t("report.shotCaption")}</figcaption>
             </figure>
           )}
         </>
       ) : (
-        <p className="hint">A screenshot isn't available on this screen.</p>
+        <p className="hint">{t("report.noShot")}</p>
       )}
 
       {error && (
@@ -146,10 +147,10 @@ function ReportSheet({ route, shot, onClose }: { route: string; shot: string | n
       )}
       <div className="sheet-actions">
         <button type="button" className="btn-primary" disabled={busy || !message.trim()} onClick={() => void send()}>
-          {busy ? "Sending…" : "Send report"}
+          {busy ? t("signin.sending") : t("report.send")}
         </button>
       </div>
-      <p className="fine">We use reports only to fix and improve the app. We also attach the app version, screen name, device type and error codes.</p>
+      <p className="fine">{t("report.fine")}</p>
     </Sheet>
   );
 }
@@ -158,6 +159,7 @@ function ReportSheet({ route, shot, onClose }: { route: string; shot: string | n
 export function ReportIssue({ route, className = "report-btn" }: { route: string; className?: string }) {
   const [open, setOpen] = useState(false);
   const [shot, setShot] = useState<string | null>(null);
+  const t = useT();
 
   useEffect(() => {
     const flush = () => void flushReports();
@@ -173,7 +175,7 @@ export function ReportIssue({ route, className = "report-btn" }: { route: string
 
   return (
     <>
-      <button type="button" className={className} aria-label="Report an issue" title="Report an issue" data-no-capture onClick={() => void start()}>
+      <button type="button" className={className} aria-label={t("report.title")} title={t("report.title")} data-no-capture onClick={() => void start()}>
         <Icon name="flag" />
       </button>
       {open && <ReportSheet route={route} shot={shot} onClose={() => setOpen(false)} />}

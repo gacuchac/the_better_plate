@@ -7,20 +7,21 @@ import { useApp } from "../store.tsx";
 import { navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
 import { disclosureText, NutrientLine } from "./Nutrition.tsx";
+import { dateLocale, nutrientName, t as translate, useT, type MessageKey } from "../i18n.ts";
 
-const EXPIRY = [
-  { value: "", label: "Until I revoke it" },
-  { value: "7", label: "7 days" },
-  { value: "30", label: "30 days" },
+const EXPIRY: { value: string; label: MessageKey }[] = [
+  { value: "", label: "share.untilRevoke" },
+  { value: "7", label: "share.days7" },
+  { value: "30", label: "share.days30" },
 ];
 
 const MAIN_NUTRIENTS = ["energy_kcal", "protein", "carbohydrate", "fat_total", "fiber", "sodium"];
 
 function problemText(err: unknown) {
-  if (err instanceof NetworkError) return "You're offline. Creating or revoking a link needs an internet connection.";
-  if (err instanceof ApiRequestError && err.status === 429) return "Too many links in a short time. Try again later.";
-  if (err instanceof ApiRequestError && err.status === 404) return "The cloud doesn't have this recipe yet. Let it sync, then try again.";
-  return "Something went wrong. Try again in a moment.";
+  if (err instanceof NetworkError) return translate("share.errOffline");
+  if (err instanceof ApiRequestError && err.status === 429) return translate("share.errTooMany");
+  if (err instanceof ApiRequestError && err.status === 404) return translate("share.errNotSynced");
+  return translate("share.errGeneric");
 }
 
 /**
@@ -29,6 +30,7 @@ function problemText(err: unknown) {
  */
 export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: () => void }) {
   const { online, engine } = useApp();
+  const t = useT();
   const [includeMethod, setIncludeMethod] = useState(false);
   const [expiry, setExpiry] = useState("");
   const [busy, setBusy] = useState(false);
@@ -59,7 +61,7 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
   }
 
   async function revoke(share: Share) {
-    if (!confirm("Revoke this link? Anyone who opens it will see that it no longer works.")) return;
+    if (!confirm(t("share.revokeConfirm"))) return;
     try {
       await api.revokeShare(share.shareId);
       track("Revoked a share link");
@@ -75,27 +77,27 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
       await navigator.clipboard.writeText(url);
       setCopied(true);
     } catch {
-      setProblem("Couldn't copy. Select the link and copy it yourself.");
+      setProblem(t("share.copyFailed"));
     }
   }
 
   const message = (url: string) => `${body.title}: ${url}`;
 
   return (
-    <Sheet title="Share recipe" onClose={onClose}>
+    <Sheet title={t("share.title")} onClose={onClose}>
       {!online ? (
-        <p className="banner banner-warn" role="status">You're offline. Creating a link needs an internet connection; your recipe is safe on this device.</p>
+        <p className="banner banner-warn" role="status">{t("share.offline")}</p>
       ) : !synced ? (
         <div className="banner banner-warn" role="status">
-          <p>Sync this recipe first, so the link shows exactly what you see here.</p>
+          <p>{t("share.syncFirst")}</p>
           <button type="button" className="btn-secondary" onClick={() => void engine?.syncNow()}>
-            Sync now
+            {t("sync.now")}
           </button>
         </div>
       ) : created ? (
         <div data-testid="share-created">
-          <p className="hint">Your link is ready. Anyone who has it can read this recipe until you revoke it.</p>
-          <label htmlFor="share-url">Link</label>
+          <p className="hint">{t("share.ready")}</p>
+          <label htmlFor="share-url">{t("share.link")}</label>
           <input id="share-url" readOnly value={created.url} onFocus={(e) => e.currentTarget.select()} />
           <div className="sheet-actions">
             {"share" in navigator && (
@@ -104,48 +106,48 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
                 className="btn-primary"
                 onClick={() => void navigator.share({ title: body.title, text: body.title, url: created.url }).catch(() => {})}
               >
-                <Icon name="share" size={18} /> Share…
+                <Icon name="share" size={18} /> {t("share.shareNative")}
               </button>
             )}
             <button type="button" className={"share" in navigator ? "btn-secondary" : "btn-primary"} onClick={() => void copy(created.url)}>
-              <Icon name="link" size={18} /> {copied ? "Copied" : "Copy link"}
+              <Icon name="link" size={18} /> {copied ? t("share.copied") : t("share.copy")}
             </button>
             <div className="share-fallbacks">
-              <a href={`mailto:?subject=${encodeURIComponent(body.title)}&body=${encodeURIComponent(message(created.url))}`}>Email</a>
-              <a href={`sms:?&body=${encodeURIComponent(message(created.url))}`}>Text message</a>
+              <a href={`mailto:?subject=${encodeURIComponent(body.title)}&body=${encodeURIComponent(message(created.url))}`}>{t("signin.email")}</a>
+              <a href={`sms:?&body=${encodeURIComponent(message(created.url))}`}>{t("share.sms")}</a>
             </div>
           </div>
         </div>
       ) : (
         <>
-          <p className="hint">People with the link will see:</p>
+          <p className="hint">{t("share.willSee")}</p>
           <div className="card share-preview" data-testid="share-preview">
             <strong className="recipe-title">{body.title}</strong>
             <ul>
-              <li>{body.servings} {body.servings === 1 ? "serving" : "servings"} and {body.ingredients.length} {body.ingredients.length === 1 ? "ingredient" : "ingredients"} with amounts</li>
-              <li>The estimated nutrition, with USDA as the source</li>
-              {includeMethod && <li>Your method, word for word</li>}
+              <li>{t("share.seeIngredients", { servings: t("common.servings", { n: body.servings }), ingredients: t("share.ingredients", { n: body.ingredients.length }) })}</li>
+              <li>{t("share.seeNutrition")}</li>
+              {includeMethod && <li>{t("share.seeMethod")}</li>}
             </ul>
-            <p className="fine" style={{ marginTop: 8 }}>Never your name, email, meals or other recipes.</p>
+            <p className="fine" style={{ marginTop: 8 }}>{t("share.never")}</p>
           </div>
           <label className="check">
             <input type="checkbox" checked={includeMethod} disabled={!body.method} onChange={(e) => setIncludeMethod(e.target.checked)} />
-            Include my method{body.method ? "" : " (none written yet)"}
+            {body.method ? t("share.includeMethod") : t("share.includeMethodNone")}
           </label>
-          <label htmlFor="share-expiry">Link works</label>
+          <label htmlFor="share-expiry">{t("share.linkWorks")}</label>
           <select id="share-expiry" value={expiry} onChange={(e) => setExpiry(e.target.value)}>
             {EXPIRY.map((o) => (
               <option key={o.value} value={o.value}>
-                {o.label}
+                {t(o.label)}
               </option>
             ))}
           </select>
           <div className="sheet-actions">
             <button type="button" className="btn-primary" disabled={busy} onClick={() => void create()}>
-              {busy ? "Creating…" : "Create link"}
+              {busy ? t("share.creating") : t("share.create")}
             </button>
           </div>
-          <p className="fine">Anyone with the link can read it until you revoke it or it expires. Later edits to your recipe aren't shared; create a new link to share them.</p>
+          <p className="fine">{t("share.fine")}</p>
         </>
       )}
       {problem && (
@@ -155,19 +157,20 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
       )}
       {links && links.length > 0 && (
         <section className="share-links" aria-labelledby="links-title">
-          <h3 id="links-title">Active links</h3>
+          <h3 id="links-title">{t("share.active")}</h3>
           <ul data-testid="share-links">
             {links.map((s) => (
               <li key={s.shareId}>
                 <span>
-                  <span className="meal-name">{new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
+                  <span className="meal-name">{new Date(s.createdAt).toLocaleDateString(dateLocale(), { day: "numeric", month: "short" })}</span>
                   <span className="meal-meta">
                     {" "}
-                    · {s.includeMethod ? "with method" : "without method"} · {s.expiresAt ? `until ${new Date(s.expiresAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}` : "until revoked"}
+                    · {s.includeMethod ? t("share.withMethod") : t("share.withoutMethod")} ·{" "}
+                    {s.expiresAt ? t("share.until", { date: new Date(s.expiresAt).toLocaleDateString(dateLocale(), { day: "numeric", month: "short" }) }) : t("share.untilRevoked")}
                   </span>
                 </span>
                 <button type="button" className="btn-link danger" onClick={() => void revoke(s)}>
-                  Revoke
+                  {t("share.revoke")}
                 </button>
               </li>
             ))}
@@ -182,7 +185,7 @@ const qty = (n: number) => String(Number(n.toFixed(2)));
 
 function amountLabel(i: SharedRecipe["ingredients"][number]) {
   if (i.unit !== "portion") return `${qty(i.quantity)} ${i.unit}`;
-  const label = i.portionLabel ?? "portion";
+  const label = i.portionLabel ?? translate("share.portion");
   return i.quantity === 1 ? label : `${qty(i.quantity)} × ${label}`;
 }
 
@@ -191,6 +194,7 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
   const { account, engine } = useApp();
   const [state, setState] = useState<{ status: "loading" } | { status: "ok"; recipe: SharedRecipe } | { status: "gone" } | { status: "error"; message: string }>({ status: "loading" });
   const [perServing, setPerServing] = useState(true);
+  const t = useT();
   const [saved, setSaved] = useState<string | null>(null);
 
   useEffect(() => {
@@ -199,7 +203,7 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
       (recipe) => setState({ status: "ok", recipe }),
       (err) => {
         if (err instanceof ApiRequestError && (err.status === 404 || err.status === 400)) setState({ status: "gone" });
-        else setState({ status: "error", message: err instanceof NetworkError ? "You're offline. Shared recipes open when you're online." : "Couldn't open this recipe. Try again in a moment." });
+        else setState({ status: "error", message: err instanceof NetworkError ? translate("shared.offline") : translate("shared.error") });
       },
     );
   }, [shareId]);
@@ -232,11 +236,11 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
         </a>
       </header>
       <main id="main" className="public-main">
-        {state.status === "loading" && <p className="hint">Opening the recipe…</p>}
+        {state.status === "loading" && <p className="hint">{t("shared.opening")}</p>}
         {state.status === "gone" && (
           <div className="empty" data-testid="share-gone">
-            <h1 className="h3">This link no longer works</h1>
-            <p>The person who shared it may have revoked it, or it expired.</p>
+            <h1 className="h3">{t("shared.goneTitle")}</h1>
+            <p>{t("shared.goneBody")}</p>
           </div>
         )}
         {state.status === "error" && (
@@ -246,29 +250,35 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
         )}
         {state.status === "ok" && (
           <article data-testid="shared-recipe">
-            <p className="eyebrow">Shared recipe</p>
+            <p className="eyebrow">{t("shared.eyebrow")}</p>
             <h1 className="shared-title">{state.recipe.title}</h1>
             <p className="hint">
-              {state.recipe.servings} {state.recipe.servings === 1 ? "serving" : "servings"} · shared {new Date(state.recipe.sharedAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
+              {t("common.servings", { n: state.recipe.servings })} ·{" "}
+              {t("shared.sharedOn", { date: new Date(state.recipe.sharedAt).toLocaleDateString(dateLocale(), { day: "numeric", month: "long", year: "numeric" }) })}
             </p>
 
             <div className="shared-grid">
               <section>
-                <h2>Ingredients</h2>
+                <h2>{t("editor.ingredients")}</h2>
                 <ul className="shared-ingredients">
                   {state.recipe.ingredients.map((i) => (
                     <li key={i.id}>
                       <span className="shared-amount">{amountLabel(i)}</span>
                       <span>
                         {i.name}
-                        {i.role === "cooking_oil" && <span className="meal-meta"> · cooking oil{i.oilDiscardedGrams != null ? `, ${qty(i.oilDiscardedGrams)} g discarded` : ""}</span>}
+                        {i.role === "cooking_oil" && (
+                          <span className="meal-meta">
+                            {" "}
+                            · {i.oilDiscardedGrams != null ? t("shared.oilDiscarded", { g: qty(i.oilDiscardedGrams) }) : t("shared.oil")}
+                          </span>
+                        )}
                       </span>
                     </li>
                   ))}
                 </ul>
                 {state.recipe.method && (
                   <>
-                    <h2>Method</h2>
+                    <h2>{t("editor.method")}</h2>
                     <p className="shared-method">{state.recipe.method}</p>
                   </>
                 )}
@@ -277,14 +287,14 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
               <section className="nutrition" aria-labelledby="shared-nutrition">
                 <header className="nutrition-head">
                   <h2 id="shared-nutrition">
-                    Nutrition <span className="tag">Estimated</span>
+                    {t("nutrition.title")} <span className="tag">{t("common.estimated")}</span>
                   </h2>
-                  <div className="segmented" role="group" aria-label="Amount shown">
+                  <div className="segmented" role="group" aria-label={t("nutrition.amountShown")}>
                     <button type="button" aria-pressed={perServing} onClick={() => setPerServing(true)}>
-                      Per serving
+                      {t("nutrition.perServing")}
                     </button>
                     <button type="button" aria-pressed={!perServing} onClick={() => setPerServing(false)}>
-                      Whole recipe
+                      {t("nutrition.wholeRecipe")}
                     </button>
                   </div>
                 </header>
@@ -293,23 +303,23 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
                     .filter((r) => MAIN_NUTRIENTS.includes(r.key))
                     .map((row) => (
                       <li key={row.key} className="nutrient-row static" data-testid={`shared-nutrient-${row.key}`}>
-                        <NutrientLine row={row} name={state.recipe.nutrientNames[row.key] ?? row.key} />
+                        <NutrientLine row={row} name={nutrientName(row.key, state.recipe.nutrientNames[row.key] ?? row.key)} />
                       </li>
                     ))}
                 </ul>
                 {state.recipe.nutrition.disclosures.length > 0 && (
                   <ul className="disclosures">
                     {state.recipe.nutrition.disclosures.map((d, idx) => (
-                      <li key={idx}>{disclosureText(d.code, state.recipe.ingredients.find((i) => i.id === d.ingredientId)?.name ?? "an ingredient")}</li>
+                      <li key={idx}>{disclosureText(d.code, state.recipe.ingredients.find((i) => i.id === d.ingredientId)?.name ?? t("editor.anIngredient"))}</li>
                     ))}
                   </ul>
                 )}
                 <p className="fine">
-                  Estimated from{" "}
+                  {t("shared.estimatedFrom")}{" "}
                   <a href={state.recipe.source.url} target="_blank" rel="noopener noreferrer">
                     {state.recipe.source.name}
                   </a>{" "}
-                  (catalog {state.recipe.nutrition.catalogVersion}). Not reported is not zero. This is general information, not medical advice.
+                  {t("shared.fine", { version: state.recipe.nutrition.catalogVersion })}
                 </p>
               </section>
             </div>
@@ -318,16 +328,16 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
               {account && engine ? (
                 saved ? (
                   <button type="button" className="btn-primary" onClick={() => navigate(`/recipe/${saved}`)}>
-                    Open my copy
+                    {t("shared.openCopy")}
                   </button>
                 ) : (
                   <button type="button" className="btn-primary" onClick={() => void saveCopy(state.recipe)}>
-                    Save a copy to my kitchen
+                    {t("shared.saveCopy")}
                   </button>
                 )
               ) : (
                 <a className="btn-primary" href="#/kitchen">
-                  Make your own in The Better Plate
+                  {t("shared.makeYourOwn")}
                 </a>
               )}
             </div>

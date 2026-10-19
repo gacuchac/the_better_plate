@@ -92,14 +92,18 @@ function bestMatch(entry: SearchEntry<unknown>, query: string[]): { score: numbe
   return best;
 }
 
-export function searchIndex<T>(index: SearchIndex<T>, query: string, limit = 30): T[] {
-  const words = normalizeSearchText(query)
+/** `words` adds a word map for another language (see SPANISH_SEARCH_WORDS); English synonyms always apply. */
+export function searchIndex<T>(index: SearchIndex<T>, query: string, limit = 30, words?: Readonly<Record<string, string>>): T[] {
+  const translate = (w: string) => words?.[w] ?? words?.[singular(w)] ?? w;
+  const terms = normalizeSearchText(query)
     .split(" ")
+    .filter(Boolean)
+    .flatMap((w) => translate(w).split(" "))
     .filter(Boolean)
     .flatMap((w) => (SEARCH_SYNONYMS[w] ?? SEARCH_SYNONYMS[singular(w)] ?? w).split(" "))
     .slice(0, MAX_QUERY_WORDS);
-  if (words.length === 0) return index.entries.slice(0, limit).map((e) => e.item);
-  const queries = words.map(forms);
+  if (terms.length === 0) return index.entries.slice(0, limit).map((e) => e.item);
+  const queries = terms.map(forms);
   const scored: { entry: SearchEntry<T>; score: number }[] = [];
   for (const entry of index.entries) {
     let score = 0;

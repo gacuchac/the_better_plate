@@ -2,6 +2,19 @@
 
 Evidence folders are git-ignored (public repo, see preflight N2). Rerun `pnpm verify` to regenerate them; CI uploads the same folder as a 7-day artifact.
 
+## Spanish interface, local pass: 2026-10-19, `dev` ff01f15 plus the Spanish change
+Command: `pnpm test` then `pnpm e2e`.
+
+| Suite | Result |
+|---|---|
+| Typecheck (5 workspace packages) | pass |
+| Nutrition unit tests incl. Spanish search words against the real catalog | 37 / 37 pass |
+| Web unit tests: sync engine and interface strings | 15 / 15 pass |
+| API integration tests | 56 / 56 pass |
+| Playwright, desktop 1366×900 + Pixel 7, incl. the Spanish journey | 28 / 28 pass |
+
+Screenshots inspected: `es-account`, `es-food-search`, `es-recipe`, `es-cook` (mobile and desktop). Fixed after inspection: the Spanish carbohydrate label crowded the macro row on phones (now "Carbohid."), storage size now uses a decimal comma.
+
 ## M3 pilot hardening, local pass: 2026-10-19, `dev` 5d384ff plus the privacy-consent change
 Command: `pnpm test` then `pnpm e2e`.
 

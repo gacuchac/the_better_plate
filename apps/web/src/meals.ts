@@ -1,6 +1,7 @@
 import type { MealSlot } from "@betterplate/contracts";
 import { calculateRecipe, scaleTotals, sumMeals, type FoodRecord, type NutrientDefinition, type NutrientTotal } from "@betterplate/nutrition";
 import type { LocalLog, LocalPlan } from "./localdb.ts";
+import { dateLocale, t } from "./i18n.ts";
 
 /** The person's own calendar day, YYYY-MM-DD, in their current time zone. */
 export function localDate(d = new Date()): string {
@@ -15,23 +16,19 @@ export function addDays(date: string, days: number): string {
 
 export function formatDay(date: string, opts: Intl.DateTimeFormatOptions = { weekday: "long", day: "numeric", month: "long" }): string {
   const [y, m, d] = date.split("-").map(Number);
-  return new Date(y!, m! - 1, d!).toLocaleDateString(undefined, opts);
+  return new Date(y!, m! - 1, d!).toLocaleDateString(dateLocale(), opts);
 }
 
 export function dayName(date: string, today = localDate()): string {
-  if (date === today) return "Today";
-  if (date === addDays(today, -1)) return "Yesterday";
-  if (date === addDays(today, 1)) return "Tomorrow";
+  if (date === today) return t("day.today");
+  if (date === addDays(today, -1)) return t("day.yesterday");
+  if (date === addDays(today, 1)) return t("day.tomorrow");
   return formatDay(date, { weekday: "long" });
 }
 
-export const SLOTS: { value: MealSlot; label: string }[] = [
-  { value: "breakfast", label: "Breakfast" },
-  { value: "lunch", label: "Lunch" },
-  { value: "dinner", label: "Dinner" },
-  { value: "snack", label: "Snack" },
-];
-export const slotLabel = (s: MealSlot) => SLOTS.find((x) => x.value === s)!.label;
+export const SLOTS: { value: MealSlot }[] = [{ value: "breakfast" }, { value: "lunch" }, { value: "dinner" }, { value: "snack" }];
+const SLOT_KEYS = { breakfast: "slot.breakfast", lunch: "slot.lunch", dinner: "slot.dinner", snack: "slot.snack" } as const;
+export const slotLabel = (s: MealSlot) => t(SLOT_KEYS[s]);
 
 /** A sensible default slot for "I ate this" right now; the person can change it. */
 export function slotForNow(d = new Date()): MealSlot {

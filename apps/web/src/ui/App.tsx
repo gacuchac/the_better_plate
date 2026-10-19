@@ -12,17 +12,19 @@ import { PRIVACY_NOTICE } from "@betterplate/contracts";
 import { ConsentScreen, PrivacyPage } from "./Privacy.tsx";
 import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
+import { useT, type MessageKey } from "../i18n.ts";
 
-const NAV: { path: string; label: string; icon: IconName }[] = [
-  { path: "/kitchen", label: "Kitchen", icon: "kitchen" },
-  { path: "/create", label: "Create", icon: "plus" },
-  { path: "/explore", label: "Explore", icon: "search" },
-  { path: "/you", label: "You", icon: "user" },
+const NAV: { path: string; label: MessageKey; icon: IconName }[] = [
+  { path: "/kitchen", label: "nav.kitchen", icon: "kitchen" },
+  { path: "/create", label: "nav.create", icon: "plus" },
+  { path: "/explore", label: "nav.explore", icon: "search" },
+  { path: "/you", label: "nav.you", icon: "user" },
 ];
 
 export function App() {
   const { account, accountChecked } = useApp();
   const route = useRoute();
+  const t = useT();
 
   useEffect(() => trackRoute(route), [route]);
 
@@ -51,7 +53,7 @@ export function App() {
   }
 
   if (!account) {
-    if (!accountChecked) return <p className="hint pad">Opening your kitchen…</p>;
+    if (!accountChecked) return <p className="hint pad">{t("app.opening")}</p>;
     return (
       <>
         <SignIn />
@@ -86,9 +88,9 @@ export function App() {
   return (
     <div className={`shell${recipeMatch ? " has-action-bar" : ""}`}>
       <a className="skip" href="#main">
-        Skip to content
+        {t("app.skip")}
       </a>
-      <nav className="nav" aria-label="Main">
+      <nav className="nav" aria-label={t("nav.main")}>
         <span className="brand" aria-hidden="true">
           The Better Plate
         </span>
@@ -97,15 +99,15 @@ export function App() {
             <span className="nav-icon">
               <Icon name={n.icon} size={22} />
             </span>
-            {n.label}
+            {t(n.label)}
           </a>
         ))}
       </nav>
       <div className="content">
         <div className="topbar">
           {recipeMatch || mealsMatch ? (
-            <a className="back" href="#/kitchen" aria-label="Back to Kitchen">
-              <Icon name="back" /> Kitchen
+            <a className="back" href="#/kitchen" aria-label={t("nav.backToKitchen")}>
+              <Icon name="back" /> {t("nav.kitchen")}
             </a>
           ) : (
             <span />
