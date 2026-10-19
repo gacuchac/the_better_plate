@@ -7,7 +7,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | PRODUCT.md | Requirement | Implementation | Evidence | State |
 |---|---|---|---|---|
 | §2.1 | Email sign-in with verification (one-time code) | `apps/api/src/auth.ts`, `apps/web/src/ui/SignIn.tsx` | API "signs in…", "rejects a wrong code"; E2E all journeys | verified (local; real email provider blocked on S5) |
-| §2.1 | Google sign-in (OIDC) | `apps/api/src/auth.ts`, redirect guard in `apps/api/src/app.ts`, `apps/web/src/ui/SignIn.tsx` | API "Google sign-in" (methods, redirect to Google with PKCE, foreign callback rejected); E2E "Continue with Google sends you to Google…" (Google stubbed) | implemented-unverified (real Google round trip needs owner's OAuth client) |
+| §2.1 | Google sign-in (OIDC) | `apps/api/src/auth.ts`, redirect guard in `apps/api/src/app.ts`, `apps/web/src/ui/SignIn.tsx` | API "Google sign-in" (methods, redirect to Google with PKCE, foreign callback rejected); E2E "Continue with Google sends you to Google…" (Google stubbed) | verified (dev: owner signed in with Google, 2026-10-19) |
 | §2.1 | Session revocation / sign-out | Better Auth sign-out; web clears personal DB | E2E "accounts are isolated" | verified |
 | §2.1 | Per-record ownership, no cross-user access | `modules/recipes.ts`, `modules/sync.ts` | API "account isolation"; E2E isolation | verified |
 | §2.1 | CSRF / CORS / cookies | `lib/http.ts`, `app.ts`, ADR-002 | API "request safety" | verified |
@@ -26,8 +26,10 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.3 | Known/partial/unknown with provenance | engine + Sources drawer | ENG; E2E sources drawer | verified |
 | §2.3 | Oil added vs discarded (measured) | engine `cooking_oil` role | ENG; E2E disclosure appears/disappears | verified |
 | §2.3 | Historical snapshots (catalog + engine version per revision) | `recipe_revisions` | API idempotency test reads revisions | verified |
-| §2.3 | Yield and retention factors, cooked/raw conversion, DV/DRI references, daily/7-day views | — | — | not-started |
-| §2.4 | Cooking knowledge base, methods, safety temperatures, cook mode | — | — | not-started |
+| §2.3 | Daily and 7-day views, plans strictly separate from logs, partial days never complete; FDA %DV with citation | `packages/nutrition/src/meals.ts`, `daily-values.ts`, `apps/web/src/meals.ts`, `ui/Meals.tsx` | Unit "meal totals", "percent Daily Value"; E2E "plan a meal, mark it eaten…" (day totals = server snapshot, 7-day view) | verified |
+| §2.3 | Yield and retention factors, cooked/raw conversion, DRI categories | — | — | not-started (no sourced retention data imported yet) |
+| §2.4 | Cook mode: the cook's own steps one at a time, timers from written durations, screen kept awake, safe minimum temperatures cited from FoodSafety.gov | `packages/nutrition/src/safety.ts`, `ui/Cook.tsx` | Unit "safe temperature rules", "steps from the person's own method"; E2E "cook mode…" | verified |
+| §2.4 | Curated ingredient × method templates (18 methods), method education, unsafe-method exclusion | — | — | not-started (needs sourced, tested method content; nothing generated) |
 | §2.5 | Static catalog bundle cached on device, IndexedDB recipes, durable outbox | `localdb.ts`, `sync.ts` | SYNC; E2E offline reload | verified |
 | §2.5 | Local-first save, refresh persistence, live local calculation | `RecipeEditor.tsx` | E2E offline journey | verified |
 | §2.5 | Storage persistence request; export unsynced drafts | `requestPersistentStorage`, You screen | none automated | implemented-unverified |
@@ -35,7 +37,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.6 | Versioned batch sync, bounded ops, UUID idempotency, per-op status, cursor pull, tombstones | `modules/sync.ts`, `contracts` | API "batch sync protocol 1" (6 tests) | verified |
 | §2.6 | Coalesce edits; sync on resume/reconnect/debounce/Sync now | `sync.ts`, `store.tsx` | SYNC coalescing; E2E reconnect | verified |
 | §2.6 | Conflict UI: keep local / cloud / both, no silent overwrite | `RecipeEditor.tsx` ConflictBanner | SYNC; E2E two-device conflict | verified (keep both via UI; keep mine/cloud unit-tested) |
-| §2.6 | Planned meals and consumption events | — | — | not-started (next slice) |
+| §2.6 | Planned meals (versioned, conflict UI) and immutable, idempotent consumption events with server nutrition snapshots; never coalesced; retractable with tombstones | `003_meals.sql`, `modules/meals.ts`, `modules/sync.ts`, `sync.ts`, `GET /v1/meals` | API "planned and eaten meals" (9 tests); SYNC "meals" (4 tests); E2E meals journey incl. offline | verified |
 | §2.7 | Recommendations, evidence claim registry, nutrient education | — | — | not-started |
 | §2.8 | BYOK AI companion, image generation | — | — | not-started (later) |
 | §2.9 | Recipe share links | — | — | not-started |
@@ -48,7 +50,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §4 | UUIDs, versions, indexes, FKs, safe migrations | `001_auth.sql`, `002_catalog_recipes_sync.sql`, migration hash check | API suite runs on a fresh schema | verified |
 | §5 | XSS: names stored as text, rendered escaped | React escaping | API "stores markup as plain text" | implemented-unverified (no browser XSS test yet) |
 | §5 | Secret scanning in CI, keys never in bundles | `.github/workflows/ci.yml` (gitleaks), `PUBLIC_` prefix only | CI pending first run | implemented-unverified |
-| §6 | Four destinations, bottom nav / desktop rail, sync status words | `ui/App.tsx`, `SyncChip` | E2E screenshots desktop + mobile | verified |
+| §6 | Four destinations, bottom nav / desktop rail, sync status words; redesign from the Claude Design canvas (Plus Jakarta Sans, self-hosted, OFL) | `ui/App.tsx`, `styles.css`, `SyncChip` | E2E screenshots desktop + mobile, reviewed 2026-10-19 | verified |
 | §6 | Brand colors, 44px targets, Estimated cue, not-reported ≠ 0 | `styles.css`, Nutrition panel | Screenshots reviewed (M1) | verified (visual review) |
 | §6 | WCAG 2.2 AA audit, Spanish-ready strings | — | — | not-started |
 | §6 | Real food photography | — | — | blocked (licenses, preflight P5) |

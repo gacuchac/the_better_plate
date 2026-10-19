@@ -2,3 +2,6 @@ export * from "./types.ts";
 export * from "./units.ts";
 export * from "./calculate.ts";
 export * from "./search.ts";
+export * from "./meals.ts";
+export * from "./daily-values.ts";
+export * from "./safety.ts";

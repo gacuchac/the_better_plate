@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiRequestError, NetworkError } from "../api.ts";
 import { useApp } from "../store.tsx";
+import { Icon } from "./icons.tsx";
 
 export function SignIn() {
   const { setAccount, online } = useApp();
@@ -73,9 +74,13 @@ export function SignIn() {
   return (
     <main className="signin">
       <div className="signin-card">
+        <div className="signin-hero" aria-hidden="true">
+          <Icon name="pan" size={72} />
+        </div>
+        <div className="signin-body">
         <p className="eyebrow">The Better Plate</p>
-        <h1>Your kitchen, with you everywhere</h1>
-        <p className="lede">Save recipes on this device, cook with clear steps, and see nutrition estimates traced to USDA data.</p>
+        <h1>Cook what you love, know what's in it</h1>
+        <p className="lede">Recipes saved on your phone, clear cooking steps, and nutrition estimates traced to USDA data.</p>
         {step === "email" && google && (
           <>
             <button className="btn-google" type="button" onClick={() => void continueWithGoogle()} disabled={busy || !online}>
@@ -87,14 +92,11 @@ export function SignIn() {
               </svg>
               Continue with Google
             </button>
-            <p className="divider" aria-hidden="true">
-              <span>or</span>
-            </p>
           </>
         )}
         {step === "email" ? (
           <form onSubmit={sendCode}>
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{google ? "Or use your email" : "Email"}</label>
             <input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
             <button className="btn-primary" type="submit" disabled={busy || !online}>
               {busy ? "Sending…" : "Email me a sign-in code"}
@@ -128,7 +130,8 @@ export function SignIn() {
             {error}
           </p>
         )}
-        <p className="fine">For adults. Estimates are educational, not medical advice. We store your email and the meals you choose to save.</p>
+        <p className="fine">For adults. Estimates are educational, not medical advice. We keep your email and the meals you choose to save.</p>
+        </div>
       </div>
     </main>
   );

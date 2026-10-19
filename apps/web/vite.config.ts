@@ -34,7 +34,7 @@ export default defineConfig({
       },
       workbox: {
         // App shell only. Personal data lives in IndexedDB, never in the service worker cache.
-        globPatterns: ["**/*.{js,css,html,svg,webmanifest}"],
+        globPatterns: ["**/*.{js,css,html,svg,webmanifest,woff2}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/v1\//],
         runtimeCaching: [],

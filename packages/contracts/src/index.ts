@@ -49,6 +49,50 @@ export const RecipeSchema = RecipeBodySchema.extend({
   nutrition: RecipeNutritionSchema.nullable(),
 });
 
+// ---------- meals: plans and eaten logs are separate records ----------
+
+export const MealSlotSchema = z.enum(["breakfast", "lunch", "dinner", "snack"]);
+/** Calendar day in the person's own time zone when they planned or ate; history never shifts when they travel. */
+export const LocalDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
+
+export const PlannedMealBodySchema = z.object({
+  date: LocalDateSchema,
+  slot: MealSlotSchema,
+  recipeId: z.uuid(),
+  /** Recipe title when planned, so the plan stays readable if the recipe is renamed or deleted. */
+  title: trimmed(120).min(1),
+  servings: z.number().positive().max(100),
+});
+
+export const PlannedMealSchema = PlannedMealBodySchema.extend({
+  id: z.uuid(),
+  version: z.number().int().positive(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const MealLogBodySchema = z.object({
+  /** The plan this fulfils, if any. A plan never counts as eaten by itself. */
+  plannedMealId: z.uuid().nullable(),
+  recipeId: z.uuid().nullable(),
+  /** Snapshot of the recipe as eaten; the server recomputes nutrition from catalog records. */
+  recipe: RecipeBodySchema.pick({ title: true, servings: true, ingredients: true }),
+  /** Servings eaten (may be fractional). */
+  servings: z.number().positive().max(100),
+  slot: MealSlotSchema,
+  localDate: LocalDateSchema,
+  eatenAt: z.iso.datetime({ offset: true }),
+});
+
+export const MealLogSchema = MealLogBodySchema.extend({
+  id: z.uuid(),
+  createdAt: z.string(),
+  /** Immutable nutrition snapshot of the recipe at logging time. */
+  nutrition: RecipeNutritionSchema,
+  /** perServing × servings eaten; partial and unknown statuses carry through. */
+  eaten: z.array(NutrientTotalSchema),
+});
+
 export const SyncOperationSchema = z.discriminatedUnion("type", [
   z.object({
     opId: z.uuid(),
@@ -63,6 +107,31 @@ export const SyncOperationSchema = z.discriminatedUnion("type", [
     type: z.literal("recipe.delete"),
     entityId: z.uuid(),
     baseVersion: z.number().int().positive().nullable(),
+  }),
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("plan.put"),
+    entityId: z.uuid(),
+    baseVersion: z.number().int().positive().nullable(),
+    body: PlannedMealBodySchema,
+  }),
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("plan.delete"),
+    entityId: z.uuid(),
+    baseVersion: z.number().int().positive().nullable(),
+  }),
+  /** Create-only: a log is never edited, only retracted. Separate logs are never coalesced. */
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("log.create"),
+    entityId: z.uuid(),
+    body: MealLogBodySchema,
+  }),
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("log.delete"),
+    entityId: z.uuid(),
   }),
 ]);
 
@@ -81,6 +150,8 @@ export const SyncResultSchema = z.object({
   version: z.number().int().nullable(),
   /** Current server copy on conflict (null if the server copy is deleted). */
   server: RecipeSchema.nullable().optional(),
+  /** Current server copy of a planned meal on conflict (null if deleted). */
+  serverPlannedMeal: PlannedMealSchema.nullable().optional(),
   error: z.object({ code: z.string(), message: z.string() }).optional(),
 });
 
@@ -90,11 +161,13 @@ export const SyncBatchResponseSchema = z.object({
 });
 
 export const SyncChangeSchema = z.object({
-  entity: z.literal("recipe"),
+  entity: z.enum(["recipe", "planned_meal", "meal_log"]),
   entityId: z.uuid(),
   seq: z.string(),
   deleted: z.boolean(),
   recipe: RecipeSchema.nullable(),
+  plannedMeal: PlannedMealSchema.nullable().optional(),
+  mealLog: MealLogSchema.nullable().optional(),
 });
 
 export const SyncChangesResponseSchema = z.object({
@@ -116,6 +189,11 @@ export type RecipeIngredientInput = z.infer<typeof RecipeIngredientSchema>;
 export type RecipeBody = z.infer<typeof RecipeBodySchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type RecipeNutritionDto = z.infer<typeof RecipeNutritionSchema>;
+export type MealSlot = z.infer<typeof MealSlotSchema>;
+export type PlannedMealBody = z.infer<typeof PlannedMealBodySchema>;
+export type PlannedMeal = z.infer<typeof PlannedMealSchema>;
+export type MealLogBody = z.infer<typeof MealLogBodySchema>;
+export type MealLog = z.infer<typeof MealLogSchema>;
 export type SyncOperation = z.infer<typeof SyncOperationSchema>;
 export type SyncBatchRequest = z.infer<typeof SyncBatchRequestSchema>;
 export type SyncResult = z.infer<typeof SyncResultSchema>;

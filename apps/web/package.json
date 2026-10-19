@@ -13,6 +13,7 @@
   "dependencies": {
     "@betterplate/contracts": "workspace:*",
     "@betterplate/nutrition": "workspace:*",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "idb": "^8.0.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
