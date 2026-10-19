@@ -5,7 +5,8 @@
 |---|---|---|---|---|
 | M1 Thin local proof | 2026-10-19 | VERIFIED COMPLETE (local pass); hosted pass BLOCKED | `artifacts/qa/m1-thin-proof/20261019T140225Z-781e2e5/local/` (regenerate with `pnpm verify`) | branch `claude/project-thread-3kabdi`, PR into `dev` |
 | M1.5 Cloud dev, Google sign-in, full SR Legacy | 2026-10-19 | VERIFIED COMPLETE on cloud dev (hosted check green) | Hosted check runs 39276752574, 39286951173 | PRs #4–#6, `dev` d56773f |
-| M2 Pilot features: meals, cook mode, report issue, redesign | 2026-10-19 | VERIFIED COMPLETE locally; hosted check on each dev deploy | `artifacts/qa/m2-pilot/<run-id>/local/` (regenerate with `pnpm verify`) | PR #7 (`dev` 2556ce9) and the report-issue PR |
+| M2 Pilot features: meals, cook mode, report issue, redesign | 2026-10-19 | VERIFIED COMPLETE locally; hosted check green on dev | `artifacts/qa/m2-pilot/<run-id>/local/` (regenerate with `pnpm verify`) | PRs #7, #8 (`dev` b556b71) |
+| M3 Pilot hardening: share links, data export, accessibility, search, storage recovery, privacy consent, maintenance | 2026-10-19 | VERIFIED COMPLETE locally; hosted check green on dev for PRs #9–#11 | `artifacts/qa/m2-pilot/<run-id>/local/` | PRs #9–#12 |
 
 ---
 
@@ -42,3 +43,22 @@
 5. **Defects and limitations:** curated method guides and retention/yield factors not started (no sourced data, nothing generated); no admin triage UI for reports; no food photography (P5); privacy notice/consent versions not built (P3); search ranks some generic words oddly ("milk" shows sheep milk first).
 6. **Plan changes:** ADR-004 (meals, % DV, cook mode). Evidence folder renamed to `m2-pilot`.
 7. **Next:** release hardening (accessibility audit, backup/restore drill on dev, sync ledger pruning, search aliases), recipe share links, then production readiness once the owner approves P3/S5 and production spend.
+
+---
+
+## M3 Pilot hardening (2026-10-19)
+
+1. **Status:** VERIFIED COMPLETE for the local pass; PRs #9–#11 deployed to Railway dev with the hosted check green (run 39296284845 for share links). Production: not deployed.
+2. **Delivered:**
+   - Revocable recipe share links: owner reviews exactly what is shared (method opt-in, optional expiry), snapshot frozen at the shared version, no owner identity, revoke erases the snapshot, deleting a recipe ends its links, escaped `/s/{id}` link preview, guest page, "Save a copy"; migration `005_shares.sql`.
+   - "Download all my data": `GET /v1/me/export` with account, linked sign-ins, sessions, recipes with every revision, meals, share links, issue reports and privacy consents.
+   - Automated WCAG 2.2 AA audit (axe-core) over the main screens and sheets on desktop and mobile; sheets manage keyboard focus; pickers are plain lists of buttons.
+   - Search: everyday USDA entries first on whole-word matches ("milk", "steak", "egg"), checked against the catalog; regional synonyms.
+   - Storage: eviction detected and explained, synced data restored; out-of-space saves explained with "Download unsynced changes"; storage use on You.
+   - Versioned plain-language privacy notice (draft, no legal review) with append-only consent events and adult confirmation; migration `006_privacy_consent.sql`.
+   - Daily maintenance: sync idempotency records kept 30 days, expired sessions deleted; migration `007_maintenance_indexes.sql`.
+3. **Verification:** `pnpm test`: nutrition 34, web 10, API 56 pass; `pnpm e2e`: 26/26 Playwright (13 journeys × desktop, mobile) including share links, eviction/out-of-space and the accessibility audit; screenshots inspected. Not run: manual screen-reader pass, backup/restore drill.
+4. **Deployment:** Railway dev, autodeployed from `dev`. Chef flag off. Production untouched.
+5. **Defects and limitations:** privacy notice needs legal review before public launch (P3); curated method guides and retention/yield factors not started (no sourced data); no admin triage UI; no food photography (P5); brand names in mixed case (e.g. "Pillsbury …") are not detected as brands in search.
+6. **Plan changes:** none beyond the ledger; share snapshots carry nutrient display names so the guest page needs no catalog download.
+7. **Next:** backup/restore drill on dev (needs Railway backup settings, possibly paid), admin triage with MFA, Spanish-ready strings, then production readiness once the owner approves P3, S5 and production spend.

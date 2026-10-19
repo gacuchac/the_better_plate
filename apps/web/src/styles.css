@@ -411,3 +411,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .public-cta > * { width: 100%; max-width: 360px; }
 @media (min-width: 900px) { .shared-grid { grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr); align-items: start; } }
 .sheet:focus { outline: none; }
+
+/* ---------- privacy notice and consent ---------- */
+.notice { max-width: 680px; }
+.notice h1 { margin-bottom: 8px; }
+.notice-section { margin-top: 20px; }
+.notice-section h2 { margin-bottom: 6px; }
+.notice-section p { margin: 0; line-height: 1.6; color: var(--ink-2); }
+.consent-check { margin-top: 20px; }
+.consent-actions { display: grid; gap: 8px; margin-top: 12px; max-width: 360px; }

@@ -130,7 +130,9 @@ export function SignIn() {
             {error}
           </p>
         )}
-        <p className="fine">For adults. Estimates are educational, not medical advice. We keep your email and the meals you choose to save.</p>
+        <p className="fine">
+          For adults. Estimates are educational, not medical advice. We keep your email and the meals you choose to save. <a href="#/privacy">How we handle your data</a>
+        </p>
         </div>
       </div>
     </main>
