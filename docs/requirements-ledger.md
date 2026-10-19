@@ -58,4 +58,5 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §6 | WCAG 2.2 AA automated audit (axe-core, wcag2a/aa, 2.1, 2.2 tags) on 15 screens and sheets, desktop and mobile; sheets move focus in, trap Tab, return focus on Escape | `e2e/a11y.spec.ts`, `ui/common.tsx` Sheet | E2E "core screens have no automatically detectable WCAG 2.2 AA violations" | verified (automated rules only; manual screen-reader pass not done) |
 | §6 | Spanish-ready strings | — | — | not-started |
 | §6 | Real food photography | — | — | blocked (licenses, preflight P5) |
-| §7 | Deployment, backups, restore drill, monitoring | — | — | blocked (Railway approval, preflight S1–S4) |
+| §7 | Restore drill: dump, restore to scratch, verify migrations, counts and checksums | `scripts/restore-drill.sh`, `docs/deploy-and-restore.md` | Local drill against the E2E database passed (report in `artifacts/qa/restore-drill/`) | implemented-unverified for hosted (needs a run against Railway dev; production needs approval) |
+| §7 | Production deployment, scheduled backups, monitoring and alerts | — | — | blocked (owner approval and spend, preflight S1–S4, P9) |

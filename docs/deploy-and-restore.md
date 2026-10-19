@@ -34,5 +34,8 @@ Then: hosted pass of the two-pass gate (same Playwright suite against the dev UR
 ## Operations
 - Migrations are forward-only and must stay compatible with the previous release for rollback.
 - Rollback: redeploy the previous deployment in Railway; no down-migrations.
-- Backups: Railway PostgreSQL backups; restore drill required before production (preflight P9).
+- Backups: Railway PostgreSQL backups (enabling scheduled backups may cost money; owner decision, preflight P9) plus logical dumps.
+- Restore drill: `scripts/restore-drill.sh` dumps a database with `pg_dump`, restores it into a scratch database, and fails unless migrations, catalog version, row counts of every personal table, content checksums of recipes and eaten meals, and the change sequence all match. The dump lives only in a private temporary folder that is deleted afterwards; a JSON report goes to `artifacts/qa/restore-drill/`.
+  - Local: `SOURCE_DATABASE_URL=postgres://betterplate:betterplate@localhost:5432/betterplate_e2e bash scripts/restore-drill.sh` passed on 2026-10-19 (26 users, 22 recipes, 6 eaten meals; dump 0.7 MB, total 1 s).
+  - Railway dev: run the same script from a machine where the dev database's public connection URL is available (Railway → Postgres → Connect, or `railway connect`), with `SOURCE_DATABASE_URL` set to it and `DRILL_ADMIN_URL` pointing at a local PostgreSQL so the scratch copy is local. Not run yet: this session cannot reach Railway's database. Production drills need owner approval because the dump holds personal data.
 - Secret rotation: `SESSION_SECRET` rotation signs users out; `USDA_FDC_API_KEY` rotate at api.data.gov and update Railway variables; email keys rotate at the provider; the Google client secret rotates in Google Cloud console (add the new secret, update Railway, then delete the old one).
