@@ -5,7 +5,8 @@ import { shot, waitForServiceWorker } from "../e2e/helpers.ts";
 
 test("health, catalog and server-side guards", async ({ request }) => {
   expect((await request.get("/v1/health/live")).status()).toBe(200);
-  expect((await request.get("/v1/health/ready")).status()).toBe(200);
+  const ready = await request.get("/v1/health/ready");
+  expect(ready.status(), `readiness: ${await ready.text()}`).toBe(200);
 
   const manifest = await (await request.get("/v1/catalog/manifest")).json();
   expect(manifest.foodCount).toBe(149);
