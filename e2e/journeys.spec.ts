@@ -269,6 +269,7 @@ test("plan a meal, mark it eaten, and see plans kept apart from what was eaten",
   await shot(page, info, "meals-day-nutrients", "Day nutrients in grams, no percentages until targets are set");
   await sheet.getByRole("link", { name: "Set targets" }).click();
   await expect(page.getByRole("heading", { name: "Daily targets" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Dietary Guidelines for Americans, 2025–2030" })).toHaveAttribute("href", "https://realfood.gov");
   await page.getByLabel("Protein", { exact: true }).fill("155");
   await page.getByLabel("Fiber", { exact: true }).fill("-3");
   await expect(page.getByRole("alert")).toContainText("Use a number above zero");

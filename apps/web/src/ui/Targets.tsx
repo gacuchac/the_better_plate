@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApp } from "../store.tsx";
 import { clearTargets, saveTargets, useTargets } from "../targets.ts";
+import { DIETARY_GUIDELINES_SOURCE } from "@betterplate/nutrition";
 import { nutrientName, useT } from "../i18n.ts";
 import { EmptyState } from "./common.tsx";
 
@@ -45,6 +46,13 @@ export function Targets() {
         </div>
       </header>
       <p className="hint">{t("targets.intro")}</p>
+      <p className="hint" data-testid="guidelines-link">
+        {t("targets.guideBefore")}{" "}
+        <a href={DIETARY_GUIDELINES_SOURCE.url} target="_blank" rel="noopener noreferrer">
+          {t("targets.guideLink")}
+        </a>{" "}
+        {t("targets.guideAfter", { released: DIETARY_GUIDELINES_SOURCE.releasedAt })}
+      </p>
       <ul className="target-list">
         {defs.map((d) => (
           <li key={d.key} className="target-row">
