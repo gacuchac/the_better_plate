@@ -4,8 +4,11 @@ import { requestId } from "hono/request-id";
 import { secureHeaders } from "hono/secure-headers";
 import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { auth } from "./auth.ts";
-import { config } from "./config.ts";
+import { REPO_ROOT, config } from "./config.ts";
 import { ApiError, type AppEnv, csrfMiddleware, errorBody, sessionMiddleware } from "./lib/http.ts";
 import { accountRoutes, devRoutes, healthRoutes } from "./modules/account.ts";
 import { catalogRoutes } from "./modules/catalog.ts";
@@ -67,6 +70,21 @@ export function createApp() {
   app.route("/", devRoutes);
 
   app.doc31("/v1/openapi.json", openApiInfo);
+
+  // Single-service hosting (ADR-001): the API also serves the built PWA from the same origin,
+  // so session cookies stay first-party. Locally the web app runs on its own port instead.
+  if (config.serveWeb) {
+    const root = path.relative(process.cwd(), path.join(REPO_ROOT, "apps/web/dist"));
+    if (!existsSync(path.join(root, "index.html"))) throw new Error("SERVE_WEB=true but apps/web/dist is not built");
+    app.use("*", async (c, next) => {
+      if (c.req.path.startsWith("/v1/")) return next();
+      await next();
+      // Hashed assets never change; everything else (index.html, sw.js, manifest) must revalidate.
+      c.header("Cache-Control", c.req.path.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "no-cache");
+    });
+    app.use("*", async (c, next) => (c.req.path.startsWith("/v1/") ? next() : serveStatic({ root })(c, next)));
+    app.get("*", async (c, next) => (c.req.path.startsWith("/v1/") ? next() : serveStatic({ root, path: "index.html" })(c, next)));
+  }
 
   app.notFound((c) => c.json(errorBody(c, "not_found", "Not found"), 404));
   app.onError((err, c) => {

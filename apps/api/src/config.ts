@@ -48,6 +48,12 @@ function loadConfig() {
   if (Buffer.byteLength(sessionSecret) < 32) throw new Error("SESSION_SECRET must be at least 32 bytes");
   if (!isLocal && !publicApiUrl.startsWith("https://")) throw new Error("PUBLIC_API_URL must use https outside local");
 
+  if (!["", "resend", "brevo"].includes(process.env.EMAIL_PROVIDER ?? "")) throw new Error("EMAIL_PROVIDER must be resend or brevo");
+  if (!isLocal && !(process.env.EMAIL_PROVIDER && process.env.EMAIL_PROVIDER_API_KEY && process.env.AUTH_EMAIL_FROM)) {
+    // Boots so health checks work, but sign-in codes cannot be sent until email is configured.
+    console.warn(JSON.stringify({ level: "warning", msg: "email not configured: set EMAIL_PROVIDER, EMAIL_PROVIDER_API_KEY and AUTH_EMAIL_FROM" }));
+  }
+
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
 
@@ -65,6 +71,8 @@ function loadConfig() {
     usdaBaseUrl: process.env.USDA_FDC_API_BASE_URL ?? "https://api.nal.usda.gov/fdc/v1",
     emailFrom: process.env.AUTH_EMAIL_FROM ?? "The Better Plate <no-reply@localhost>",
     emailProviderKey: process.env.EMAIL_PROVIDER_API_KEY ?? "",
+    serveWeb: process.env.SERVE_WEB === "true",
+    emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
     features: { chef: chefEnabled, aiCompanion: process.env.FEATURE_AI_COMPANION_ENABLED === "true" },
     /** Relaxed limits for automated local/test runs only. */
     rateLimitMultiplier: isLocal ? Number(process.env.RATE_LIMIT_MULTIPLIER ?? 10) : 1,

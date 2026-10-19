@@ -18,6 +18,28 @@ export function devOutbox(email?: string): OutgoingEmail[] {
   return [...all].reverse();
 }
 
+/** Splits "Name <address>" into its parts; a bare address has no name. */
+export function parseSender(from: string): { name?: string; email: string } {
+  const match = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(from);
+  return match ? { name: match[1] || undefined, email: match[2]! } : { email: from.trim() };
+}
+
+/** Builds the provider HTTPS request. Both providers are send-only HTTP APIs (no SMTP). */
+export function providerRequest(provider: "resend" | "brevo", apiKey: string, from: string, message: Omit<OutgoingEmail, "sentAt">): { url: string; headers: Record<string, string>; body: unknown } {
+  if (provider === "resend") {
+    return {
+      url: "https://api.resend.com/emails",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: { from, to: [message.to], subject: message.subject, text: message.text },
+    };
+  }
+  return {
+    url: "https://api.brevo.com/v3/smtp/email",
+    headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
+    body: { sender: parseSender(from), to: [{ email: message.to }], subject: message.subject, textContent: message.text },
+  };
+}
+
 export async function sendEmail(message: Omit<OutgoingEmail, "sentAt">): Promise<void> {
   if (config.isLocal) {
     outbox.push({ ...message, sentAt: new Date().toISOString() });
@@ -25,6 +47,11 @@ export async function sendEmail(message: Omit<OutgoingEmail, "sentAt">): Promise
     if (config.appEnv === "local") console.info(`[mail] to=${message.to} subject="${message.subject}"\n${message.text}`);
     return;
   }
-  // Transactional email provider is chosen in ADR-002 and needs owner setup (preflight S5).
-  throw new Error("No email provider configured for this environment (preflight S5)");
+  if (!config.emailProvider || !config.emailProviderKey) throw new Error("No email provider configured for this environment (preflight S5)");
+  const req = providerRequest(config.emailProvider, config.emailProviderKey, config.emailFrom, message);
+  const res = await fetch(req.url, { method: "POST", headers: req.headers, body: JSON.stringify(req.body), signal: AbortSignal.timeout(10_000) });
+  if (!res.ok) {
+    // Status only: provider error bodies can echo the recipient address.
+    throw new Error(`email provider ${config.emailProvider} returned ${res.status}`);
+  }
 }
