@@ -19,6 +19,7 @@ import { sharePageRoutes, shareRoutes } from "./modules/shares.ts";
 import { syncRoutes } from "./modules/sync.ts";
 import { aiRoutes, MAX_TURN_BYTES } from "./modules/ai/routes.ts";
 import { imageRoutes } from "./modules/images.ts";
+import { connectorRoutes } from "./modules/connector.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -59,7 +60,11 @@ export function createApp() {
     }
   });
 
-  // Better Auth owns /v1/auth/* (email one-time codes, sessions, sign-out).
+  // Claude/ChatGPT connector: MCP endpoint, OAuth discovery documents, and the flag gate for
+  // the OAuth provider's /v1/auth/oauth2/* routes (ADR-007). Before Better Auth's handler.
+  app.route("/", connectorRoutes);
+
+  // Better Auth owns /v1/auth/* (email one-time codes, sessions, sign-out, connector sign-in).
   app.on(["GET", "POST"], "/v1/auth/*", async (c) => {
     // Post-sign-in redirects may only return to our own app (no open redirect via the OAuth flow).
     if (c.req.method === "POST" && c.req.path === "/v1/auth/sign-in/social") {

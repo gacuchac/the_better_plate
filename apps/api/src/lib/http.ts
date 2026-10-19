@@ -13,6 +13,8 @@ export type AppEnv = {
   Variables: {
     requestId: string;
     user: AuthUser | null;
+    /** Set on connector (MCP) requests after the access token is verified. */
+    connector?: { userId: string; clientId: string; scopes: Set<string> };
   };
 };
 
