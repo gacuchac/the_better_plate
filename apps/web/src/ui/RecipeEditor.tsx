@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { RecipeBodySchema, type RecipeBody, type RecipeIngredientInput } from "@betterplate/contracts";
-import { calculateRecipe, formatAmount, type FoodRecord } from "@betterplate/nutrition";
+import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp } from "../store.tsx";
 import { EmptyState, navigate, Sheet } from "./common.tsx";
@@ -9,12 +9,13 @@ import { Icon } from "./icons.tsx";
 import { LogSheet, PlanSheet } from "./MealSheets.tsx";
 import { NutritionPanel } from "./Nutrition.tsx";
 import { ShareSheet } from "./Share.tsx";
+import { formatQty, useT, type MessageKey } from "../i18n.ts";
 
-const MACROS = [
-  { key: "energy_kcal", label: "kcal" },
-  { key: "protein", label: "Protein" },
-  { key: "carbohydrate", label: "Carbs" },
-  { key: "fat_total", label: "Fat" },
+export const MACROS: { key: string; label: MessageKey }[] = [
+  { key: "energy_kcal", label: "macro.kcal" },
+  { key: "protein", label: "macro.protein" },
+  { key: "carbohydrate", label: "macro.carbs" },
+  { key: "fat_total", label: "macro.fat" },
 ];
 
 const blank = (): RecipeBody => ({ title: "", servings: 2, ingredients: [], method: "" });
@@ -25,6 +26,7 @@ function unitValue(i: RecipeIngredientInput) {
 
 export function RecipeEditor({ id }: { id: string }) {
   const { engine, catalog, online } = useApp();
+  const t = useT();
   const [loaded, setLoaded] = useState<LocalRecipe | null | undefined>(undefined);
   const [draft, setDraft] = useState<RecipeBody>(blank);
   const [dirty, setDirty] = useState(false);
@@ -50,8 +52,8 @@ export function RecipeEditor({ id }: { id: string }) {
   // Live, local and deterministic: no network call per keystroke.
   const nutrition = useMemo(() => calculateRecipe(draft, foods, nutrients), [draft, foods, nutrients]);
 
-  if (!engine || catalog.status === "loading" || loaded === undefined) return <p className="hint pad">Loading…</p>;
-  if (catalog.status === "unavailable") return <EmptyState title="Food list not on this device yet">{catalog.message}</EmptyState>;
+  if (!engine || catalog.status === "loading" || loaded === undefined) return <p className="hint pad">{t("common.loading")}</p>;
+  if (catalog.status === "unavailable") return <EmptyState title={t("catalog.notOnDevice")}>{t("catalog.unavailable")}</EmptyState>;
 
   const update = (patch: Partial<RecipeBody>) => {
     setDraft((d) => ({ ...d, ...patch }));
@@ -86,17 +88,18 @@ export function RecipeEditor({ id }: { id: string }) {
   async function save() {
     const parsed = RecipeBodySchema.safeParse({ ...draft, title: draft.title.trim() });
     if (!parsed.success) {
-      setErrors(parsed.error.issues.map((i) => i.message));
+      // Messages by field, so they read in the interface language.
+      setErrors([...new Set(parsed.error.issues.map((i) => t(i.path[0] === "title" ? "editor.errTitle" : i.path[0] === "servings" ? "editor.errServings" : "editor.errOther")))]);
       return;
     }
     setErrors([]);
     await engine!.saveRecipe(id, parsed.data);
     setDirty(false);
-    setMessage(online ? "Saved on this device. Syncing…" : "Saved on this device. It will sync when you're online.");
+    setMessage(online ? t("editor.savedSyncing") : t("editor.savedOffline"));
   }
 
   async function remove() {
-    if (!confirm("Delete this recipe? This removes it from all your devices after it syncs.")) return;
+    if (!confirm(t("editor.deleteConfirm"))) return;
     await engine!.deleteRecipe(id);
     navigate("/kitchen");
   }
@@ -106,24 +109,24 @@ export function RecipeEditor({ id }: { id: string }) {
       {loaded?.state === "conflict" && <ConflictBanner id={id} local={loaded} onResolved={() => setDirty(false)} />}
       {loaded?.state === "rejected" && (
         <p className="banner banner-warn" role="alert">
-          The server couldn't accept this version: {loaded.rejection}. Edit and save again.
+          {t("editor.rejected", { reason: loaded.rejection ?? "" })}
         </p>
       )}
       <div className="editor-grid">
-        <section className="editor-main" aria-label="Recipe">
+        <section className="editor-main" aria-label={t("editor.region")}>
           <label htmlFor="title" className="sr-only">
-            Recipe name
+            {t("editor.name")}
           </label>
-          <input id="title" className="title-input" value={draft.title} placeholder="Name your recipe" onChange={(e) => update({ title: e.target.value })} />
+          <input id="title" className="title-input" value={draft.title} placeholder={t("editor.namePlaceholder")} onChange={(e) => update({ title: e.target.value })} />
 
           <div className="stepper-row">
-            <label htmlFor="servings">Servings</label>
+            <label htmlFor="servings">{t("editor.servings")}</label>
             <div className="stepper">
-              <button type="button" aria-label="One serving fewer" onClick={() => update({ servings: Math.max(1, Math.ceil(draft.servings) - 1) })}>
+              <button type="button" aria-label={t("editor.fewer")} onClick={() => update({ servings: Math.max(1, Math.ceil(draft.servings) - 1) })}>
                 −
               </button>
               <input id="servings" type="number" min={0.25} step={0.25} inputMode="decimal" value={draft.servings} onChange={(e) => update({ servings: Number(e.target.value) })} />
-              <button type="button" aria-label="One serving more" onClick={() => update({ servings: Math.floor(draft.servings) + 1 })}>
+              <button type="button" aria-label={t("editor.more")} onClick={() => update({ servings: Math.floor(draft.servings) + 1 })}>
                 +
               </button>
             </div>
@@ -133,18 +136,18 @@ export function RecipeEditor({ id }: { id: string }) {
             <a className="card summary-card" href="#nutrition" onClick={(e) => { e.preventDefault(); document.getElementById("nutrition")?.scrollIntoView({ behavior: "smooth" }); }} data-testid="nutrition-summary">
               <span className="card-head" style={{ marginBottom: 0 }}>
                 <span className="hint" style={{ margin: 0 }}>
-                  Per serving · <span className="estimated">Estimated</span>
+                  {t("nutrition.perServing")} · <span className="estimated">{t("common.estimated")}</span>
                 </span>
-                <span style={{ fontSize: "0.8125rem", fontWeight: 650, color: "var(--sage-ink)" }}>Details and sources</span>
+                <span style={{ fontSize: "0.8125rem", fontWeight: 650, color: "var(--sage-ink)" }}>{t("editor.detailsSources")}</span>
               </span>
               <span className="macro-grid">
                 {MACROS.map((m) => {
-                  const t = nutrition.perServing.find((x) => x.key === m.key);
-                  const v = !t || t.amount === null ? "–" : t.unit === "kcal" ? Math.round(t.amount).toString() : formatAmount(t.amount, t.unit);
+                  const total = nutrition.perServing.find((x) => x.key === m.key);
+                  const v = !total || total.amount === null ? "–" : total.unit === "kcal" ? Math.round(total.amount).toString() : formatQty(total.amount, total.unit);
                   return (
                     <span key={m.key}>
-                      <span className="macro-value" style={{ display: "block" }}>{t?.status === "partial" ? `≥ ${v}` : v}</span>
-                      <span className="macro-label">{m.label}</span>
+                      <span className="macro-value" style={{ display: "block" }}>{total?.status === "partial" ? `≥ ${v}` : v}</span>
+                      <span className="macro-label">{t(m.label)}</span>
                     </span>
                   );
                 })}
@@ -153,21 +156,21 @@ export function RecipeEditor({ id }: { id: string }) {
           )}
 
           <div className="section-head">
-            <h2>Ingredients</h2>
+            <h2>{t("editor.ingredients")}</h2>
             <button type="button" className="btn-soft" onClick={() => setPicking(true)}>
-              <Icon name="plus" size={18} /> Add ingredient
+              <Icon name="plus" size={18} /> {t("editor.addIngredient")}
             </button>
           </div>
-          {draft.ingredients.length === 0 && <p className="hint">Add foods from the USDA list saved on this device.</p>}
+          {draft.ingredients.length === 0 && <p className="hint">{t("editor.addHint")}</p>}
           <ul className="ingredients">
             {draft.ingredients.map((ing) => {
               const food = foods.get(ing.foodId);
               return (
                 <li key={ing.id} className="ingredient" data-testid="ingredient-row">
-                  <div className="ingredient-name">{food?.description ?? `${ing.foodId} (not on this device)`}</div>
+                  <div className="ingredient-name">{food?.description ?? t("editor.foodMissing", { id: ing.foodId })}</div>
                   <div className="ingredient-controls">
                     <label className="sr-only" htmlFor={`q-${ing.id}`}>
-                      Amount
+                      {t("editor.amount")}
                     </label>
                     <input
                       id={`q-${ing.id}`}
@@ -179,7 +182,7 @@ export function RecipeEditor({ id }: { id: string }) {
                       onChange={(e) => updateIngredient(ing.id, { quantity: Number(e.target.value) })}
                     />
                     <label className="sr-only" htmlFor={`u-${ing.id}`}>
-                      Unit
+                      {t("editor.unit")}
                     </label>
                     <select
                       id={`u-${ing.id}`}
@@ -200,7 +203,7 @@ export function RecipeEditor({ id }: { id: string }) {
                         </option>
                       ))}
                     </select>
-                    <button type="button" className="icon-btn" aria-label={`Remove ${food?.description ?? "ingredient"}`} onClick={() => update({ ingredients: draft.ingredients.filter((i) => i.id !== ing.id) })}>
+                    <button type="button" className="icon-btn" aria-label={t("editor.remove", { name: food?.description ?? t("editor.anIngredient") })} onClick={() => update({ ingredients: draft.ingredients.filter((i) => i.id !== ing.id) })}>
                       <Icon name="close" />
                     </button>
                   </div>
@@ -210,22 +213,22 @@ export function RecipeEditor({ id }: { id: string }) {
                       checked={ing.role === "cooking_oil"}
                       onChange={(e) => updateIngredient(ing.id, { role: e.target.checked ? "cooking_oil" : "ingredient", oilDiscardedGrams: null })}
                     />
-                    Cooking oil (some may be left in the pan)
+                    {t("editor.cookingOil")}
                   </label>
                   {ing.role === "cooking_oil" && (
                     <div className="oil">
-                      <label htmlFor={`d-${ing.id}`}>Oil discarded after cooking, if measured (g)</label>
+                      <label htmlFor={`d-${ing.id}`}>{t("editor.oilDiscarded")}</label>
                       <input
                         id={`d-${ing.id}`}
                         type="number"
                         min={0}
                         step="any"
                         inputMode="decimal"
-                        placeholder="Not measured"
+                        placeholder={t("editor.notMeasured")}
                         value={ing.oilDiscardedGrams ?? ""}
                         onChange={(e) => updateIngredient(ing.id, { oilDiscardedGrams: e.target.value === "" ? null : Number(e.target.value) })}
                       />
-                      <p className="hint">Weigh what's left in the pan or drained. If you skip this, all the oil counts as eaten.</p>
+                      <p className="hint">{t("editor.oilHint")}</p>
                     </div>
                   )}
                 </li>
@@ -233,8 +236,8 @@ export function RecipeEditor({ id }: { id: string }) {
             })}
           </ul>
 
-          <label htmlFor="method">Method</label>
-          <textarea id="method" rows={5} value={draft.method} placeholder="Steps, in your own words" onChange={(e) => update({ method: e.target.value })} />
+          <label htmlFor="method">{t("editor.method")}</label>
+          <textarea id="method" rows={5} value={draft.method} placeholder={t("editor.methodPlaceholder")} onChange={(e) => update({ method: e.target.value })} />
 
           {errors.length > 0 && (
             <ul className="error" role="alert">
@@ -246,10 +249,10 @@ export function RecipeEditor({ id }: { id: string }) {
           {loaded && (
             <div className="actions">
               <button type="button" className="btn-soft" onClick={() => setSheet("share")} disabled={dirty}>
-                <Icon name="share" size={18} /> Share recipe
+                <Icon name="share" size={18} /> {t("share.title")}
               </button>
               <button type="button" className="btn-link danger" onClick={() => void remove()}>
-                Delete recipe
+                {t("editor.delete")}
               </button>
             </div>
           )}
@@ -266,21 +269,21 @@ export function RecipeEditor({ id }: { id: string }) {
       <div className={`action-bar${dirty || !loaded ? " single" : ""}`} data-testid="recipe-actions">
         {dirty || !loaded ? (
           <>
-            <span className="hint" style={{ margin: 0 }}>{dirty ? "Unsaved changes" : "New recipe"}</span>
+            <span className="hint" style={{ margin: 0 }}>{dirty ? t("editor.unsaved") : t("kitchen.newRecipe")}</span>
             <button type="button" className="btn-primary" onClick={() => void save()} disabled={!dirty && loaded !== null}>
-              Save recipe
+              {t("editor.save")}
             </button>
           </>
         ) : (
           <>
             <button type="button" className="btn-secondary" onClick={() => setSheet("plan")}>
-              Plan
+              {t("editor.plan")}
             </button>
             <button type="button" className="btn-secondary" onClick={() => setSheet("log")}>
-              I ate this
+              {t("meals.iAteThis")}
             </button>
             <a className="btn-primary" href={`#/cook/${id}`}>
-              Cook
+              {t("editor.cook")}
             </a>
           </>
         )}
@@ -289,7 +292,7 @@ export function RecipeEditor({ id }: { id: string }) {
       {sheet === "share" && loaded && <ShareSheet recipe={loaded} onClose={() => setSheet(null)} />}
       {sheet === "log" && loaded && <LogSheet recipeId={id} recipe={loaded.body} onClose={() => setSheet(null)} />}
       {picking && (
-        <Sheet title="Add ingredient" onClose={() => setPicking(false)}>
+        <Sheet title={t("editor.addIngredient")} onClose={() => setPicking(false)}>
           <FoodPicker foods={foods} online={online} onPick={addFood} />
         </Sheet>
       )}
@@ -299,6 +302,7 @@ export function RecipeEditor({ id }: { id: string }) {
 
 function ConflictBanner({ id, local, onResolved }: { id: string; local: LocalRecipe; onResolved: () => void }) {
   const { engine } = useApp();
+  const t = useT();
   const server = local.conflictServer;
   const choose = async (choice: "mine" | "cloud" | "both") => {
     const copyId = await engine!.resolveConflict(id, choice);
@@ -308,18 +312,18 @@ function ConflictBanner({ id, local, onResolved }: { id: string; local: LocalRec
   return (
     <div className="banner banner-warn" role="alert" data-testid="conflict-banner">
       <p>
-        <strong>This recipe changed on another device.</strong>{" "}
-        {server ? `The cloud copy is "${server.title}" (version ${server.version}).` : "It was deleted on another device."} Choose what to keep. Nothing is overwritten until you choose.
+        <strong>{t("conflict.title")}</strong> {server ? t("conflict.cloudCopy", { title: server.title, version: server.version }) : t("conflict.deleted")}{" "}
+        {t("conflict.choose")}
       </p>
       <div className="banner-actions">
         <button type="button" className="btn-secondary" onClick={() => void choose("mine")}>
-          Keep this device's
+          {t("conflict.keepMine")}
         </button>
         <button type="button" className="btn-secondary" onClick={() => void choose("cloud")}>
-          Keep cloud copy
+          {t("conflict.keepCloud")}
         </button>
         <button type="button" className="btn-secondary" onClick={() => void choose("both")}>
-          Keep both
+          {t("conflict.keepBoth")}
         </button>
       </div>
     </div>

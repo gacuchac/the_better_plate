@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useApp, useSyncStatus } from "../store.tsx";
 import { Icon } from "./icons.tsx";
+import { useT } from "../i18n.ts";
 
 // ---------- tiny hash router (deep-linkable, works offline from the cached shell) ----------
 
@@ -27,6 +28,7 @@ export function navigate(path: string) {
 export function SyncChip() {
   const { engine, online } = useApp();
   const status = useSyncStatus(engine);
+  const t = useT();
   const [pending, setPending] = useState(0);
   useEffect(() => {
     if (!engine) return;
@@ -37,12 +39,12 @@ export function SyncChip() {
 
   let label: string;
   let tone: "ok" | "busy" | "warn" | "muted";
-  if (status === "attention") [label, tone] = ["Needs attention", "warn"];
-  else if (status === "signed-out") [label, tone] = ["Sign in to sync", "warn"];
-  else if (status === "syncing") [label, tone] = ["Syncing", "busy"];
-  else if (!online || status === "offline") [label, tone] = [pending ? "Offline · Saved on this device" : "Offline", "muted"];
-  else if (pending || status === "saved-local") [label, tone] = ["Saved on this device", "muted"];
-  else [label, tone] = ["Synced", "ok"];
+  if (status === "attention") [label, tone] = [t("sync.attention"), "warn"];
+  else if (status === "signed-out") [label, tone] = [t("sync.signIn"), "warn"];
+  else if (status === "syncing") [label, tone] = [t("sync.syncing"), "busy"];
+  else if (!online || status === "offline") [label, tone] = [pending ? t("sync.offlineSaved") : t("sync.offline"), "muted"];
+  else if (pending || status === "saved-local") [label, tone] = [t("sync.savedLocal"), "muted"];
+  else [label, tone] = [t("sync.synced"), "ok"];
 
   return (
     <button
@@ -50,7 +52,7 @@ export function SyncChip() {
       className={`chip chip-${tone}`}
       data-testid="sync-status"
       aria-live="polite"
-      title="Sync now"
+      title={t("sync.now")}
       onClick={() => void engine?.syncNow()}
     >
       <span className="dot" aria-hidden="true" />
@@ -64,6 +66,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
 /** Modal sheet: focus moves in, Tab stays inside, Escape closes, focus returns to the opener. */
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
   const close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {
@@ -95,7 +98,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
       <div ref={ref} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <header className="sheet-head">
           <h2>{title}</h2>
-          <button type="button" className="icon-btn round" aria-label="Close" onClick={onClose}>
+          <button type="button" className="icon-btn round" aria-label={t("common.close")} onClick={onClose}>
             <Icon name="close" />
           </button>
         </header>
@@ -127,27 +130,27 @@ export function downloadJson(data: unknown, name: string) {
 /** Says plainly when the browser cleared this device's copy or ran out of space. */
 export function StorageBanner() {
   const { storageNotice, dismissStorageNotice, engine } = useApp();
+  const t = useT();
   if (!storageNotice) return null;
   return (
     <div className="banner banner-warn" role="alert" data-testid="storage-banner">
       {storageNotice === "evicted" ? (
         <p>
-          <strong>This browser cleared your kitchen from this device.</strong> Everything that had synced is coming back from your account. Changes that hadn't synced yet
-          couldn't be recovered.
+          <strong>{t("storage.evictedTitle")}</strong> {t("storage.evictedBody")}
         </p>
       ) : (
         <p>
-          <strong>This device is out of storage,</strong> so your last change couldn't be saved here. Free up some space, or download your unsynced changes to keep them, then try again.
+          <strong>{t("storage.fullTitle")}</strong> {t("storage.fullBody")}
         </p>
       )}
       <div className="banner-actions">
         {storageNotice === "full" && engine && (
           <button type="button" className="btn-secondary" onClick={() => void engine.exportUnsynced().then((d) => downloadJson(d, "better-plate-unsynced"))}>
-            Download unsynced changes
+            {t("storage.downloadUnsynced")}
           </button>
         )}
         <button type="button" className="btn-secondary" onClick={dismissStorageNotice}>
-          Got it
+          {t("common.gotIt")}
         </button>
       </div>
     </div>

@@ -1,20 +1,21 @@
 import { useState } from "react";
-import { DAILY_VALUE_SOURCE, FDA_DAILY_VALUES, formatAmount, percentDailyValue, type FoodRecord, type NutrientDefinition, type NutrientTotal, type RecipeNutrition } from "@betterplate/nutrition";
+import { DAILY_VALUE_SOURCE, FDA_DAILY_VALUES, percentDailyValue, type FoodRecord, type NutrientDefinition, type NutrientTotal, type RecipeNutrition } from "@betterplate/nutrition";
 import type { RecipeIngredientInput } from "@betterplate/contracts";
 import { Sheet } from "./common.tsx";
+import { dateLocale, formatQty, nutrientName, t as translate, useT } from "../i18n.ts";
 
 const PRIMARY = ["energy_kcal", "protein", "carbohydrate", "fat_total", "fiber"];
 
 export function disclosureText(code: string, foodName: string): string {
   switch (code) {
     case "oil_discard_not_measured":
-      return `All of the ${foodName} is counted as eaten, because no discarded amount was entered.`;
+      return translate("disclosure.oilNotMeasured", { food: foodName });
     case "oil_discard_exceeds_added":
-      return `The discarded amount for ${foodName} is more than was added, so it isn't counted. Check the numbers.`;
+      return translate("disclosure.oilExceeds", { food: foodName });
     case "food_not_in_catalog":
-      return "One ingredient isn't in the food list on this device, so it isn't counted.";
+      return translate("disclosure.foodMissing");
     case "portion_not_found":
-      return `The portion chosen for ${foodName} isn't available, so it isn't counted.`;
+      return translate("disclosure.portionMissing", { food: foodName });
     default:
       return code;
   }
@@ -34,47 +35,49 @@ export function NutritionPanel({
   catalogVersion: string;
 }) {
   const [perServing, setPerServing] = useState(true);
+  const t = useT();
   const [showAll, setShowAll] = useState(false);
   const [sourceKey, setSourceKey] = useState<string | null>(null);
   const rows = perServing ? nutrition.perServing : nutrition.totals;
   const defs = new Map(nutrients.map((n) => [n.key, n]));
   const visible = rows.filter((r) => showAll || PRIMARY.includes(r.key));
-  const foodName = (id: string) => foods.get(ingredients.find((i) => i.id === id)?.foodId ?? "")?.description ?? "an ingredient";
+  const foodName = (id: string) => foods.get(ingredients.find((i) => i.id === id)?.foodId ?? "")?.description ?? t("editor.anIngredient");
 
   return (
     <section className="nutrition" aria-labelledby="nutrition-title" data-testid="nutrition-panel">
       <header className="nutrition-head">
         <h2 id="nutrition-title">
-          Nutrition <span className="tag">Estimated</span>
+          {t("nutrition.title")} <span className="tag">{t("common.estimated")}</span>
         </h2>
-        <div className="segmented" role="group" aria-label="Amount shown">
+        <div className="segmented" role="group" aria-label={t("nutrition.amountShown")}>
           <button type="button" aria-pressed={perServing} onClick={() => setPerServing(true)}>
-            Per serving
+            {t("nutrition.perServing")}
           </button>
           <button type="button" aria-pressed={!perServing} onClick={() => setPerServing(false)}>
-            Whole recipe
+            {t("nutrition.wholeRecipe")}
           </button>
         </div>
       </header>
       {ingredients.length === 0 ? (
-        <p className="hint">Add ingredients to see an estimate.</p>
+        <p className="hint">{t("nutrition.empty")}</p>
       ) : (
         <ul className="nutrient-list">
           {visible.map((row) => {
             const def = defs.get(row.key);
+            const name = nutrientName(row.key, def?.name ?? row.key);
             return (
               <li key={row.key} data-testid={`nutrient-${row.key}`}>
-                <button type="button" className="nutrient-row" onClick={() => setSourceKey(row.key)} aria-label={`${def?.name}: sources`}>
-                  <NutrientLine row={row} name={def?.name ?? row.key} />
+                <button type="button" className="nutrient-row" onClick={() => setSourceKey(row.key)} aria-label={t("nutrition.sourcesFor", { name })}>
+                  <NutrientLine row={row} name={name} />
                 </button>
-                {row.status === "partial" && <p className="nutrient-note">Some ingredients don't report this nutrient, so the total may be higher.</p>}
+                {row.status === "partial" && <p className="nutrient-note">{t("nutrition.partial")}</p>}
               </li>
             );
           })}
         </ul>
       )}
       <button type="button" className="btn-link" onClick={() => setShowAll((v) => !v)}>
-        {showAll ? "Show fewer nutrients" : "Show vitamins and minerals"}
+        {showAll ? t("nutrition.showFewer") : t("nutrition.showAll")}
       </button>
       {nutrition.disclosures.length > 0 && (
         <ul className="disclosures" data-testid="disclosures">
@@ -85,10 +88,10 @@ export function NutritionPanel({
       )}
       <DailyValueNote />
       <p className="fine">
-        Estimates from USDA FoodData Central (SR Legacy), catalog {catalogVersion}. Not medical advice. "Not reported" means the source has no value, not zero.
+        {t("nutrition.fine", { version: catalogVersion })}
       </p>
       {sourceKey && (
-        <Sheet title={`Sources: ${defs.get(sourceKey)?.name ?? sourceKey}`} onClose={() => setSourceKey(null)}>
+        <Sheet title={t("nutrition.sourcesTitle", { name: nutrientName(sourceKey, defs.get(sourceKey)?.name ?? sourceKey) })} onClose={() => setSourceKey(null)}>
           <SourceList nutrientKey={sourceKey} nutrition={nutrition} foods={foods} ingredients={ingredients} unit={defs.get(sourceKey)?.unit ?? ""} />
         </Sheet>
       )}
@@ -109,6 +112,7 @@ function SourceList({
   ingredients: RecipeIngredientInput[];
   unit: string;
 }) {
+  const t = useT();
   return (
     <ul className="source-list" data-testid="source-list">
       {nutrition.ingredients.map((b) => {
@@ -119,14 +123,14 @@ function SourceList({
           <li key={b.ingredientId}>
             <strong>{food?.description ?? b.foodId}</strong>
             <span>
-              {b.countedGrams === null ? "amount unknown" : `${b.countedGrams.toFixed(1)} g counted`}
-              {ing?.role === "cooking_oil" && b.grams !== null && b.countedGrams !== b.grams ? ` of ${b.grams.toFixed(1)} g added` : ""}
+              {b.countedGrams === null ? t("sources.amountUnknown") : t("sources.counted", { g: b.countedGrams.toFixed(1) })}
+              {ing?.role === "cooking_oil" && b.grams !== null && b.countedGrams !== b.grams ? ` ${t("sources.ofAdded", { g: b.grams.toFixed(1) })}` : ""}
               {" · "}
-              {per100 === undefined ? "not reported by source" : `${formatAmount(b.contributions[nutrientKey] ?? null, unit)} (${per100} ${unit} per 100 g)`}
+              {per100 === undefined ? t("sources.notReported") : t("sources.contribution", { amount: formatQty(b.contributions[nutrientKey] ?? null, unit), per100: `${per100} ${unit}` })}
             </span>
             {food && (
               <a href={food.source.url} target="_blank" rel="noopener noreferrer">
-                {food.source.dataset}, FDC {food.id.replace("fdc:", "")} · retrieved {food.source.retrievedAt.slice(0, 10)}
+                {food.source.dataset}, FDC {food.id.replace("fdc:", "")} · {t("sources.retrieved", { date: food.source.retrievedAt.slice(0, 10) })}
               </a>
             )}
           </li>
@@ -138,6 +142,7 @@ function SourceList({
 
 /** One nutrient: amount, % of the FDA reference Daily Value where one exists, and a calm bar. */
 export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "amount" | "unit" | "status">; name: string }) {
+  const t = useT();
   const pct = percentDailyValue(row, FDA_DAILY_VALUES);
   const hasDv = FDA_DAILY_VALUES.some((d) => d.key === row.key);
   return (
@@ -145,10 +150,10 @@ export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "
       <span className="nutrient-name">{name}</span>
       <span>
         <span className={`nutrient-value status-${row.status}`}>
-          {row.status === "partial" && <span className="qualifier">at least </span>}
-          {formatAmount(row.amount, row.unit)}
+          {row.status === "partial" && <span className="qualifier">{t("nutrition.atLeast")} </span>}
+          {formatQty(row.amount, row.unit)}
         </span>
-        {pct !== null && <span className="dv"> · {Math.round(pct)}%</span>}
+        {pct !== null && <span className="dv"> · {Math.round(pct).toLocaleString(dateLocale())}%</span>}
       </span>
       {hasDv &&
         (row.status === "unknown" ? (
@@ -163,13 +168,14 @@ export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "
 }
 
 export function DailyValueNote() {
+  const t = useT();
   return (
     <p className="fine">
-      Percentages compare with the{" "}
+      {t("dv.before")}{" "}
       <a href={DAILY_VALUE_SOURCE.url} target="_blank" rel="noopener noreferrer">
-        FDA Daily Values
+        {t("dv.link")}
       </a>{" "}
-      used on U.S. food labels (current as of {DAILY_VALUE_SOURCE.contentCurrentAsOf}, retrieved {DAILY_VALUE_SOURCE.retrievedAt}). They are reference amounts, not personal targets.
+      {t("dv.after", { current: DAILY_VALUE_SOURCE.contentCurrentAsOf, retrieved: DAILY_VALUE_SOURCE.retrievedAt })}
     </p>
   );
 }

@@ -3,6 +3,10 @@ import { fahrenheitToCelsius, SAFE_TEMPERATURE_SOURCE, safetyRuleFor, splitSteps
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp } from "../store.tsx";
 import { Icon } from "./icons.tsx";
+import { tOr, useT } from "../i18n.ts";
+
+const ruleLabel = (rule: SafetyRule) => tOr(`safety.${rule.id}.label`, rule.label);
+const ruleNote = (rule: SafetyRule) => (rule.note === null ? "" : tOr(`safety.${rule.id}.note`, rule.note));
 
 const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
@@ -19,6 +23,7 @@ function useWakeLock() {
 function Timer({ seconds }: { seconds: number }) {
   const [left, setLeft] = useState(seconds);
   const [running, setRunning] = useState(false);
+  const t = useT();
   const tick = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     setLeft(seconds);
@@ -38,22 +43,22 @@ function Timer({ seconds }: { seconds: number }) {
   return (
     <div className="cook-timer" data-testid="cook-timer">
       <div>
-        <div className="cook-muted">Timer</div>
+        <div className="cook-muted">{t("cook.timer")}</div>
         <div className="cook-clock" role="timer" aria-live="off">
           {clock(left)}
         </div>
         <div aria-live="polite" className="cook-muted">
-          {left === 0 ? "Time's up" : ""}
+          {left === 0 ? t("cook.timesUp") : ""}
         </div>
       </div>
       <div className="cook-timer-actions">
         {left !== seconds && (
           <button type="button" className="cook-ghost" onClick={() => { setRunning(false); setLeft(seconds); }}>
-            Reset
+            {t("cook.reset")}
           </button>
         )}
         <button type="button" className="cook-light" onClick={() => setRunning((r) => !r)} disabled={left === 0}>
-          {running ? "Pause" : "Start"}
+          {running ? t("cook.pause") : t("cook.start")}
         </button>
       </div>
     </div>
@@ -61,27 +66,28 @@ function Timer({ seconds }: { seconds: number }) {
 }
 
 function SafetyCard({ rules }: { rules: { rule: SafetyRule; foods: string[] }[] }) {
+  const t = useT();
   return (
     <section className="cook-card" aria-labelledby="safe-title" data-testid="safe-temperatures">
-      <h2 id="safe-title">Safe minimum internal temperatures</h2>
+      <h2 id="safe-title">{t("cook.safeTitle")}</h2>
       <ul>
         {rules.map(({ rule, foods }) => (
           <li key={rule.id}>
             <strong>
-              {rule.fahrenheit !== null ? `${rule.fahrenheit}°F (${fahrenheitToCelsius(rule.fahrenheit)}°C)` : rule.label}
-              {rule.restMinutes ? `, then rest ${rule.restMinutes} minutes` : ""}
+              {rule.fahrenheit !== null ? `${rule.fahrenheit}°F (${fahrenheitToCelsius(rule.fahrenheit)}°C)` : ruleLabel(rule)}
+              {rule.restMinutes ? `, ${t("cook.rest", { n: rule.restMinutes })}` : ""}
             </strong>
-            <span>{rule.fahrenheit !== null ? `${rule.label}. ` : ""}{rule.note ?? ""}</span>
-            <span className="cook-muted">For: {foods.join("; ")}</span>
+            <span>{rule.fahrenheit !== null ? `${ruleLabel(rule)}. ` : ""}{ruleNote(rule)}</span>
+            <span className="cook-muted">{t("cook.for", { foods: foods.join("; ") })}</span>
           </li>
         ))}
       </ul>
       <p className="cook-muted">
-        Check with a food thermometer in the thickest part. Source:{" "}
-        <a href={SAFE_TEMPERATURE_SOURCE.url} target="_blank" rel="noopener noreferrer">
+        {t("cook.thermometer")}{" "}
+        <a href={SAFE_TEMPERATURE_SOURCE.url} target="_blank" rel="noopener noreferrer" lang="en">
           {SAFE_TEMPERATURE_SOURCE.title}
         </a>
-        , FoodSafety.gov, last reviewed {SAFE_TEMPERATURE_SOURCE.lastReviewed} (copy retrieved {SAFE_TEMPERATURE_SOURCE.retrievedAt}).
+        {t("cook.sourceAfter", { reviewed: SAFE_TEMPERATURE_SOURCE.lastReviewed, retrieved: SAFE_TEMPERATURE_SOURCE.retrievedAt })}
       </p>
     </section>
   );
@@ -91,6 +97,7 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
   const { engine, catalog } = useApp();
   const [recipe, setRecipe] = useState<LocalRecipe | null | undefined>(undefined);
   const [index, setIndex] = useState(0);
+  const t = useT();
   useWakeLock();
 
   useEffect(() => {
@@ -114,12 +121,12 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
   }, [recipe, catalog]);
 
   const exit = `#/recipe/${id}`;
-  if (recipe === undefined) return <div className="cook"><p>Loading…</p></div>;
+  if (recipe === undefined) return <div className="cook"><p>{t("common.loading")}</p></div>;
   if (recipe === null) {
     return (
       <div className="cook">
-        <p>This recipe isn't on this device.</p>
-        <a className="cook-light" href="#/kitchen">Back to Kitchen</a>
+        <p>{t("cook.notHere")}</p>
+        <a className="cook-light" href="#/kitchen">{t("nav.backToKitchen")}</a>
       </div>
     );
   }
@@ -133,10 +140,10 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
     <div className="cook" data-testid="cook-mode">
       <div className="cook-top">
         <a className="cook-exit" href={exit}>
-          <Icon name="close" /> Exit
+          <Icon name="close" /> {t("cook.exit")}
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div className="cook-muted">{index === 0 ? "Before you start" : `Step ${index} of ${total}`}</div>
+          <div className="cook-muted">{index === 0 ? t("consent.beforeStart") : t("cook.stepOf", { index, total })}</div>
           {report}
         </div>
       </div>
@@ -151,15 +158,15 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
       {index === 0 ? (
         <>
           <div className="cook-eyebrow">{recipe.body.title}</div>
-          <h1 className="cook-step">{total ? `${total} ${total === 1 ? "step" : "steps"}, in your own words.` : "No steps yet."}</h1>
-          {total === 0 && <p className="cook-muted">Add your method to the recipe, one step per line, and it will show here one step at a time.</p>}
+          <h1 className="cook-step">{total ? t("cook.steps", { n: total }) : t("cook.noSteps")}</h1>
+          {total === 0 && <p className="cook-muted">{t("cook.addMethod")}</p>}
           {rules.length > 0 ? (
             <SafetyCard rules={rules} />
           ) : (
-            <p className="cook-muted">None of these ingredients is on the government's safe-temperature chart, so there's no temperature to check.</p>
+            <p className="cook-muted">{t("cook.noChart")}</p>
           )}
           <p className="cook-muted">
-            These steps are your own. Curated method guides with tested times and temperatures aren't available yet.
+            {t("cook.ownSteps")}
           </p>
         </>
       ) : (
@@ -173,15 +180,15 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
 
       <div className="cook-nav">
         <button type="button" className="cook-ghost" disabled={index === 0} onClick={() => setIndex((i) => i - 1)}>
-          Back
+          {t("common.back")}
         </button>
         {index < total ? (
           <button type="button" className="cook-accent" onClick={() => setIndex((i) => i + 1)}>
-            {index === 0 ? "Start cooking" : "Next step"}
+            {index === 0 ? t("cook.startCooking") : t("cook.next")}
           </button>
         ) : (
           <a className="cook-accent" href={exit}>
-            Done
+            {t("common.done")}
           </a>
         )}
       </div>

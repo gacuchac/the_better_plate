@@ -1,15 +1,17 @@
 import { useState } from "react";
 import type { MealSlot, RecipeBody } from "@betterplate/contracts";
-import { localDate, SLOTS, slotForNow } from "../meals.ts";
+import { localDate, SLOTS, slotForNow, slotLabel } from "../meals.ts";
+import { useT } from "../i18n.ts";
 import { useApp } from "../store.tsx";
 import { Sheet } from "./common.tsx";
 
 function SlotPicker({ value, onChange }: { value: MealSlot; onChange: (s: MealSlot) => void }) {
+  const t = useT();
   return (
-    <div className="choice-row" role="group" aria-label="Meal">
+    <div className="choice-row" role="group" aria-label={t("mealSheet.meal")}>
       {SLOTS.map((s) => (
         <button key={s.value} type="button" aria-pressed={value === s.value} onClick={() => onChange(s.value)}>
-          {s.label}
+          {slotLabel(s.value)}
         </button>
       ))}
     </div>
@@ -17,16 +19,17 @@ function SlotPicker({ value, onChange }: { value: MealSlot; onChange: (s: MealSl
 }
 
 function ServingsStepper({ id, value, onChange }: { id: string; value: number; onChange: (n: number) => void }) {
+  const t = useT();
   const step = (d: number) => onChange(Math.max(0.25, Math.round((value + d) * 4) / 4));
   return (
     <div className="stepper-row">
-      <label htmlFor={id}>Servings</label>
+      <label htmlFor={id}>{t("editor.servings")}</label>
       <div className="stepper">
-        <button type="button" aria-label="Fewer servings" onClick={() => step(value > 1 ? -1 : -0.25)}>
+        <button type="button" aria-label={t("mealSheet.fewer")} onClick={() => step(value > 1 ? -1 : -0.25)}>
           −
         </button>
         <input id={id} type="number" min={0.25} step={0.25} inputMode="decimal" value={value} onChange={(e) => onChange(Number(e.target.value))} />
-        <button type="button" aria-label="More servings" onClick={() => step(value >= 1 ? 1 : 0.25)}>
+        <button type="button" aria-label={t("mealSheet.more")} onClick={() => step(value >= 1 ? 1 : 0.25)}>
           +
         </button>
       </div>
@@ -37,6 +40,7 @@ function ServingsStepper({ id, value, onChange }: { id: string; value: number; o
 /** Plan a recipe for a day. A plan is a reminder, never counted as eaten. */
 export function PlanSheet({ recipeId, title, initialDate, onClose }: { recipeId: string; title: string; initialDate?: string; onClose: () => void }) {
   const { engine } = useApp();
+  const t = useT();
   const [date, setDate] = useState(initialDate ?? localDate());
   const [slot, setSlot] = useState<MealSlot>("dinner");
   const [servings, setServings] = useState(1);
@@ -48,19 +52,19 @@ export function PlanSheet({ recipeId, title, initialDate, onClose }: { recipeId:
   }
 
   return (
-    <Sheet title="Plan this meal" onClose={onClose}>
+    <Sheet title={t("mealSheet.planTitle")} onClose={onClose}>
       <p className="hint">{title}</p>
-      <label htmlFor="plan-date">Day</label>
+      <label htmlFor="plan-date">{t("meals.day")}</label>
       <input id="plan-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <label>Meal</label>
+      <label>{t("mealSheet.meal")}</label>
       <SlotPicker value={slot} onChange={setSlot} />
       <ServingsStepper id="plan-servings" value={servings} onChange={setServings} />
       <div className="sheet-actions">
         <button type="button" className="btn-primary" disabled={!valid} onClick={() => void save()}>
-          Add to plan
+          {t("mealSheet.addToPlan")}
         </button>
       </div>
-      <p className="fine">Plans are reminders. They never count toward what you ate until you mark them eaten.</p>
+      <p className="fine">{t("mealSheet.planFine")}</p>
     </Sheet>
   );
 }
@@ -84,6 +88,7 @@ export function LogSheet({
   onClose: () => void;
 }) {
   const { engine } = useApp();
+  const t = useT();
   const today = localDate();
   const [date, setDate] = useState(initialDate && initialDate <= today ? initialDate : today);
   const [slot, setSlot] = useState<MealSlot>(initialSlot ?? slotForNow());
@@ -111,19 +116,19 @@ export function LogSheet({
   }
 
   return (
-    <Sheet title="I ate this" onClose={onClose}>
+    <Sheet title={t("meals.iAteThis")} onClose={onClose}>
       <p className="hint">{recipe.title}</p>
-      <label htmlFor="log-date">Day</label>
+      <label htmlFor="log-date">{t("meals.day")}</label>
       <input id="log-date" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} />
-      <label>Meal</label>
+      <label>{t("mealSheet.meal")}</label>
       <SlotPicker value={slot} onChange={setSlot} />
       <ServingsStepper id="log-servings" value={servings} onChange={setServings} />
       <div className="sheet-actions">
         <button type="button" className="btn-primary" disabled={!valid} onClick={() => void save()}>
-          Save as eaten
+          {t("mealSheet.saveEaten")}
         </button>
       </div>
-      <p className="fine">Saved on this device first, then synced. Nutrition is an estimate from USDA data for the recipe as it is now.</p>
+      <p className="fine">{t("mealSheet.logFine")}</p>
     </Sheet>
   );
 }

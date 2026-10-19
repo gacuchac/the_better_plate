@@ -2,15 +2,18 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiRequestError, NetworkError } from "../api.ts";
 import { useApp } from "../store.tsx";
 import { Icon } from "./icons.tsx";
+import { LanguagePicker } from "./LanguagePicker.tsx";
+import { t as translate, useT } from "../i18n.ts";
 
 export function SignIn() {
   const { setAccount, online } = useApp();
+  const t = useT();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(() =>
-    new URLSearchParams(location.search).has("signin") ? "Google sign-in didn't finish. Try again, or use an email code." : null,
+    new URLSearchParams(location.search).has("signin") ? translate("signin.googleUnfinished") : null,
   );
   const [google, setGoogle] = useState(false);
 
@@ -31,16 +34,16 @@ export function SignIn() {
       const { url } = await api.googleSignIn(`${location.origin}/`);
       location.assign(url);
     } catch (err) {
-      setError(describe(err, "Google sign-in isn't available right now. Use an email code instead."));
+      setError(describe(err, t("signin.googleUnavailable")));
       setBusy(false);
     }
   }
 
   const describe = (err: unknown, fallback: string) =>
     err instanceof NetworkError
-      ? "You're offline. Signing in needs a connection."
+      ? t("signin.offline")
       : err instanceof ApiRequestError && err.status === 429
-        ? "Too many attempts. Wait a minute and try again."
+        ? t("signin.tooMany")
         : fallback;
 
   async function sendCode(e: FormEvent) {
@@ -51,7 +54,7 @@ export function SignIn() {
       await api.sendCode(email.trim());
       setStep("code");
     } catch (err) {
-      setError(describe(err, "We couldn't send a code right now. Check the address and try again in a moment."));
+      setError(describe(err, t("signin.sendFailed")));
     } finally {
       setBusy(false);
     }
@@ -65,7 +68,7 @@ export function SignIn() {
       await api.signIn(email.trim(), code.trim());
       setAccount(await api.me());
     } catch (err) {
-      setError(describe(err, "That didn't work. Check the code and try again."));
+      setError(describe(err, t("signin.verifyFailed")));
     } finally {
       setBusy(false);
     }
@@ -79,8 +82,8 @@ export function SignIn() {
         </div>
         <div className="signin-body">
         <p className="eyebrow">The Better Plate</p>
-        <h1>Cook what you love, know what's in it</h1>
-        <p className="lede">Recipes saved on your phone, clear cooking steps, and nutrition estimates traced to USDA data.</p>
+        <h1>{t("signin.title")}</h1>
+        <p className="lede">{t("signin.lede")}</p>
         {step === "email" && google && (
           <>
             <button className="btn-google" type="button" onClick={() => void continueWithGoogle()} disabled={busy || !online}>
@@ -90,23 +93,23 @@ export function SignIn() {
                 <path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z" />
                 <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z" />
               </svg>
-              Continue with Google
+              {t("signin.google")}
             </button>
           </>
         )}
         {step === "email" ? (
           <form onSubmit={sendCode}>
-            <label htmlFor="email">{google ? "Or use your email" : "Email"}</label>
+            <label htmlFor="email">{google ? t("signin.orEmail") : t("signin.email")}</label>
             <input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
             <button className="btn-primary" type="submit" disabled={busy || !online}>
-              {busy ? "Sending…" : "Email me a sign-in code"}
+              {busy ? t("signin.sending") : t("signin.sendCode")}
             </button>
-            {!online && <p className="hint">You're offline. Signing in needs a connection.</p>}
+            {!online && <p className="hint">{t("signin.offline")}</p>}
           </form>
         ) : (
           <form onSubmit={verify}>
-            <p className="hint">We sent a 6-digit code to {email}.</p>
-            <label htmlFor="code">Code</label>
+            <p className="hint">{t("signin.codeSent", { email })}</p>
+            <label htmlFor="code">{t("signin.code")}</label>
             <input
               id="code"
               inputMode="numeric"
@@ -118,10 +121,10 @@ export function SignIn() {
               onChange={(e) => setCode(e.target.value)}
             />
             <button className="btn-primary" type="submit" disabled={busy}>
-              {busy ? "Checking…" : "Sign in"}
+              {busy ? t("signin.checking") : t("signin.signIn")}
             </button>
             <button className="btn-link" type="button" onClick={() => setStep("email")}>
-              Use a different email
+              {t("signin.differentEmail")}
             </button>
           </form>
         )}
@@ -131,8 +134,9 @@ export function SignIn() {
           </p>
         )}
         <p className="fine">
-          For adults. Estimates are educational, not medical advice. We keep your email and the meals you choose to save. <a href="#/privacy">How we handle your data</a>
+          {t("signin.fine")} <a href="#/privacy">{t("signin.privacyLink")}</a>
         </p>
+        <LanguagePicker />
         </div>
       </div>
     </main>

@@ -1,36 +1,49 @@
 import { useEffect, useMemo, useState } from "react";
-import { calculateRecipe, formatAmount, type FoodRecord } from "@betterplate/nutrition";
+import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
 import { ApiRequestError, api } from "../api.ts";
 import { storageInfo, type LocalRecipe } from "../localdb.ts";
+import type { SyncStatus } from "../sync.ts";
 import { useApp, useSyncStatus } from "../store.tsx";
 import { localDate, formatDay } from "../meals.ts";
 import { downloadJson, EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
-import { NotInCatalog, searchFoods } from "./FoodPicker.tsx";
+import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
+import { LanguagePicker } from "./LanguagePicker.tsx";
+import { dateLocale, formatQty, nutrientName, t as translate, useT, type MessageKey } from "../i18n.ts";
 
-const STATE_LABEL: Record<LocalRecipe["state"], string> = {
-  synced: "Synced",
-  pending: "Saved on this device",
-  conflict: "Needs attention",
-  rejected: "Needs attention",
+const STATE_LABEL: Record<LocalRecipe["state"], MessageKey> = {
+  synced: "sync.synced",
+  pending: "sync.savedLocal",
+  conflict: "sync.attention",
+  rejected: "sync.attention",
+};
+
+const SYNC_WORDS: Record<SyncStatus, MessageKey> = {
+  "saved-local": "sync.savedLocal",
+  syncing: "sync.syncing",
+  synced: "sync.synced",
+  attention: "sync.attention",
+  offline: "sync.offline",
+  "signed-out": "sync.signIn",
 };
 
 function greeting(d = new Date()) {
   const h = d.getHours();
-  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  return translate(h < 12 ? "kitchen.morning" : h < 18 ? "kitchen.afternoon" : "kitchen.evening");
 }
 
 export function Kitchen() {
   const { recipes, catalog, account, plans, logs } = useApp();
+  const t = useT();
   const today = localDate();
   const planned = plans.filter((p) => p.body.date === today).length;
   const eaten = logs.filter((l) => l.body.localDate === today).length;
-  const count = (n: number) => (n === 1 ? "1 meal" : `${n} meals`);
+  const count = (n: number) => t("kitchen.meals", { n });
   return (
     <div className="screen">
       <header className="home-head">
         <div>
-          <p className="eyebrow">Your Kitchen</p>
+          <p className="eyebrow">{t("kitchen.eyebrow")}</p>
           <h1 className="greeting">
             {greeting()}
             {account?.displayName ? `, ${account.displayName.split(" ")[0]}` : ""}
@@ -40,32 +53,32 @@ export function Kitchen() {
 
       <a className="card today-card" href="#/meals" data-testid="today-card">
         <div className="card-head" style={{ marginBottom: 0 }}>
-          <h2>Today</h2>
+          <h2>{t("day.today")}</h2>
           <span className="hint" style={{ margin: 0 }}>
             {formatDay(today, { weekday: "short", day: "numeric", month: "short" })}
           </span>
         </div>
         <div className="today-stats">
           <div>
-            <div className="stat-label">Planned</div>
+            <div className="stat-label">{t("meals.planned")}</div>
             <div className="stat-value">{count(planned)}</div>
           </div>
           <div>
-            <div className="stat-label">Eaten</div>
+            <div className="stat-label">{t("meals.eaten")}</div>
             <div className="stat-value">{count(eaten)}</div>
           </div>
         </div>
       </a>
 
       <div className="section-title">
-        <h2>Recipes</h2>
+        <h2>{t("kitchen.recipes")}</h2>
         <button type="button" className="btn-primary fab" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
-          <Icon name="plus" /> New recipe
+          <Icon name="plus" /> {t("kitchen.newRecipe")}
         </button>
       </div>
       {recipes.length === 0 ? (
-        <EmptyState title="No recipes yet">
-          <p>Start with something you already love to cook. It saves on this device first and syncs when you're online.</p>
+        <EmptyState title={t("kitchen.emptyTitle")}>
+          <p>{t("kitchen.emptyBody")}</p>
         </EmptyState>
       ) : (
         <ul className="recipe-list">
@@ -76,10 +89,10 @@ export function Kitchen() {
       )}
       <p className="catalog-status" data-testid="catalog-status">
         {catalog.status === "ready"
-          ? `${catalog.bundle.foodCount.toLocaleString()} USDA foods saved on this device${catalog.offline ? " (offline copy)" : ""}.`
+          ? t(catalog.offline ? "kitchen.catalogOffline" : "kitchen.catalog", { n: catalog.bundle.foodCount })
           : catalog.status === "loading"
-            ? "Getting the USDA foods ready…"
-            : catalog.message}
+            ? t("kitchen.catalogLoading")
+            : t("catalog.unavailable")}
       </p>
     </div>
   );
@@ -87,12 +100,13 @@ export function Kitchen() {
 
 function RecipeCard({ recipe }: { recipe: LocalRecipe }) {
   const { catalog } = useApp();
+  const t = useT();
   const energy = useMemo(() => {
     if (catalog.status !== "ready") return null;
     const n = calculateRecipe(recipe.body, catalog.foods, catalog.bundle.nutrients);
     return n.perServing.find((t) => t.key === "energy_kcal") ?? null;
   }, [recipe.body, catalog]);
-  const servings = recipe.body.servings === 1 ? "1 serving" : `${recipe.body.servings} servings`;
+  const servings = t("common.servings", { n: recipe.body.servings });
   return (
     <li>
       <a className="recipe-card" href={`#/recipe/${recipe.id}`} data-testid="recipe-card">
@@ -102,9 +116,9 @@ function RecipeCard({ recipe }: { recipe: LocalRecipe }) {
         <span className="recipe-title">{recipe.body.title}</span>
         <span className="recipe-meta">
           {servings}
-          {energy && energy.amount !== null ? ` · ${formatAmount(energy.amount, "kcal")} each, estimated` : ""}
+          {energy && energy.amount !== null ? ` · ${t("kitchen.kcalEach", { amount: formatQty(energy.amount, "kcal") })}` : ""}
         </span>
-        <span className={`state state-${recipe.state}`}>{STATE_LABEL[recipe.state]}</span>
+        <span className={`state state-${recipe.state}`}>{t(STATE_LABEL[recipe.state])}</span>
       </a>
     </li>
   );
@@ -114,24 +128,24 @@ export function Explore() {
   const { catalog } = useApp();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<FoodRecord | null>(null);
-  if (catalog.status !== "ready") return <EmptyState title="Food list not ready">{catalog.status === "unavailable" ? catalog.message : "Loading…"}</EmptyState>;
+  const t = useT();
+  if (catalog.status !== "ready") return <EmptyState title={t("catalog.notReady")}>{catalog.status === "unavailable" ? t("catalog.unavailable") : t("common.loading")}</EmptyState>;
   const results = searchFoods(catalog.foods, query, 50);
   const defs = catalog.bundle.nutrients;
   return (
     <div className="screen">
       <header className="screen-head">
         <div>
-          <p className="eyebrow">Explore</p>
-          <h1>Foods</h1>
+          <p className="eyebrow">{t("nav.explore")}</p>
+          <h1>{t("explore.title")}</h1>
         </div>
       </header>
       <label htmlFor="explore-search" className="sr-only">
-        Search foods
+        {t("food.search")}
       </label>
-      <input id="explore-search" type="search" placeholder="Search foods, e.g. sirloin steak" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <input id="explore-search" type="search" placeholder={t("food.explorePlaceholder")} value={query} onChange={(e) => setQuery(e.target.value)} />
       <p className="hint">
-        {catalog.bundle.foodCount.toLocaleString()} foods from USDA FoodData Central are saved on this device, so search works offline too.
-        Packaged and branded products aren't included yet.
+        {t("explore.hint", { n: catalog.bundle.foodCount })} <EnglishNamesNote />
       </p>
       <ul className="food-results">
         {results.map((f) => (
@@ -146,24 +160,24 @@ export function Explore() {
       {results.length === 0 && <NotInCatalog />}
       {open && (
         <Sheet title={open.description} onClose={() => setOpen(null)}>
-          <p className="hint">Per 100 g, as published by USDA. "Not reported" means USDA has no value for this food.</p>
+          <p className="hint">{t("explore.per100")}</p>
           <ul className="nutrient-list">
             {defs.map((d) => (
               <li key={d.key} className="nutrient-row static">
-                <span className="nutrient-name">{d.name}</span>
+                <span className="nutrient-name">{nutrientName(d.key, d.name)}</span>
                 <span className={`nutrient-value ${open.nutrientsPer100g[d.key] === undefined ? "status-unknown" : ""}`}>
-                  {formatAmount(open.nutrientsPer100g[d.key] ?? null, d.unit)}
+                  {formatQty(open.nutrientsPer100g[d.key] ?? null, d.unit)}
                 </span>
               </li>
             ))}
           </ul>
-          {open.portions.length > 0 && <p className="hint">Portions: {open.portions.map((p) => `${p.label} = ${p.gramWeight} g`).join("; ")}</p>}
+          {open.portions.length > 0 && <p className="hint">{t("explore.portions", { list: open.portions.map((p) => `${p.label} = ${p.gramWeight} g`).join("; ") })}</p>}
           <p className="fine">
-            Source:{" "}
+            {t("explore.source")}{" "}
             <a href={open.source.url} target="_blank" rel="noopener noreferrer">
               {open.source.publisher}, {open.source.dataset}
             </a>
-            , retrieved {open.source.retrievedAt.slice(0, 10)}. {open.source.license}
+            {t("explore.retrieved", { date: open.source.retrievedAt.slice(0, 10) })} <span lang="en">{open.source.license}</span>
           </p>
         </Sheet>
       )}
@@ -173,6 +187,7 @@ export function Explore() {
 
 export function You() {
   const { account, engine, signOut, online } = useApp();
+  const t = useT();
   const status = useSyncStatus(engine);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -189,26 +204,26 @@ export function You() {
     try {
       downloadJson(await api.exportData(), "better-plate-export");
     } catch (err) {
-      setNote(err instanceof ApiRequestError ? err.message : "You need to be online to download your data.");
+      setNote(err instanceof ApiRequestError ? err.message : t("you.exportOffline"));
     }
   }
 
   async function doSignOut() {
     const pending = (await engine?.pendingCount()) ?? 0;
-    if (pending && !confirm(`${pending} change(s) haven't synced and will be removed from this device. Export them first?\n\nOK = sign out anyway, Cancel = stay`)) return;
+    if (pending && !confirm(t("you.signOutConfirm", { n: pending }))) return;
     setBusy(true);
     await signOut();
     navigate("/kitchen");
   }
 
   async function deleteAccount() {
-    if (!confirm("Delete your account and all recipes from the cloud? This can't be undone.")) return;
+    if (!confirm(t("you.deleteConfirm"))) return;
     setBusy(true);
     try {
       await api.deleteAccount();
       await signOut();
     } catch (err) {
-      setNote(err instanceof ApiRequestError ? err.message : "You need to be online to delete your account.");
+      setNote(err instanceof ApiRequestError ? err.message : t("you.deleteOffline"));
       setBusy(false);
     }
   }
@@ -217,41 +232,48 @@ export function You() {
     <div className="screen">
       <header className="screen-head">
         <div>
-          <p className="eyebrow">You</p>
-          <h1>Account</h1>
+          <p className="eyebrow">{t("nav.you")}</p>
+          <h1>{t("you.title")}</h1>
         </div>
       </header>
       <dl className="facts">
-        <dt>Email</dt>
+        <dt>{t("signin.email")}</dt>
         <dd data-testid="account-email" data-private>{account?.email}</dd>
-        <dt>On this device</dt>
+        <dt>{t("you.onDevice")}</dt>
         <dd data-testid="storage-info">
-          {storage?.usage != null ? `${(storage.usage / 1_000_000).toFixed(1)} MB used. ` : ""}
-          {storage?.persisted ? "Kept by the browser even when space runs low." : "The browser may clear it if the device runs low on space; synced data comes back from your account."}
+          {storage?.usage != null ? `${t("you.mbUsed", { mb: (storage.usage / 1_000_000).toLocaleString(dateLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 }) })} ` : ""}
+          {storage?.persisted ? t("you.persisted") : t("you.notPersisted")}
         </dd>
-        <dt>Sync</dt>
-        <dd>{online ? status.replace("-", " ") : "offline"}{engine?.lastSyncedAt ? `, last checked ${new Date(engine.lastSyncedAt).toLocaleTimeString()}` : ""}</dd>
+        <dt>{t("you.sync")}</dt>
+        <dd>
+          {t(!online ? "sync.offline" : SYNC_WORDS[status])}
+          {engine?.lastSyncedAt ? `, ${t("you.lastChecked", { time: new Date(engine.lastSyncedAt).toLocaleTimeString(dateLocale()) })}` : ""}
+        </dd>
+        <dt>{t("lang.label")}</dt>
+        <dd>
+          <LanguagePicker id="you-language" hideLabel />
+        </dd>
       </dl>
       <div className="stack">
         <button type="button" className="btn-secondary" onClick={() => void engine?.syncNow()}>
-          Sync now
+          {t("sync.now")}
         </button>
         <button type="button" className="btn-secondary" disabled={!online} onClick={() => void exportAll()}>
-          Download all my data
+          {t("you.downloadAll")}
         </button>
         <button type="button" className="btn-secondary" onClick={() => void exportUnsynced()}>
-          Export unsynced changes
+          {t("you.exportUnsynced")}
         </button>
         <button type="button" className="btn-secondary" disabled={busy} onClick={() => void doSignOut()}>
-          Sign out
+          {t("common.signOut")}
         </button>
         <button type="button" className="btn-link danger" disabled={busy || !online} onClick={() => void deleteAccount()}>
-          Delete account
+          {t("you.deleteAccount")}
         </button>
       </div>
       {note && <p className="error">{note}</p>}
       <p className="fine">
-        We keep your email, the recipes you save, the meals you plan or mark eaten, links you share and issue reports you send. Download all of it any time. Signing out removes them from this device; synced data stays in your account until you delete it. Nutrition numbers are educational estimates, not medical advice.
+        {t("you.fine")} <a href="#/privacy">{t("signin.privacyLink")}</a>
       </p>
     </div>
   );

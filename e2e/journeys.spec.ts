@@ -446,3 +446,44 @@ test("when the browser clears local data or runs out of space, the app says so a
   await page.getByRole("link", { name: "You", exact: true }).click();
   await expect(page.getByTestId("storage-info")).toContainText("MB used");
 });
+
+test("use the app in Spanish: interface, Spanish food words, nutrient names and safety chart", async ({ page }, info) => {
+  await signIn(page, newEmail("es"));
+  await page.getByRole("link", { name: "You" }).click();
+  await page.getByLabel("Language").selectOption("es");
+  await expect(page.getByRole("heading", { name: "Cuenta" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await shot(page, info, "es-account", "Language switch on the You screen; interface in Spanish");
+
+  await page.getByRole("link", { name: "Cocina" }).click();
+  await page.getByRole("button", { name: "Nueva receta" }).click();
+  await page.getByLabel("Nombre de la receta").fill("Pollo a la plancha");
+  await page.getByRole("button", { name: "Agregar ingrediente" }).click();
+  const dialog = page.getByRole("dialog", { name: "Agregar ingrediente" });
+  await dialog.getByLabel("Buscar alimentos").fill("pechuga de pollo cruda");
+  await expect(dialog).toContainText("Los nombres de los alimentos vienen del USDA en inglés");
+  await shot(page, info, "es-food-search", "Spanish words find USDA foods, whose names stay in English");
+  await dialog.getByRole("list", { name: "Alimentos" }).getByRole("button", { name: /^Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw/ }).first().click();
+  await page.getByLabel("Preparación").fill("1. Seca el pollo.\n2. Dóralo 6 minutos por lado.");
+  await page.getByRole("button", { name: "Guardar receta" }).click();
+  await expect(page.getByTestId("save-message")).toContainText("Guardado en este dispositivo");
+  await expect(page.getByTestId("sync-status")).toHaveText("Sincronizado", { timeout: 15_000 });
+  const panel = page.getByTestId("nutrition-panel");
+  await expect(panel).toContainText("Nutrición");
+  await expect(panel).toContainText("Proteína");
+  await expect(panel).toContainText("Valores Diarios de la FDA");
+  await shot(page, info, "es-recipe", "Recipe editor and nutrition panel in Spanish, decimal commas");
+
+  await page.getByRole("link", { name: "Cocinar" }).click();
+  const safe = page.getByTestId("safe-temperatures");
+  await expect(safe).toContainText("Temperaturas internas mínimas seguras");
+  await expect(safe).toContainText("165°F (74°C)");
+  await expect(safe).toContainText("Pollo, pavo y otras aves");
+  await shot(page, info, "es-cook", "Cook mode safety chart in Spanish, still citing FoodSafety.gov");
+  await page.getByRole("link", { name: "Salir" }).click();
+
+  // Back to English for anyone else on this device.
+  await page.getByRole("link", { name: "Tú" }).click();
+  await page.getByLabel("Idioma").selectOption("en");
+  await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
+});
