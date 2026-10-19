@@ -22,6 +22,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -76,6 +77,10 @@ def base_url() -> str:
     return os.environ.get("USDA_FDC_API_BASE_URL", "https://api.nal.usda.gov/fdc/v1").rstrip("/")
 
 
+class ApiError(Exception):
+    pass
+
+
 def post_json(path: str, body: dict, key: str, attempts: int = 4) -> object:
     url = f"{base_url()}{path}?api_key={key}"
     data = json.dumps(body).encode()
@@ -89,7 +94,8 @@ def post_json(path: str, body: dict, key: str, attempts: int = 4) -> object:
                 time.sleep(2 ** (attempt + 1))
                 continue
             # Never echo the URL: it carries the API key.
-            raise SystemExit(f"USDA API {path} failed with HTTP {err.code}") from None
+            detail = err.read(300).decode("utf-8", "replace")
+            raise ApiError(f"USDA API {path} failed with HTTP {err.code}: {detail}") from None
         except urllib.error.URLError as err:
             if attempt < attempts - 1:
                 time.sleep(2 ** (attempt + 1))
@@ -109,15 +115,24 @@ def read_list() -> list[str]:
     return names
 
 
+def search_terms(name: str) -> str:
+    """Search query without Lucene syntax characters; the exact match uses the original."""
+    return re.sub(r"\s+", " ", re.sub(r"[()/%+\-:!\"\[\]{}^~*?\\&|,]", " ", name)).strip()
+
+
 def resolve(names: list[str], key: str) -> tuple[dict[str, int], dict[str, list[str]]]:
     found: dict[str, int] = {}
     misses: dict[str, list[str]] = {}
     for name in names:
-        result = post_json(
-            "/foods/search",
-            {"query": name, "dataType": [DATA_TYPE], "pageSize": 25},
-            key,
-        )
+        try:
+            result = post_json(
+                "/foods/search",
+                {"query": search_terms(name), "dataType": [DATA_TYPE], "pageSize": 50},
+                key,
+            )
+        except ApiError as err:
+            misses[name] = [f"search error: {err}"]
+            continue
         foods = result.get("foods", []) if isinstance(result, dict) else []
         exact = [f for f in foods if f.get("description", "").strip().lower() == name.lower()]
         if exact:
@@ -187,7 +202,8 @@ def content_hash(foods: list[dict]) -> str:
 def build() -> None:
     key, key_source = api_key()
     names = read_list()
-    print(f"Resolving {len(names)} descriptions against FDC {DATA_TYPE} (key: {key_source})")
+    print(flush=True)
+    print(f"Resolving {len(names)} descriptions against FDC {DATA_TYPE} (key: {key_source})", flush=True)
     found, misses = resolve(names, key)
 
     retrieved_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -265,4 +281,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true", help="verify the committed snapshot offline")
     args = parser.parse_args()
-    check() if args.check else build()
+    try:
+        check() if args.check else build()
+    except ApiError as err:
+        raise SystemExit(str(err)) from None
