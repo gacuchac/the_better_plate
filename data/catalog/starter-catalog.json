@@ -1,0 +1,7347 @@
+{
+ "schema": "betterplate.catalog/1",
+ "version": "usda-sr-legacy-2026-10-19-e06b8378",
+ "retrievedAt": "2026-10-19T13:36:39Z",
+ "source": {
+  "name": "USDA FoodData Central",
+  "dataset": "SR Legacy",
+  "api": "https://api.nal.usda.gov/fdc/v1",
+  "citation": "U.S. Department of Agriculture, Agricultural Research Service. FoodData Central. fdc.nal.usda.gov"
+ },
+ "nutrients": [
+  {
+   "key": "energy_kcal",
+   "fdcNutrientId": 1008,
+   "name": "Energy",
+   "unit": "kcal"
+  },
+  {
+   "key": "protein",
+   "fdcNutrientId": 1003,
+   "name": "Protein",
+   "unit": "g"
+  },
+  {
+   "key": "fat_total",
+   "fdcNutrientId": 1004,
+   "name": "Total fat",
+   "unit": "g"
+  },
+  {
+   "key": "fat_saturated",
+   "fdcNutrientId": 1258,
+   "name": "Saturated fat",
+   "unit": "g"
+  },
+  {
+   "key": "carbohydrate",
+   "fdcNutrientId": 1005,
+   "name": "Carbohydrate",
+   "unit": "g"
+  },
+  {
+   "key": "fiber",
+   "fdcNutrientId": 1079,
+   "name": "Fiber",
+   "unit": "g"
+  },
+  {
+   "key": "sugars_total",
+   "fdcNutrientId": 2000,
+   "name": "Total sugars",
+   "unit": "g"
+  },
+  {
+   "key": "cholesterol",
+   "fdcNutrientId": 1253,
+   "name": "Cholesterol",
+   "unit": "mg"
+  },
+  {
+   "key": "sodium",
+   "fdcNutrientId": 1093,
+   "name": "Sodium",
+   "unit": "mg"
+  },
+  {
+   "key": "potassium",
+   "fdcNutrientId": 1092,
+   "name": "Potassium",
+   "unit": "mg"
+  },
+  {
+   "key": "calcium",
+   "fdcNutrientId": 1087,
+   "name": "Calcium",
+   "unit": "mg"
+  },
+  {
+   "key": "iron",
+   "fdcNutrientId": 1089,
+   "name": "Iron",
+   "unit": "mg"
+  },
+  {
+   "key": "magnesium",
+   "fdcNutrientId": 1090,
+   "name": "Magnesium",
+   "unit": "mg"
+  },
+  {
+   "key": "zinc",
+   "fdcNutrientId": 1095,
+   "name": "Zinc",
+   "unit": "mg"
+  },
+  {
+   "key": "vitamin_c",
+   "fdcNutrientId": 1162,
+   "name": "Vitamin C",
+   "unit": "mg"
+  },
+  {
+   "key": "vitamin_a_rae",
+   "fdcNutrientId": 1106,
+   "name": "Vitamin A (RAE)",
+   "unit": "µg"
+  },
+  {
+   "key": "vitamin_d",
+   "fdcNutrientId": 1114,
+   "name": "Vitamin D (D2 + D3)",
+   "unit": "µg"
+  },
+  {
+   "key": "vitamin_b12",
+   "fdcNutrientId": 1178,
+   "name": "Vitamin B12",
+   "unit": "µg"
+  },
+  {
+   "key": "folate_dfe",
+   "fdcNutrientId": 1190,
+   "name": "Folate (DFE)",
+   "unit": "µg"
+  }
+ ],
+ "contentSha256": "e06b83781842e07ff9fef12234aefb5ebed6220ba1cae799d0fa2834d2ad006a",
+ "foods": [
+  {
+   "id": "fdc:169387",
+   "fdcId": 169387,
+   "description": "Arugula, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11959,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 25.0,
+    "protein": 2.58,
+    "fat_total": 0.66,
+    "fat_saturated": 0.086,
+    "carbohydrate": 3.65,
+    "fiber": 1.6,
+    "sugars_total": 2.05,
+    "cholesterol": 0.0,
+    "sodium": 27.0,
+    "potassium": 369.0,
+    "calcium": 160.0,
+    "iron": 1.46,
+    "magnesium": 47.0,
+    "zinc": 0.47,
+    "vitamin_c": 15.0,
+    "vitamin_a_rae": 119.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 97.0
+   },
+   "portions": [
+    {
+     "label": "1.0 leaf",
+     "gramWeight": 2.0
+    },
+    {
+     "label": "0.5 cup",
+     "gramWeight": 10.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169387/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168389",
+   "fdcId": 168389,
+   "description": "Asparagus, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11011,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 20.0,
+    "protein": 2.2,
+    "fat_total": 0.12,
+    "fat_saturated": 0.04,
+    "carbohydrate": 3.88,
+    "fiber": 2.1,
+    "sugars_total": 1.88,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 202.0,
+    "calcium": 24.0,
+    "iron": 2.14,
+    "magnesium": 14.0,
+    "zinc": 0.54,
+    "vitamin_c": 5.6,
+    "vitamin_a_rae": 38.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 52.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 134.0
+    },
+    {
+     "label": "1.0 spear, small (5\" long or less)",
+     "gramWeight": 12.0
+    },
+    {
+     "label": "1.0 spear, medium (5-1/4\" to 7\" long)",
+     "gramWeight": 16.0
+    },
+    {
+     "label": "1.0 spear, large (7-1/4\" to 8-1/2\")",
+     "gramWeight": 20.0
+    },
+    {
+     "label": "1.0 spear, extra large (8-3/4\" to 10\" long)",
+     "gramWeight": 24.0
+    },
+    {
+     "label": "1.0 spear tip (2\" long or less)",
+     "gramWeight": 3.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168389/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171705",
+   "fdcId": 171705,
+   "description": "Avocados, raw, all commercial varieties",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9037,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 160.0,
+    "protein": 2.0,
+    "fat_total": 14.66,
+    "fat_saturated": 2.126,
+    "carbohydrate": 8.53,
+    "fiber": 6.7,
+    "sugars_total": 0.66,
+    "cholesterol": 0.0,
+    "sodium": 7.0,
+    "potassium": 485.0,
+    "calcium": 12.0,
+    "iron": 0.55,
+    "magnesium": 29.0,
+    "zinc": 0.64,
+    "vitamin_c": 10.0,
+    "vitamin_a_rae": 7.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 81.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, cubes",
+     "gramWeight": 150.0
+    },
+    {
+     "label": "1.0 cup, pureed",
+     "gramWeight": 230.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 146.0
+    },
+    {
+     "label": "1.0 avocado, NS as to Florida or California",
+     "gramWeight": 201.0
+    },
+    {
+     "label": "1.0 NLEA Serving",
+     "gramWeight": 50.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171705/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173944",
+   "fdcId": 173944,
+   "description": "Bananas, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9040,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 89.0,
+    "protein": 1.09,
+    "fat_total": 0.33,
+    "fat_saturated": 0.112,
+    "carbohydrate": 22.84,
+    "fiber": 2.6,
+    "sugars_total": 12.23,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 358.0,
+    "calcium": 5.0,
+    "iron": 0.26,
+    "magnesium": 27.0,
+    "zinc": 0.15,
+    "vitamin_c": 8.7,
+    "vitamin_a_rae": 3.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 20.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, mashed",
+     "gramWeight": 225.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 150.0
+    },
+    {
+     "label": "1.0 extra small (less than 6\" long)",
+     "gramWeight": 81.0
+    },
+    {
+     "label": "1.0 small (6\" to 6-7/8\" long)",
+     "gramWeight": 101.0
+    },
+    {
+     "label": "1.0 medium (7\" to 7-7/8\" long)",
+     "gramWeight": 118.0
+    },
+    {
+     "label": "1.0 large (8\" to 8-7/8\" long)",
+     "gramWeight": 136.0
+    },
+    {
+     "label": "1.0 extra large (9\" or longer)",
+     "gramWeight": 152.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 126.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173944/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170285",
+   "fdcId": 170285,
+   "description": "Barley, pearled, cooked",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20006,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 123.0,
+    "protein": 2.26,
+    "fat_total": 0.44,
+    "fat_saturated": 0.093,
+    "carbohydrate": 28.22,
+    "fiber": 3.8,
+    "sugars_total": 0.28,
+    "cholesterol": 0.0,
+    "sodium": 3.0,
+    "potassium": 93.0,
+    "calcium": 11.0,
+    "iron": 1.33,
+    "magnesium": 22.0,
+    "zinc": 0.82,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 16.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 157.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170285/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172232",
+   "fdcId": 172232,
+   "description": "Basil, fresh",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2044,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 23.0,
+    "protein": 3.15,
+    "fat_total": 0.64,
+    "fat_saturated": 0.041,
+    "carbohydrate": 2.65,
+    "fiber": 1.6,
+    "sugars_total": 0.3,
+    "cholesterol": 0.0,
+    "sodium": 4.0,
+    "potassium": 295.0,
+    "calcium": 177.0,
+    "iron": 3.17,
+    "magnesium": 64.0,
+    "zinc": 0.81,
+    "vitamin_c": 18.0,
+    "vitamin_a_rae": 264.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 68.0
+   },
+   "portions": [
+    {
+     "label": "5.0 leaves",
+     "gramWeight": 2.5
+    },
+    {
+     "label": "2.0 tbsp, chopped",
+     "gramWeight": 5.3
+    },
+    {
+     "label": "0.25 cup leaves, whole",
+     "gramWeight": 6.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172232/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173735",
+   "fdcId": 173735,
+   "description": "Beans, black, mature seeds, cooked, boiled, without salt",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16015,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 132.0,
+    "protein": 8.86,
+    "fat_total": 0.54,
+    "fat_saturated": 0.139,
+    "carbohydrate": 23.71,
+    "fiber": 8.7,
+    "sugars_total": 0.32,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 355.0,
+    "calcium": 27.0,
+    "iron": 2.1,
+    "magnesium": 70.0,
+    "zinc": 1.12,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 149.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 172.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173735/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:175194",
+   "fdcId": 175194,
+   "description": "Beans, kidney, red, mature seeds, cooked, boiled, without salt",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16033,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 127.0,
+    "protein": 8.67,
+    "fat_total": 0.5,
+    "fat_saturated": 0.072,
+    "carbohydrate": 22.8,
+    "fiber": 7.4,
+    "sugars_total": 0.32,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 403.0,
+    "calcium": 28.0,
+    "iron": 2.94,
+    "magnesium": 45.0,
+    "zinc": 1.07,
+    "vitamin_c": 1.2,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 130.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 177.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 11.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/175194/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169961",
+   "fdcId": 169961,
+   "description": "Beans, snap, green, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11052,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 31.0,
+    "protein": 1.83,
+    "fat_total": 0.22,
+    "fat_saturated": 0.05,
+    "carbohydrate": 6.97,
+    "fiber": 2.7,
+    "sugars_total": 3.26,
+    "cholesterol": 0.0,
+    "sodium": 6.0,
+    "potassium": 211.0,
+    "calcium": 37.0,
+    "iron": 1.03,
+    "magnesium": 25.0,
+    "zinc": 0.24,
+    "vitamin_c": 12.2,
+    "vitamin_a_rae": 35.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 33.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup 1/2\" pieces",
+     "gramWeight": 100.0
+    },
+    {
+     "label": "10.0 beans (4\" long)",
+     "gramWeight": 55.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169961/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:174030",
+   "fdcId": 174030,
+   "description": "Beef, ground, 90% lean meat / 10% fat, raw",
+   "dataType": "SR Legacy",
+   "category": "Beef Products",
+   "ndbNumber": 23562,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 176.0,
+    "protein": 20.0,
+    "fat_total": 10.0,
+    "fat_saturated": 3.927,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 65.0,
+    "sodium": 66.0,
+    "potassium": 321.0,
+    "calcium": 12.0,
+    "iron": 2.24,
+    "magnesium": 20.0,
+    "zinc": 4.79,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 4.0,
+    "vitamin_d": 0.1,
+    "vitamin_b12": 2.21,
+    "folate_dfe": 6.0
+   },
+   "portions": [
+    {
+     "label": "4.0 oz",
+     "gramWeight": 113.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/174030/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169145",
+   "fdcId": 169145,
+   "description": "Beets, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11080,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 43.0,
+    "protein": 1.61,
+    "fat_total": 0.17,
+    "fat_saturated": 0.027,
+    "carbohydrate": 9.56,
+    "fiber": 2.8,
+    "sugars_total": 6.76,
+    "cholesterol": 0.0,
+    "sodium": 78.0,
+    "potassium": 325.0,
+    "calcium": 16.0,
+    "iron": 0.8,
+    "magnesium": 23.0,
+    "zinc": 0.35,
+    "vitamin_c": 4.9,
+    "vitamin_a_rae": 2.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 109.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 136.0
+    },
+    {
+     "label": "1.0 beet (2\" dia)",
+     "gramWeight": 82.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169145/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:174832",
+   "fdcId": 174832,
+   "description": "Beverages, almond milk, unsweetened, shelf stable",
+   "dataType": "SR Legacy",
+   "category": "Beverages",
+   "ndbNumber": 14091,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 15.0,
+    "protein": 0.4,
+    "fat_total": 0.96,
+    "fat_saturated": 0.08,
+    "carbohydrate": 1.31,
+    "fiber": 0.2,
+    "sugars_total": 0.81,
+    "cholesterol": 0.0,
+    "sodium": 72.0,
+    "potassium": 67.0,
+    "calcium": 184.0,
+    "iron": 0.28,
+    "magnesium": 6.0,
+    "zinc": 0.06,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 1.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 1.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 262.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/174832/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173647",
+   "fdcId": 173647,
+   "description": "Beverages, water, tap, drinking",
+   "dataType": "SR Legacy",
+   "category": "Beverages",
+   "ndbNumber": 14411,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 0.0,
+    "protein": 0.0,
+    "fat_total": 0.0,
+    "fat_saturated": 0.0,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 0.0,
+    "sodium": 4.0,
+    "potassium": 0.0,
+    "calcium": 3.0,
+    "iron": 0.0,
+    "magnesium": 1.0,
+    "zinc": 0.01,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 fl oz",
+     "gramWeight": 29.6
+    },
+    {
+     "label": "1.0 serving 8 fl oz",
+     "gramWeight": 237.0
+    },
+    {
+     "label": "1.0 liter",
+     "gramWeight": 1000.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173647/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171711",
+   "fdcId": 171711,
+   "description": "Blueberries, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9050,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 57.0,
+    "protein": 0.74,
+    "fat_total": 0.33,
+    "fat_saturated": 0.028,
+    "carbohydrate": 14.49,
+    "fiber": 2.4,
+    "sugars_total": 9.96,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 77.0,
+    "calcium": 6.0,
+    "iron": 0.28,
+    "magnesium": 6.0,
+    "zinc": 0.16,
+    "vitamin_c": 9.7,
+    "vitamin_a_rae": 3.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 6.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 148.0
+    },
+    {
+     "label": "50.0 berries",
+     "gramWeight": 68.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171711/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:174924",
+   "fdcId": 174924,
+   "description": "Bread, white, commercially prepared (includes soft bread crumbs)",
+   "dataType": "SR Legacy",
+   "category": "Baked Products",
+   "ndbNumber": 18069,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 266.0,
+    "protein": 8.85,
+    "fat_total": 3.33,
+    "fat_saturated": 0.698,
+    "carbohydrate": 49.42,
+    "fiber": 2.7,
+    "sugars_total": 5.67,
+    "cholesterol": 0.0,
+    "sodium": 490.0,
+    "potassium": 126.0,
+    "calcium": 144.0,
+    "iron": 3.61,
+    "magnesium": 23.0,
+    "zinc": 0.74,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 171.0
+   },
+   "portions": [
+    {
+     "label": "1.0 slice",
+     "gramWeight": 29.0
+    },
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "1.0 cup, crumbs",
+     "gramWeight": 45.0
+    },
+    {
+     "label": "1.0 cup, cubes",
+     "gramWeight": 35.0
+    },
+    {
+     "label": "1.0 slice, large",
+     "gramWeight": 30.0
+    },
+    {
+     "label": "1.0 slice",
+     "gramWeight": 25.0
+    },
+    {
+     "label": "1.0 slice crust not eaten",
+     "gramWeight": 12.0
+    },
+    {
+     "label": "1.0 slice, thin",
+     "gramWeight": 20.0
+    },
+    {
+     "label": "1.0 slice thin, crust not eaten",
+     "gramWeight": 9.0
+    },
+    {
+     "label": "1.0 slice, very thin",
+     "gramWeight": 15.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/174924/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172688",
+   "fdcId": 172688,
+   "description": "Bread, whole-wheat, commercially prepared",
+   "dataType": "SR Legacy",
+   "category": "Baked Products",
+   "ndbNumber": 18075,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 252.0,
+    "protein": 12.45,
+    "fat_total": 3.5,
+    "fat_saturated": 0.722,
+    "carbohydrate": 42.71,
+    "fiber": 6.0,
+    "sugars_total": 4.34,
+    "cholesterol": 0.0,
+    "sodium": 455.0,
+    "potassium": 254.0,
+    "calcium": 161.0,
+    "iron": 2.47,
+    "magnesium": 75.0,
+    "zinc": 1.77,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 42.0
+   },
+   "portions": [
+    {
+     "label": "1.0 slice",
+     "gramWeight": 32.0
+    },
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172688/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169967",
+   "fdcId": 169967,
+   "description": "Broccoli, cooked, boiled, drained, without salt",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11091,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 35.0,
+    "protein": 2.38,
+    "fat_total": 0.41,
+    "fat_saturated": 0.079,
+    "carbohydrate": 7.18,
+    "fiber": 3.3,
+    "sugars_total": 1.39,
+    "cholesterol": 0.0,
+    "sodium": 41.0,
+    "potassium": 293.0,
+    "calcium": 40.0,
+    "iron": 0.67,
+    "magnesium": 21.0,
+    "zinc": 0.45,
+    "vitamin_c": 64.9,
+    "vitamin_a_rae": 77.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 108.0
+   },
+   "portions": [
+    {
+     "label": "0.5 cup, chopped",
+     "gramWeight": 78.0
+    },
+    {
+     "label": "1.0 stalk, large (11\"-12\" long)",
+     "gramWeight": 280.0
+    },
+    {
+     "label": "1.0 stalk, medium (7-1/2\" - 8\" long)",
+     "gramWeight": 180.0
+    },
+    {
+     "label": "1.0 stalk, small (5\" long)",
+     "gramWeight": 140.0
+    },
+    {
+     "label": "1.0 spear (about 5\" long)",
+     "gramWeight": 37.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169967/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170379",
+   "fdcId": 170379,
+   "description": "Broccoli, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11090,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 34.0,
+    "protein": 2.82,
+    "fat_total": 0.37,
+    "fat_saturated": 0.114,
+    "carbohydrate": 6.64,
+    "fiber": 2.6,
+    "sugars_total": 1.7,
+    "cholesterol": 0.0,
+    "sodium": 33.0,
+    "potassium": 316.0,
+    "calcium": 47.0,
+    "iron": 0.73,
+    "magnesium": 21.0,
+    "zinc": 0.41,
+    "vitamin_c": 89.2,
+    "vitamin_a_rae": 31.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 63.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup chopped",
+     "gramWeight": 91.0
+    },
+    {
+     "label": "1.0 bunch",
+     "gramWeight": 608.0
+    },
+    {
+     "label": "1.0 spear (about 5\" long)",
+     "gramWeight": 31.0
+    },
+    {
+     "label": "1.0 stalk",
+     "gramWeight": 151.0
+    },
+    {
+     "label": "0.5 cup, chopped or diced",
+     "gramWeight": 44.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 148.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170379/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170383",
+   "fdcId": 170383,
+   "description": "Brussels sprouts, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11098,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 43.0,
+    "protein": 3.38,
+    "fat_total": 0.3,
+    "fat_saturated": 0.062,
+    "carbohydrate": 8.95,
+    "fiber": 3.8,
+    "sugars_total": 2.2,
+    "cholesterol": 0.0,
+    "sodium": 25.0,
+    "potassium": 389.0,
+    "calcium": 42.0,
+    "iron": 1.4,
+    "magnesium": 23.0,
+    "zinc": 0.42,
+    "vitamin_c": 85.0,
+    "vitamin_a_rae": 38.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 61.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 88.0
+    },
+    {
+     "label": "1.0 sprout",
+     "gramWeight": 19.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170383/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173410",
+   "fdcId": 173410,
+   "description": "Butter, salted",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1001,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 717.0,
+    "protein": 0.85,
+    "fat_total": 81.11,
+    "fat_saturated": 51.368,
+    "carbohydrate": 0.06,
+    "fiber": 0.0,
+    "sugars_total": 0.06,
+    "cholesterol": 215.0,
+    "sodium": 643.0,
+    "potassium": 24.0,
+    "calcium": 24.0,
+    "iron": 0.02,
+    "magnesium": 2.0,
+    "zinc": 0.09,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 684.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.17,
+    "folate_dfe": 3.0
+   },
+   "portions": [
+    {
+     "label": "1.0 pat (1\" sq, 1/3\" high)",
+     "gramWeight": 5.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 14.2
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 227.0
+    },
+    {
+     "label": "1.0 stick",
+     "gramWeight": 113.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173410/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173430",
+   "fdcId": 173430,
+   "description": "Butter, without salt",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1145,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 717.0,
+    "protein": 0.85,
+    "fat_total": 81.11,
+    "fat_saturated": 50.489,
+    "carbohydrate": 0.06,
+    "fiber": 0.0,
+    "sugars_total": 0.06,
+    "cholesterol": 215.0,
+    "sodium": 11.0,
+    "potassium": 24.0,
+    "calcium": 24.0,
+    "iron": 0.02,
+    "magnesium": 2.0,
+    "zinc": 0.09,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 684.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.17,
+    "folate_dfe": 3.0
+   },
+   "portions": [
+    {
+     "label": "1.0 pat (1\" sq, 1/3\" high)",
+     "gramWeight": 5.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 14.2
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 227.0
+    },
+    {
+     "label": "1.0 stick",
+     "gramWeight": 113.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173430/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169975",
+   "fdcId": 169975,
+   "description": "Cabbage, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11109,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 25.0,
+    "protein": 1.28,
+    "fat_total": 0.1,
+    "fat_saturated": 0.034,
+    "carbohydrate": 5.8,
+    "fiber": 2.5,
+    "sugars_total": 3.2,
+    "cholesterol": 0.0,
+    "sodium": 18.0,
+    "potassium": 170.0,
+    "calcium": 40.0,
+    "iron": 0.47,
+    "magnesium": 12.0,
+    "zinc": 0.18,
+    "vitamin_c": 36.6,
+    "vitamin_a_rae": 5.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 43.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped",
+     "gramWeight": 89.0
+    },
+    {
+     "label": "1.0 cup, shredded",
+     "gramWeight": 70.0
+    },
+    {
+     "label": "1.0 head, large (about 7\" dia)",
+     "gramWeight": 1248.0
+    },
+    {
+     "label": "1.0 leaf, large",
+     "gramWeight": 33.0
+    },
+    {
+     "label": "1.0 head, medium (about 5-3/4\" dia)",
+     "gramWeight": 908.0
+    },
+    {
+     "label": "1.0 leaf, medium",
+     "gramWeight": 23.0
+    },
+    {
+     "label": "1.0 head, small (about 4-1/2\" dia)",
+     "gramWeight": 714.0
+    },
+    {
+     "label": "1.0 leaf",
+     "gramWeight": 15.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169975/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170393",
+   "fdcId": 170393,
+   "description": "Carrots, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11124,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 41.0,
+    "protein": 0.93,
+    "fat_total": 0.24,
+    "fat_saturated": 0.032,
+    "carbohydrate": 9.58,
+    "fiber": 2.8,
+    "sugars_total": 4.74,
+    "cholesterol": 0.0,
+    "sodium": 69.0,
+    "potassium": 320.0,
+    "calcium": 33.0,
+    "iron": 0.3,
+    "magnesium": 12.0,
+    "zinc": 0.24,
+    "vitamin_c": 5.9,
+    "vitamin_a_rae": 835.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 19.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup chopped",
+     "gramWeight": 128.0
+    },
+    {
+     "label": "1.0 cup grated",
+     "gramWeight": 110.0
+    },
+    {
+     "label": "1.0 cup strips or slices",
+     "gramWeight": 122.0
+    },
+    {
+     "label": "1.0 large (7-1/4\" to 8-/1/2\" long)",
+     "gramWeight": 72.0
+    },
+    {
+     "label": "1.0 medium",
+     "gramWeight": 61.0
+    },
+    {
+     "label": "1.0 small (5-1/2\" long)",
+     "gramWeight": 50.0
+    },
+    {
+     "label": "1.0 slice",
+     "gramWeight": 3.0
+    },
+    {
+     "label": "1.0 strip large (3\" long)",
+     "gramWeight": 7.0
+    },
+    {
+     "label": "1.0 strip medium",
+     "gramWeight": 4.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170393/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169986",
+   "fdcId": 169986,
+   "description": "Cauliflower, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11135,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 25.0,
+    "protein": 1.92,
+    "fat_total": 0.28,
+    "fat_saturated": 0.13,
+    "carbohydrate": 4.97,
+    "fiber": 2.0,
+    "sugars_total": 1.91,
+    "cholesterol": 0.0,
+    "sodium": 30.0,
+    "potassium": 299.0,
+    "calcium": 22.0,
+    "iron": 0.42,
+    "magnesium": 15.0,
+    "zinc": 0.27,
+    "vitamin_c": 48.2,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 57.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup chopped (1/2\" pieces)",
+     "gramWeight": 107.0
+    },
+    {
+     "label": "1.0 floweret",
+     "gramWeight": 13.0
+    },
+    {
+     "label": "1.0 head large (6-7\" dia.)",
+     "gramWeight": 840.0
+    },
+    {
+     "label": "1.0 head medium (5-6\" dia.)",
+     "gramWeight": 588.0
+    },
+    {
+     "label": "1.0 head small (4\" dia.)",
+     "gramWeight": 265.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169986/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169988",
+   "fdcId": 169988,
+   "description": "Celery, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11143,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 14.0,
+    "protein": 0.69,
+    "fat_total": 0.17,
+    "fat_saturated": 0.042,
+    "carbohydrate": 2.97,
+    "fiber": 1.6,
+    "sugars_total": 1.34,
+    "cholesterol": 0.0,
+    "sodium": 80.0,
+    "potassium": 260.0,
+    "calcium": 40.0,
+    "iron": 0.2,
+    "magnesium": 11.0,
+    "zinc": 0.13,
+    "vitamin_c": 3.1,
+    "vitamin_a_rae": 22.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 36.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup chopped",
+     "gramWeight": 101.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 110.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 7.5
+    },
+    {
+     "label": "1.0 stalk, large (11\"-12\" long)",
+     "gramWeight": 64.0
+    },
+    {
+     "label": "1.0 stalk, medium (7-1/2\" - 8\" long)",
+     "gramWeight": 40.0
+    },
+    {
+     "label": "1.0 stalk, small (5\" long)",
+     "gramWeight": 17.0
+    },
+    {
+     "label": "1.0 strip (4\" long)",
+     "gramWeight": 4.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169988/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173904",
+   "fdcId": 173904,
+   "description": "Cereals, oats, regular and quick, not fortified, dry",
+   "dataType": "SR Legacy",
+   "category": "Breakfast Cereals",
+   "ndbNumber": 8120,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 379.0,
+    "protein": 13.15,
+    "fat_total": 6.52,
+    "fat_saturated": 1.11,
+    "carbohydrate": 67.7,
+    "fiber": 10.1,
+    "sugars_total": 0.99,
+    "cholesterol": 0.0,
+    "sodium": 6.0,
+    "potassium": 362.0,
+    "calcium": 52.0,
+    "iron": 4.25,
+    "magnesium": 138.0,
+    "zinc": 3.64,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 32.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 81.0
+    },
+    {
+     "label": "0.33 cup",
+     "gramWeight": 27.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173904/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172182",
+   "fdcId": 172182,
+   "description": "Cheese, cottage, lowfat, 2% milkfat",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1015,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 81.0,
+    "protein": 10.45,
+    "fat_total": 2.27,
+    "fat_saturated": 1.235,
+    "carbohydrate": 4.76,
+    "fiber": 0.0,
+    "sugars_total": 4.0,
+    "cholesterol": 12.0,
+    "sodium": 308.0,
+    "potassium": 125.0,
+    "calcium": 111.0,
+    "iron": 0.13,
+    "magnesium": 9.0,
+    "zinc": 0.51,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 68.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.47,
+    "folate_dfe": 8.0
+   },
+   "portions": [
+    {
+     "label": "4.0 oz",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 cup (not packed)",
+     "gramWeight": 226.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172182/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173420",
+   "fdcId": 173420,
+   "description": "Cheese, feta",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1019,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 265.0,
+    "protein": 14.21,
+    "fat_total": 21.49,
+    "fat_saturated": 13.3,
+    "carbohydrate": 3.88,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 89.0,
+    "sodium": 1139.0,
+    "potassium": 62.0,
+    "calcium": 493.0,
+    "iron": 0.65,
+    "magnesium": 19.0,
+    "zinc": 2.88,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 125.0,
+    "vitamin_d": 0.4,
+    "vitamin_b12": 1.69,
+    "folate_dfe": 32.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, crumbled",
+     "gramWeight": 150.0
+    },
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "1.0 cubic inch",
+     "gramWeight": 17.0
+    },
+    {
+     "label": "1.0 wedge (1.33 oz)",
+     "gramWeight": 38.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173420/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170845",
+   "fdcId": 170845,
+   "description": "Cheese, mozzarella, whole milk",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1026,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 299.0,
+    "protein": 22.17,
+    "fat_total": 22.14,
+    "fat_saturated": 13.9,
+    "carbohydrate": 2.4,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 79.0,
+    "sodium": 486.0,
+    "potassium": 76.0,
+    "calcium": 505.0,
+    "iron": 0.44,
+    "magnesium": 20.0,
+    "zinc": 2.92,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 179.0,
+    "vitamin_d": 0.4,
+    "vitamin_b12": 2.28,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, shredded",
+     "gramWeight": 112.0
+    },
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "6.0 slices",
+     "gramWeight": 170.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170845/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171247",
+   "fdcId": 171247,
+   "description": "Cheese, parmesan, grated",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1032,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 420.0,
+    "protein": 28.42,
+    "fat_total": 27.84,
+    "fat_saturated": 15.371,
+    "carbohydrate": 13.91,
+    "fiber": 0.0,
+    "sugars_total": 0.07,
+    "cholesterol": 86.0,
+    "sodium": 1804.0,
+    "potassium": 180.0,
+    "calcium": 853.0,
+    "iron": 0.49,
+    "magnesium": 34.0,
+    "zinc": 4.2,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 262.0,
+    "vitamin_d": 0.5,
+    "vitamin_b12": 1.4,
+    "folate_dfe": 6.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 100.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 5.0
+    },
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171247/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171719",
+   "fdcId": 171719,
+   "description": "Cherries, sweet, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9070,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 63.0,
+    "protein": 1.06,
+    "fat_total": 0.2,
+    "fat_saturated": 0.038,
+    "carbohydrate": 16.01,
+    "fiber": 2.1,
+    "sugars_total": 12.82,
+    "cholesterol": 0.0,
+    "sodium": 0.0,
+    "potassium": 222.0,
+    "calcium": 13.0,
+    "iron": 0.36,
+    "magnesium": 11.0,
+    "zinc": 0.07,
+    "vitamin_c": 7.0,
+    "vitamin_a_rae": 3.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 4.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, with pits, yields",
+     "gramWeight": 138.0
+    },
+    {
+     "label": "1.0 cup, without pits",
+     "gramWeight": 154.0
+    },
+    {
+     "label": "1.0 cherry",
+     "gramWeight": 8.2
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 140.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171719/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171477",
+   "fdcId": 171477,
+   "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted",
+   "dataType": "SR Legacy",
+   "category": "Poultry Products",
+   "ndbNumber": 5064,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 165.0,
+    "protein": 31.02,
+    "fat_total": 3.57,
+    "fat_saturated": 1.01,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 85.0,
+    "sodium": 74.0,
+    "potassium": 256.0,
+    "calcium": 15.0,
+    "iron": 1.04,
+    "magnesium": 29.0,
+    "zinc": 1.0,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 6.0,
+    "vitamin_d": 0.1,
+    "vitamin_b12": 0.34,
+    "folate_dfe": 4.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped or diced",
+     "gramWeight": 140.0
+    },
+    {
+     "label": "1.0 unit (yield from 1 lb ready-to-cook chicken)",
+     "gramWeight": 52.0
+    },
+    {
+     "label": "0.5 breast, bone and skin removed",
+     "gramWeight": 86.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173757",
+   "fdcId": 173757,
+   "description": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16057,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 164.0,
+    "protein": 8.86,
+    "fat_total": 2.59,
+    "fat_saturated": 0.269,
+    "carbohydrate": 27.42,
+    "fiber": 7.6,
+    "sugars_total": 4.8,
+    "cholesterol": 0.0,
+    "sodium": 7.0,
+    "potassium": 291.0,
+    "calcium": 49.0,
+    "iron": 2.89,
+    "magnesium": 48.0,
+    "zinc": 1.53,
+    "vitamin_c": 1.3,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 172.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 164.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173757/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170273",
+   "fdcId": 170273,
+   "description": "Chocolate, dark, 70-85% cacao solids",
+   "dataType": "SR Legacy",
+   "category": "Sweets",
+   "ndbNumber": 19904,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 598.0,
+    "protein": 7.79,
+    "fat_total": 42.63,
+    "fat_saturated": 24.489,
+    "carbohydrate": 45.9,
+    "fiber": 10.9,
+    "sugars_total": 23.99,
+    "cholesterol": 3.0,
+    "sodium": 20.0,
+    "potassium": 715.0,
+    "calcium": 73.0,
+    "iron": 11.9,
+    "magnesium": 228.0,
+    "zinc": 3.31,
+    "vitamin_a_rae": 2.0,
+    "vitamin_b12": 0.28
+   },
+   "portions": [
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "1.0 bar",
+     "gramWeight": 101.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170273/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169593",
+   "fdcId": 169593,
+   "description": "Cocoa, dry powder, unsweetened",
+   "dataType": "SR Legacy",
+   "category": "Sweets",
+   "ndbNumber": 19165,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 228.0,
+    "protein": 19.6,
+    "fat_total": 13.7,
+    "fat_saturated": 8.07,
+    "carbohydrate": 57.9,
+    "fiber": 37.0,
+    "sugars_total": 1.75,
+    "cholesterol": 0.0,
+    "sodium": 21.0,
+    "potassium": 1524.0,
+    "calcium": 128.0,
+    "iron": 13.86,
+    "magnesium": 499.0,
+    "zinc": 6.81,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 32.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 86.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 5.4
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169593/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169997",
+   "fdcId": 169997,
+   "description": "Coriander (cilantro) leaves, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11165,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 23.0,
+    "protein": 2.13,
+    "fat_total": 0.52,
+    "fat_saturated": 0.014,
+    "carbohydrate": 3.67,
+    "fiber": 2.8,
+    "sugars_total": 0.87,
+    "cholesterol": 0.0,
+    "sodium": 46.0,
+    "potassium": 521.0,
+    "calcium": 67.0,
+    "iron": 1.77,
+    "magnesium": 26.0,
+    "zinc": 0.5,
+    "vitamin_c": 27.0,
+    "vitamin_a_rae": 337.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 62.0
+   },
+   "portions": [
+    {
+     "label": "0.25 cup",
+     "gramWeight": 4.0
+    },
+    {
+     "label": "9.0 sprigs",
+     "gramWeight": 20.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169997/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169998",
+   "fdcId": 169998,
+   "description": "Corn, sweet, yellow, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11167,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 86.0,
+    "protein": 3.27,
+    "fat_total": 1.35,
+    "fat_saturated": 0.325,
+    "carbohydrate": 18.7,
+    "fiber": 2.0,
+    "sugars_total": 6.26,
+    "cholesterol": 0.0,
+    "sodium": 15.0,
+    "potassium": 270.0,
+    "calcium": 2.0,
+    "iron": 0.52,
+    "magnesium": 37.0,
+    "zinc": 0.46,
+    "vitamin_c": 6.8,
+    "vitamin_a_rae": 9.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 42.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 145.0
+    },
+    {
+     "label": "1.0 ear, large (7-3/4\" to 9\" long) yields",
+     "gramWeight": 143.0
+    },
+    {
+     "label": "1.0 ear, medium (6-3/4\" to 7-1/2\" long) yields",
+     "gramWeight": 102.0
+    },
+    {
+     "label": "1.0 ear, small (5-1/2\" to 6-1/2\" long)",
+     "gramWeight": 73.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169998/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169697",
+   "fdcId": 169697,
+   "description": "Cornmeal, whole-grain, yellow",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20020,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 362.0,
+    "protein": 8.12,
+    "fat_total": 3.59,
+    "fat_saturated": 0.505,
+    "carbohydrate": 76.89,
+    "fiber": 7.3,
+    "sugars_total": 0.64,
+    "cholesterol": 0.0,
+    "sodium": 35.0,
+    "potassium": 287.0,
+    "calcium": 6.0,
+    "iron": 3.45,
+    "magnesium": 127.0,
+    "zinc": 1.82,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 11.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 25.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 122.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169697/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169700",
+   "fdcId": 169700,
+   "description": "Couscous, cooked",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20029,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 112.0,
+    "protein": 3.79,
+    "fat_total": 0.16,
+    "fat_saturated": 0.029,
+    "carbohydrate": 23.22,
+    "fiber": 1.4,
+    "sugars_total": 0.1,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 58.0,
+    "calcium": 8.0,
+    "iron": 0.38,
+    "magnesium": 8.0,
+    "zinc": 0.26,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 15.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, cooked",
+     "gramWeight": 157.0
+    },
+    {
+     "label": "1.0 cup, dry, yields",
+     "gramWeight": 528.0
+    },
+    {
+     "label": "1.0 oz, dry, yields",
+     "gramWeight": 86.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169700/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170859",
+   "fdcId": 170859,
+   "description": "Cream, fluid, heavy whipping",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1053,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 340.0,
+    "protein": 2.84,
+    "fat_total": 36.08,
+    "fat_saturated": 23.032,
+    "carbohydrate": 2.84,
+    "fiber": 0.0,
+    "sugars_total": 2.92,
+    "cholesterol": 113.0,
+    "sodium": 27.0,
+    "potassium": 95.0,
+    "calcium": 66.0,
+    "iron": 0.1,
+    "magnesium": 7.0,
+    "zinc": 0.24,
+    "vitamin_c": 0.6,
+    "vitamin_a_rae": 411.0,
+    "vitamin_d": 1.6,
+    "vitamin_b12": 0.16,
+    "folate_dfe": 4.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, whipped",
+     "gramWeight": 120.0
+    },
+    {
+     "label": "1.0 cup, fluid (yields 2 cups whipped)",
+     "gramWeight": 238.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 15.0
+    },
+    {
+     "label": "1.0 fl oz",
+     "gramWeight": 29.8
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170859/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168409",
+   "fdcId": 168409,
+   "description": "Cucumber, with peel, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11205,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 15.0,
+    "protein": 0.65,
+    "fat_total": 0.11,
+    "fat_saturated": 0.037,
+    "carbohydrate": 3.63,
+    "fiber": 0.5,
+    "sugars_total": 1.67,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 147.0,
+    "calcium": 16.0,
+    "iron": 0.28,
+    "magnesium": 13.0,
+    "zinc": 0.2,
+    "vitamin_c": 2.8,
+    "vitamin_a_rae": 5.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "0.5 cup slices",
+     "gramWeight": 52.0
+    },
+    {
+     "label": "1.0 cucumber (8-1/4\")",
+     "gramWeight": 301.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168409/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168191",
+   "fdcId": 168191,
+   "description": "Dates, medjool",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9421,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 277.0,
+    "protein": 1.81,
+    "fat_total": 0.15,
+    "carbohydrate": 74.97,
+    "fiber": 6.7,
+    "sugars_total": 66.47,
+    "sodium": 1.0,
+    "potassium": 696.0,
+    "calcium": 64.0,
+    "iron": 0.9,
+    "magnesium": 54.0,
+    "zinc": 0.44,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 7.0,
+    "vitamin_d": 0.0,
+    "folate_dfe": 15.0
+   },
+   "portions": [
+    {
+     "label": "1.0 date, pitted",
+     "gramWeight": 24.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168191/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168411",
+   "fdcId": 168411,
+   "description": "Edamame, frozen, prepared",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11212,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 121.0,
+    "protein": 11.91,
+    "fat_total": 5.2,
+    "fat_saturated": 0.62,
+    "carbohydrate": 8.91,
+    "fiber": 5.2,
+    "sugars_total": 2.18,
+    "cholesterol": 0.0,
+    "sodium": 6.0,
+    "potassium": 436.0,
+    "calcium": 63.0,
+    "iron": 2.27,
+    "magnesium": 64.0,
+    "zinc": 1.37,
+    "vitamin_c": 6.1,
+    "vitamin_a_rae": 15.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 311.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 155.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168411/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172183",
+   "fdcId": 172183,
+   "description": "Egg, white, raw, fresh",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1124,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 52.0,
+    "protein": 10.9,
+    "fat_total": 0.17,
+    "fat_saturated": 0.0,
+    "carbohydrate": 0.73,
+    "fiber": 0.0,
+    "sugars_total": 0.71,
+    "cholesterol": 0.0,
+    "sodium": 166.0,
+    "potassium": 163.0,
+    "calcium": 7.0,
+    "iron": 0.08,
+    "magnesium": 11.0,
+    "zinc": 0.03,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.09,
+    "folate_dfe": 4.0
+   },
+   "portions": [
+    {
+     "label": "1.0 large",
+     "gramWeight": 33.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 243.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172183/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173424",
+   "fdcId": 173424,
+   "description": "Egg, whole, cooked, hard-boiled",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1129,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 155.0,
+    "protein": 12.58,
+    "fat_total": 10.61,
+    "fat_saturated": 3.267,
+    "carbohydrate": 1.12,
+    "fiber": 0.0,
+    "sugars_total": 1.12,
+    "cholesterol": 373.0,
+    "sodium": 124.0,
+    "potassium": 126.0,
+    "calcium": 50.0,
+    "iron": 1.19,
+    "magnesium": 10.0,
+    "zinc": 1.05,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 149.0,
+    "vitamin_d": 2.2,
+    "vitamin_b12": 1.11,
+    "folate_dfe": 44.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped",
+     "gramWeight": 136.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 8.5
+    },
+    {
+     "label": "1.0 large",
+     "gramWeight": 50.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173424/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171287",
+   "fdcId": 171287,
+   "description": "Egg, whole, raw, fresh",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1123,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 143.0,
+    "protein": 12.56,
+    "fat_total": 9.51,
+    "fat_saturated": 3.126,
+    "carbohydrate": 0.72,
+    "fiber": 0.0,
+    "sugars_total": 0.37,
+    "cholesterol": 372.0,
+    "sodium": 142.0,
+    "potassium": 138.0,
+    "calcium": 56.0,
+    "iron": 1.75,
+    "magnesium": 12.0,
+    "zinc": 1.29,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 160.0,
+    "vitamin_d": 2.0,
+    "vitamin_b12": 0.89,
+    "folate_dfe": 47.0
+   },
+   "portions": [
+    {
+     "label": "1.0 large",
+     "gramWeight": 50.0
+    },
+    {
+     "label": "1.0 extra large",
+     "gramWeight": 56.0
+    },
+    {
+     "label": "1.0 jumbo",
+     "gramWeight": 63.0
+    },
+    {
+     "label": "1.0 cup (4.86 large eggs)",
+     "gramWeight": 243.0
+    },
+    {
+     "label": "1.0 medium",
+     "gramWeight": 44.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 38.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171287/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169228",
+   "fdcId": 169228,
+   "description": "Eggplant, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11209,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 25.0,
+    "protein": 0.98,
+    "fat_total": 0.18,
+    "fat_saturated": 0.034,
+    "carbohydrate": 5.88,
+    "fiber": 3.0,
+    "sugars_total": 3.53,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 229.0,
+    "calcium": 9.0,
+    "iron": 0.23,
+    "magnesium": 14.0,
+    "zinc": 0.16,
+    "vitamin_c": 2.2,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 22.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, cubes",
+     "gramWeight": 82.0
+    },
+    {
+     "label": "1.0 eggplant, peeled (yield from 1-1/4 lb)",
+     "gramWeight": 458.0
+    },
+    {
+     "label": "1.0 eggplant, unpeeled (approx 1-1/4 lb)",
+     "gramWeight": 548.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169228/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171955",
+   "fdcId": 171955,
+   "description": "Fish, cod, Atlantic, raw",
+   "dataType": "SR Legacy",
+   "category": "Finfish and Shellfish Products",
+   "ndbNumber": 15015,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 82.0,
+    "protein": 17.81,
+    "fat_total": 0.67,
+    "fat_saturated": 0.131,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 43.0,
+    "sodium": 54.0,
+    "potassium": 413.0,
+    "calcium": 16.0,
+    "iron": 0.38,
+    "magnesium": 32.0,
+    "zinc": 0.45,
+    "vitamin_c": 1.0,
+    "vitamin_a_rae": 12.0,
+    "vitamin_d": 0.9,
+    "vitamin_b12": 0.91,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "3.0 oz",
+     "gramWeight": 85.0
+    },
+    {
+     "label": "1.0 fillet",
+     "gramWeight": 231.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171955/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:175168",
+   "fdcId": 175168,
+   "description": "Fish, salmon, Atlantic, farmed, cooked, dry heat",
+   "dataType": "SR Legacy",
+   "category": "Finfish and Shellfish Products",
+   "ndbNumber": 15237,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 206.0,
+    "protein": 22.1,
+    "fat_total": 12.35,
+    "fat_saturated": 2.397,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 63.0,
+    "sodium": 61.0,
+    "potassium": 384.0,
+    "calcium": 15.0,
+    "iron": 0.34,
+    "magnesium": 30.0,
+    "zinc": 0.43,
+    "vitamin_c": 3.7,
+    "vitamin_a_rae": 69.0,
+    "vitamin_d": 13.1,
+    "vitamin_b12": 2.8,
+    "folate_dfe": 34.0
+   },
+   "portions": [
+    {
+     "label": "3.0 oz",
+     "gramWeight": 85.0
+    },
+    {
+     "label": "0.5 fillet",
+     "gramWeight": 178.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/175168/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:175167",
+   "fdcId": 175167,
+   "description": "Fish, salmon, Atlantic, farmed, raw",
+   "dataType": "SR Legacy",
+   "category": "Finfish and Shellfish Products",
+   "ndbNumber": 15236,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 208.0,
+    "protein": 20.42,
+    "fat_total": 13.42,
+    "fat_saturated": 3.05,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 55.0,
+    "sodium": 59.0,
+    "potassium": 363.0,
+    "calcium": 9.0,
+    "iron": 0.34,
+    "magnesium": 27.0,
+    "zinc": 0.36,
+    "vitamin_c": 3.9,
+    "vitamin_a_rae": 58.0,
+    "vitamin_d": 11.0,
+    "vitamin_b12": 3.23,
+    "folate_dfe": 26.0
+   },
+   "portions": [
+    {
+     "label": "3.0 oz",
+     "gramWeight": 85.0
+    },
+    {
+     "label": "0.5 fillet",
+     "gramWeight": 198.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/175167/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:175176",
+   "fdcId": 175176,
+   "description": "Fish, tilapia, raw",
+   "dataType": "SR Legacy",
+   "category": "Finfish and Shellfish Products",
+   "ndbNumber": 15261,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 96.0,
+    "protein": 20.08,
+    "fat_total": 1.7,
+    "fat_saturated": 0.585,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 50.0,
+    "sodium": 52.0,
+    "potassium": 302.0,
+    "calcium": 10.0,
+    "iron": 0.56,
+    "magnesium": 27.0,
+    "zinc": 0.33,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 3.1,
+    "vitamin_b12": 1.58,
+    "folate_dfe": 24.0
+   },
+   "portions": [
+    {
+     "label": "1.0 fillet",
+     "gramWeight": 116.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/175176/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169230",
+   "fdcId": 169230,
+   "description": "Garlic, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11215,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 149.0,
+    "protein": 6.36,
+    "fat_total": 0.5,
+    "fat_saturated": 0.089,
+    "carbohydrate": 33.06,
+    "fiber": 2.1,
+    "sugars_total": 1.0,
+    "cholesterol": 0.0,
+    "sodium": 17.0,
+    "potassium": 401.0,
+    "calcium": 181.0,
+    "iron": 1.7,
+    "magnesium": 25.0,
+    "zinc": 1.16,
+    "vitamin_c": 31.2,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 3.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 136.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 2.8
+    },
+    {
+     "label": "1.0 clove",
+     "gramWeight": 3.0
+    },
+    {
+     "label": "3.0 cloves",
+     "gramWeight": 9.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169230/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169231",
+   "fdcId": 169231,
+   "description": "Ginger root, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11216,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 80.0,
+    "protein": 1.82,
+    "fat_total": 0.75,
+    "fat_saturated": 0.203,
+    "carbohydrate": 17.77,
+    "fiber": 2.0,
+    "sugars_total": 1.7,
+    "cholesterol": 0.0,
+    "sodium": 13.0,
+    "potassium": 415.0,
+    "calcium": 16.0,
+    "iron": 0.6,
+    "magnesium": 43.0,
+    "zinc": 0.34,
+    "vitamin_c": 5.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 11.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 2.0
+    },
+    {
+     "label": "0.25 cup slices (1\" dia)",
+     "gramWeight": 24.0
+    },
+    {
+     "label": "5.0 slices (1\" dia)",
+     "gramWeight": 11.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169231/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:174683",
+   "fdcId": 174683,
+   "description": "Grapes, red or green (European type, such as Thompson seedless), raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9132,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 69.0,
+    "protein": 0.72,
+    "fat_total": 0.16,
+    "fat_saturated": 0.054,
+    "carbohydrate": 18.1,
+    "fiber": 0.9,
+    "sugars_total": 15.48,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 191.0,
+    "calcium": 10.0,
+    "iron": 0.36,
+    "magnesium": 7.0,
+    "zinc": 0.07,
+    "vitamin_c": 3.2,
+    "vitamin_a_rae": 3.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 2.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 151.0
+    },
+    {
+     "label": "10.0 grapes",
+     "gramWeight": 49.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 126.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/174683/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169640",
+   "fdcId": 169640,
+   "description": "Honey",
+   "dataType": "SR Legacy",
+   "category": "Sweets",
+   "ndbNumber": 19296,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 304.0,
+    "protein": 0.3,
+    "fat_total": 0.0,
+    "fat_saturated": 0.0,
+    "carbohydrate": 82.4,
+    "fiber": 0.2,
+    "sugars_total": 82.12,
+    "cholesterol": 0.0,
+    "sodium": 4.0,
+    "potassium": 52.0,
+    "calcium": 6.0,
+    "iron": 0.42,
+    "magnesium": 2.0,
+    "zinc": 0.22,
+    "vitamin_c": 0.5,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 2.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 339.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 21.0
+    },
+    {
+     "label": "1.0 packet (0.5 oz)",
+     "gramWeight": 14.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169640/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:174289",
+   "fdcId": 174289,
+   "description": "Hummus, commercial",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16158,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 237.0,
+    "protein": 7.78,
+    "fat_total": 17.82,
+    "fat_saturated": 2.562,
+    "carbohydrate": 15.0,
+    "fiber": 5.5,
+    "sugars_total": 0.62,
+    "cholesterol": 0.0,
+    "sodium": 426.0,
+    "potassium": 312.0,
+    "calcium": 47.0,
+    "iron": 2.54,
+    "magnesium": 75.0,
+    "zinc": 1.44,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 48.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 15.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 246.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/174289/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168421",
+   "fdcId": 168421,
+   "description": "Kale, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11233,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 35.0,
+    "protein": 2.92,
+    "fat_total": 1.49,
+    "fat_saturated": 0.178,
+    "carbohydrate": 4.42,
+    "fiber": 4.1,
+    "sugars_total": 0.99,
+    "cholesterol": 0.0,
+    "sodium": 53.0,
+    "potassium": 348.0,
+    "calcium": 254.0,
+    "iron": 1.6,
+    "magnesium": 33.0,
+    "zinc": 0.39,
+    "vitamin_c": 93.4,
+    "vitamin_a_rae": 241.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 62.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 21.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168421/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168153",
+   "fdcId": 168153,
+   "description": "Kiwifruit, green, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9148,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 61.0,
+    "protein": 1.14,
+    "fat_total": 0.52,
+    "fat_saturated": 0.029,
+    "carbohydrate": 14.66,
+    "fiber": 3.0,
+    "sugars_total": 8.99,
+    "cholesterol": 0.0,
+    "sodium": 3.0,
+    "potassium": 312.0,
+    "calcium": 34.0,
+    "iron": 0.31,
+    "magnesium": 17.0,
+    "zinc": 0.14,
+    "vitamin_c": 92.7,
+    "vitamin_a_rae": 4.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 25.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 180.0
+    },
+    {
+     "label": "1.0 fruit (2\" dia)",
+     "gramWeight": 69.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 148.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168153/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169246",
+   "fdcId": 169246,
+   "description": "Leeks, (bulb and lower leaf-portion), raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11246,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 61.0,
+    "protein": 1.5,
+    "fat_total": 0.3,
+    "fat_saturated": 0.04,
+    "carbohydrate": 14.15,
+    "fiber": 1.8,
+    "sugars_total": 3.9,
+    "cholesterol": 0.0,
+    "sodium": 20.0,
+    "potassium": 180.0,
+    "calcium": 59.0,
+    "iron": 2.1,
+    "magnesium": 28.0,
+    "zinc": 0.12,
+    "vitamin_c": 12.0,
+    "vitamin_a_rae": 83.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 64.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 89.0
+    },
+    {
+     "label": "1.0 leek",
+     "gramWeight": 89.0
+    },
+    {
+     "label": "1.0 slice",
+     "gramWeight": 6.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169246/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:167746",
+   "fdcId": 167746,
+   "description": "Lemons, raw, without peel",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9150,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 29.0,
+    "protein": 1.1,
+    "fat_total": 0.3,
+    "fat_saturated": 0.039,
+    "carbohydrate": 9.32,
+    "fiber": 2.8,
+    "sugars_total": 2.5,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 138.0,
+    "calcium": 26.0,
+    "iron": 0.6,
+    "magnesium": 8.0,
+    "zinc": 0.06,
+    "vitamin_c": 53.0,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 11.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, sections",
+     "gramWeight": 212.0
+    },
+    {
+     "label": "1.0 fruit (2-1/8\" dia)",
+     "gramWeight": 58.0
+    },
+    {
+     "label": "1.0 fruit (2-3/8\" dia)",
+     "gramWeight": 84.0
+    },
+    {
+     "label": "1.0 wedge or slice (1/8 of one 2-1/8\" dia lemon)",
+     "gramWeight": 7.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 58.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/167746/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172421",
+   "fdcId": 172421,
+   "description": "Lentils, mature seeds, cooked, boiled, without salt",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16070,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 116.0,
+    "protein": 9.02,
+    "fat_total": 0.38,
+    "fat_saturated": 0.053,
+    "carbohydrate": 20.13,
+    "fiber": 7.9,
+    "sugars_total": 1.8,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 369.0,
+    "calcium": 19.0,
+    "iron": 3.33,
+    "magnesium": 36.0,
+    "zinc": 1.27,
+    "vitamin_c": 1.5,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 181.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 198.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 12.3
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172421/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172420",
+   "fdcId": 172420,
+   "description": "Lentils, raw",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16069,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 352.0,
+    "protein": 24.63,
+    "fat_total": 1.06,
+    "fat_saturated": 0.154,
+    "carbohydrate": 63.35,
+    "fiber": 10.7,
+    "sugars_total": 2.03,
+    "cholesterol": 0.0,
+    "sodium": 6.0,
+    "potassium": 677.0,
+    "calcium": 35.0,
+    "iron": 6.51,
+    "magnesium": 47.0,
+    "zinc": 3.27,
+    "vitamin_c": 4.5,
+    "vitamin_a_rae": 2.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 479.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 192.0
+    },
+    {
+     "label": "1.0 tablespoon",
+     "gramWeight": 12.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172420/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169247",
+   "fdcId": 169247,
+   "description": "Lettuce, cos or romaine, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11251,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 17.0,
+    "protein": 1.23,
+    "fat_total": 0.3,
+    "fat_saturated": 0.039,
+    "carbohydrate": 3.29,
+    "fiber": 2.1,
+    "sugars_total": 1.19,
+    "cholesterol": 0.0,
+    "sodium": 8.0,
+    "potassium": 247.0,
+    "calcium": 33.0,
+    "iron": 0.97,
+    "magnesium": 14.0,
+    "zinc": 0.23,
+    "vitamin_c": 4.0,
+    "vitamin_a_rae": 436.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 136.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup shredded",
+     "gramWeight": 47.0
+    },
+    {
+     "label": "1.0 leaf inner",
+     "gramWeight": 6.0
+    },
+    {
+     "label": "1.0 leaf outer",
+     "gramWeight": 28.0
+    },
+    {
+     "label": "1.0 head",
+     "gramWeight": 626.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 85.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169247/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169248",
+   "fdcId": 169248,
+   "description": "Lettuce, iceberg (includes crisphead types), raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11252,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 14.0,
+    "protein": 0.9,
+    "fat_total": 0.14,
+    "fat_saturated": 0.018,
+    "carbohydrate": 2.97,
+    "fiber": 1.2,
+    "sugars_total": 1.97,
+    "cholesterol": 0.0,
+    "sodium": 10.0,
+    "potassium": 141.0,
+    "calcium": 18.0,
+    "iron": 0.41,
+    "magnesium": 7.0,
+    "zinc": 0.15,
+    "vitamin_c": 2.8,
+    "vitamin_a_rae": 25.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 29.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup shredded",
+     "gramWeight": 72.0
+    },
+    {
+     "label": "1.0 cup, chopped (1/2\" pieces, loosely packed)",
+     "gramWeight": 57.0
+    },
+    {
+     "label": "1.0 head, large",
+     "gramWeight": 755.0
+    },
+    {
+     "label": "1.0 head, medium (6\" dia)",
+     "gramWeight": 539.0
+    },
+    {
+     "label": "1.0 head, small",
+     "gramWeight": 324.0
+    },
+    {
+     "label": "1.0 leaf, large",
+     "gramWeight": 15.0
+    },
+    {
+     "label": "1.0 leaf, medium",
+     "gramWeight": 8.0
+    },
+    {
+     "label": "1.0 leaf, small",
+     "gramWeight": 5.0
+    },
+    {
+     "label": "1.0 NLEA Serving",
+     "gramWeight": 89.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169248/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168155",
+   "fdcId": 168155,
+   "description": "Limes, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9159,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 30.0,
+    "protein": 0.7,
+    "fat_total": 0.2,
+    "fat_saturated": 0.022,
+    "carbohydrate": 10.54,
+    "fiber": 2.8,
+    "sugars_total": 1.69,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 102.0,
+    "calcium": 33.0,
+    "iron": 0.6,
+    "magnesium": 6.0,
+    "zinc": 0.11,
+    "vitamin_c": 29.1,
+    "vitamin_a_rae": 2.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 8.0
+   },
+   "portions": [
+    {
+     "label": "1.0 fruit (2\" dia)",
+     "gramWeight": 67.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 67.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168155/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169910",
+   "fdcId": 169910,
+   "description": "Mangos, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9176,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 60.0,
+    "protein": 0.82,
+    "fat_total": 0.38,
+    "fat_saturated": 0.092,
+    "carbohydrate": 14.98,
+    "fiber": 1.6,
+    "sugars_total": 13.66,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 168.0,
+    "calcium": 11.0,
+    "iron": 0.16,
+    "magnesium": 10.0,
+    "zinc": 0.09,
+    "vitamin_c": 36.4,
+    "vitamin_a_rae": 54.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 43.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup pieces",
+     "gramWeight": 165.0
+    },
+    {
+     "label": "1.0 fruit without refuse",
+     "gramWeight": 336.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169910/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169092",
+   "fdcId": 169092,
+   "description": "Melons, cantaloupe, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9181,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 34.0,
+    "protein": 0.84,
+    "fat_total": 0.19,
+    "fat_saturated": 0.051,
+    "carbohydrate": 8.16,
+    "fiber": 0.9,
+    "sugars_total": 7.86,
+    "cholesterol": 0.0,
+    "sodium": 16.0,
+    "potassium": 267.0,
+    "calcium": 9.0,
+    "iron": 0.21,
+    "magnesium": 12.0,
+    "zinc": 0.18,
+    "vitamin_c": 36.7,
+    "vitamin_a_rae": 169.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 21.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, balls",
+     "gramWeight": 177.0
+    },
+    {
+     "label": "1.0 cup, cubes",
+     "gramWeight": 160.0
+    },
+    {
+     "label": "1.0 cup, diced",
+     "gramWeight": 156.0
+    },
+    {
+     "label": "1.0 melon, large (about 6-1/2\" dia)",
+     "gramWeight": 814.0
+    },
+    {
+     "label": "1.0 wedge, large (1/8 of large melon)",
+     "gramWeight": 102.0
+    },
+    {
+     "label": "1.0 melon, medium (about 5\" dia)",
+     "gramWeight": 552.0
+    },
+    {
+     "label": "1.0 wedge, medium (1/8 of medium melon)",
+     "gramWeight": 69.0
+    },
+    {
+     "label": "1.0 melon, small (about 4-1/4\" dia)",
+     "gramWeight": 441.0
+    },
+    {
+     "label": "1.0 wedge, small (1/8 of small melon)",
+     "gramWeight": 55.0
+    },
+    {
+     "label": "10.0 cantaloupe balls",
+     "gramWeight": 138.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 134.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169092/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171269",
+   "fdcId": 171269,
+   "description": "Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1085,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 34.0,
+    "protein": 3.37,
+    "fat_total": 0.08,
+    "fat_saturated": 0.056,
+    "carbohydrate": 4.96,
+    "fiber": 0.0,
+    "sugars_total": 5.09,
+    "cholesterol": 2.0,
+    "sodium": 42.0,
+    "potassium": 156.0,
+    "calcium": 122.0,
+    "iron": 0.03,
+    "magnesium": 11.0,
+    "zinc": 0.42,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 61.0,
+    "vitamin_d": 1.2,
+    "vitamin_b12": 0.5,
+    "folate_dfe": 5.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 245.0
+    },
+    {
+     "label": "1.0 fl oz",
+     "gramWeight": 30.6
+    },
+    {
+     "label": "1.0 quart",
+     "gramWeight": 980.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171269/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171267",
+   "fdcId": 171267,
+   "description": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1079,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 50.0,
+    "protein": 3.3,
+    "fat_total": 1.98,
+    "fat_saturated": 1.257,
+    "carbohydrate": 4.8,
+    "fiber": 0.0,
+    "sugars_total": 5.06,
+    "cholesterol": 8.0,
+    "sodium": 47.0,
+    "potassium": 140.0,
+    "calcium": 120.0,
+    "iron": 0.02,
+    "magnesium": 11.0,
+    "zinc": 0.48,
+    "vitamin_c": 0.2,
+    "vitamin_a_rae": 55.0,
+    "vitamin_d": 1.2,
+    "vitamin_b12": 0.53,
+    "folate_dfe": 5.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 244.0
+    },
+    {
+     "label": "1.0 fl oz",
+     "gramWeight": 30.5
+    },
+    {
+     "label": "1.0 quart",
+     "gramWeight": 976.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171267/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171265",
+   "fdcId": 171265,
+   "description": "Milk, whole, 3.25% milkfat, with added vitamin D",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1077,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 61.0,
+    "protein": 3.15,
+    "fat_total": 3.25,
+    "fat_saturated": 1.865,
+    "carbohydrate": 4.8,
+    "fiber": 0.0,
+    "sugars_total": 5.05,
+    "cholesterol": 10.0,
+    "sodium": 43.0,
+    "potassium": 132.0,
+    "calcium": 113.0,
+    "iron": 0.03,
+    "magnesium": 10.0,
+    "zinc": 0.37,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 46.0,
+    "vitamin_d": 1.3,
+    "vitamin_b12": 0.45,
+    "folate_dfe": 5.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 244.0
+    },
+    {
+     "label": "1.0 fl oz",
+     "gramWeight": 30.5
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 15.0
+    },
+    {
+     "label": "1.0 quart",
+     "gramWeight": 976.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171265/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169251",
+   "fdcId": 169251,
+   "description": "Mushrooms, white, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11260,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 22.0,
+    "protein": 3.09,
+    "fat_total": 0.34,
+    "fat_saturated": 0.05,
+    "carbohydrate": 3.26,
+    "fiber": 1.0,
+    "sugars_total": 1.98,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 318.0,
+    "calcium": 3.0,
+    "iron": 0.5,
+    "magnesium": 9.0,
+    "zinc": 0.52,
+    "vitamin_c": 2.1,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.2,
+    "vitamin_b12": 0.04,
+    "folate_dfe": 17.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, pieces or slices",
+     "gramWeight": 70.0
+    },
+    {
+     "label": "1.0 cup, whole",
+     "gramWeight": 96.0
+    },
+    {
+     "label": "1.0 large",
+     "gramWeight": 23.0
+    },
+    {
+     "label": "1.0 medium",
+     "gramWeight": 18.0
+    },
+    {
+     "label": "1.0 slice",
+     "gramWeight": 6.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 10.0
+    },
+    {
+     "label": "0.5 cup pieces",
+     "gramWeight": 35.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169251/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172234",
+   "fdcId": 172234,
+   "description": "Mustard, prepared, yellow",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2046,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 60.0,
+    "protein": 3.74,
+    "fat_total": 3.34,
+    "fat_saturated": 0.214,
+    "carbohydrate": 5.83,
+    "fiber": 4.0,
+    "sugars_total": 0.92,
+    "cholesterol": 0.0,
+    "sodium": 1104.0,
+    "potassium": 152.0,
+    "calcium": 63.0,
+    "iron": 1.61,
+    "magnesium": 48.0,
+    "zinc": 0.64,
+    "vitamin_c": 0.3,
+    "vitamin_a_rae": 5.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp or 1 packet",
+     "gramWeight": 5.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 249.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172234/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170567",
+   "fdcId": 170567,
+   "description": "Nuts, almonds",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12061,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 579.0,
+    "protein": 21.15,
+    "fat_total": 49.93,
+    "fat_saturated": 3.802,
+    "carbohydrate": 21.55,
+    "fiber": 12.5,
+    "sugars_total": 4.35,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 733.0,
+    "calcium": 269.0,
+    "iron": 3.71,
+    "magnesium": 270.0,
+    "zinc": 3.12,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 44.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, whole",
+     "gramWeight": 143.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 92.0
+    },
+    {
+     "label": "1.0 cup, slivered",
+     "gramWeight": 108.0
+    },
+    {
+     "label": "1.0 cup, ground",
+     "gramWeight": 95.0
+    },
+    {
+     "label": "1.0 oz (23 whole kernels)",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "1.0 almond",
+     "gramWeight": 1.2
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170567/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170162",
+   "fdcId": 170162,
+   "description": "Nuts, cashew nuts, raw",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12087,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 553.0,
+    "protein": 18.22,
+    "fat_total": 43.85,
+    "fat_saturated": 7.783,
+    "carbohydrate": 30.19,
+    "fiber": 3.3,
+    "sugars_total": 5.91,
+    "cholesterol": 0.0,
+    "sodium": 12.0,
+    "potassium": 660.0,
+    "calcium": 37.0,
+    "iron": 6.68,
+    "magnesium": 292.0,
+    "zinc": 5.78,
+    "vitamin_c": 0.5,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 25.0
+   },
+   "portions": [
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170162/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170173",
+   "fdcId": 170173,
+   "description": "Nuts, coconut milk, canned (liquid expressed from grated meat and water)",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12118,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 197.0,
+    "protein": 2.02,
+    "fat_total": 21.33,
+    "fat_saturated": 18.915,
+    "carbohydrate": 2.81,
+    "cholesterol": 0.0,
+    "sodium": 13.0,
+    "potassium": 220.0,
+    "calcium": 18.0,
+    "iron": 3.3,
+    "magnesium": 46.0,
+    "zinc": 0.56,
+    "vitamin_c": 1.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 14.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 226.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 15.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170173/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170187",
+   "fdcId": 170187,
+   "description": "Nuts, walnuts, english",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12155,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 654.0,
+    "protein": 15.23,
+    "fat_total": 65.21,
+    "fat_saturated": 6.126,
+    "carbohydrate": 13.71,
+    "fiber": 6.7,
+    "sugars_total": 2.61,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 441.0,
+    "calcium": 98.0,
+    "iron": 2.91,
+    "magnesium": 158.0,
+    "zinc": 3.09,
+    "vitamin_c": 1.3,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 98.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped",
+     "gramWeight": 117.0
+    },
+    {
+     "label": "1.0 cup, ground",
+     "gramWeight": 80.0
+    },
+    {
+     "label": "1.0 cup, in shell, edible yield (7 nuts)",
+     "gramWeight": 28.0
+    },
+    {
+     "label": "1.0 cup shelled (50 halves)",
+     "gramWeight": 100.0
+    },
+    {
+     "label": "1.0 cup pieces or chips",
+     "gramWeight": 120.0
+    },
+    {
+     "label": "1.0 oz (14 halves)",
+     "gramWeight": 28.35
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170187/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173573",
+   "fdcId": 173573,
+   "description": "Oil, avocado",
+   "dataType": "SR Legacy",
+   "category": "Fats and Oils",
+   "ndbNumber": 4581,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 884.0,
+    "protein": 0.0,
+    "fat_total": 100.0,
+    "fat_saturated": 11.56,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sodium": 0.0,
+    "potassium": 0.0,
+    "calcium": 0.0,
+    "iron": 0.0,
+    "magnesium": 0.0,
+    "zinc": 0.0,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 14.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 218.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 4.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173573/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172336",
+   "fdcId": 172336,
+   "description": "Oil, canola",
+   "dataType": "SR Legacy",
+   "category": "Fats and Oils",
+   "ndbNumber": 4582,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 884.0,
+    "protein": 0.0,
+    "fat_total": 100.0,
+    "fat_saturated": 7.365,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 0.0,
+    "sodium": 0.0,
+    "potassium": 0.0,
+    "calcium": 0.0,
+    "iron": 0.0,
+    "magnesium": 0.0,
+    "zinc": 0.0,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 14.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 218.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 4.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172336/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171412",
+   "fdcId": 171412,
+   "description": "Oil, coconut",
+   "dataType": "SR Legacy",
+   "category": "Fats and Oils",
+   "ndbNumber": 4047,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 892.0,
+    "protein": 0.0,
+    "fat_total": 99.06,
+    "fat_saturated": 82.475,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 0.0,
+    "sodium": 0.0,
+    "potassium": 0.0,
+    "calcium": 1.0,
+    "iron": 0.05,
+    "magnesium": 0.0,
+    "zinc": 0.02,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 13.6
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 218.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 4.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171412/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171413",
+   "fdcId": 171413,
+   "description": "Oil, olive, salad or cooking",
+   "dataType": "SR Legacy",
+   "category": "Fats and Oils",
+   "ndbNumber": 4053,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 884.0,
+    "protein": 0.0,
+    "fat_total": 100.0,
+    "fat_saturated": 13.808,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 1.0,
+    "calcium": 1.0,
+    "iron": 0.56,
+    "magnesium": 0.0,
+    "zinc": 0.0,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tablespoon",
+     "gramWeight": 13.5
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 216.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 4.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171016",
+   "fdcId": 171016,
+   "description": "Oil, sesame, salad or cooking",
+   "dataType": "SR Legacy",
+   "category": "Fats and Oils",
+   "ndbNumber": 4058,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 884.0,
+    "protein": 0.0,
+    "fat_total": 100.0,
+    "fat_saturated": 14.2,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 0.0,
+    "sodium": 0.0,
+    "potassium": 0.0,
+    "calcium": 0.0,
+    "iron": 0.0,
+    "magnesium": 0.0,
+    "zinc": 0.0,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tablespoon",
+     "gramWeight": 13.6
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 218.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 4.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171016/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171025",
+   "fdcId": 171025,
+   "description": "Oil, sunflower, linoleic, (approx. 65%)",
+   "dataType": "SR Legacy",
+   "category": "Fats and Oils",
+   "ndbNumber": 4506,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 884.0,
+    "protein": 0.0,
+    "fat_total": 100.0,
+    "fat_saturated": 10.3,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 0.0,
+    "sodium": 0.0,
+    "potassium": 0.0,
+    "calcium": 0.0,
+    "iron": 0.0,
+    "magnesium": 0.0,
+    "zinc": 0.0,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 13.6
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 218.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 4.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171025/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170000",
+   "fdcId": 170000,
+   "description": "Onions, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11282,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 40.0,
+    "protein": 1.1,
+    "fat_total": 0.1,
+    "fat_saturated": 0.042,
+    "carbohydrate": 9.34,
+    "fiber": 1.7,
+    "sugars_total": 4.24,
+    "cholesterol": 0.0,
+    "sodium": 4.0,
+    "potassium": 146.0,
+    "calcium": 23.0,
+    "iron": 0.21,
+    "magnesium": 10.0,
+    "zinc": 0.17,
+    "vitamin_c": 7.4,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 19.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped",
+     "gramWeight": 160.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 115.0
+    },
+    {
+     "label": "1.0 tbsp chopped",
+     "gramWeight": 10.0
+    },
+    {
+     "label": "1.0 large",
+     "gramWeight": 150.0
+    },
+    {
+     "label": "1.0 slice, large (1/4\" thick)",
+     "gramWeight": 38.0
+    },
+    {
+     "label": "1.0 medium (2-1/2\" dia)",
+     "gramWeight": 110.0
+    },
+    {
+     "label": "1.0 slice, medium (1/8\" thick)",
+     "gramWeight": 14.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 70.0
+    },
+    {
+     "label": "1.0 slice, thin",
+     "gramWeight": 9.0
+    },
+    {
+     "label": "10.0 rings",
+     "gramWeight": 60.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170000/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169097",
+   "fdcId": 169097,
+   "description": "Oranges, raw, all commercial varieties",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9200,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 47.0,
+    "protein": 0.94,
+    "fat_total": 0.12,
+    "fat_saturated": 0.015,
+    "carbohydrate": 11.75,
+    "fiber": 2.4,
+    "sugars_total": 9.35,
+    "cholesterol": 0.0,
+    "sodium": 0.0,
+    "potassium": 181.0,
+    "calcium": 40.0,
+    "iron": 0.1,
+    "magnesium": 10.0,
+    "zinc": 0.07,
+    "vitamin_c": 53.2,
+    "vitamin_a_rae": 11.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 30.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, sections",
+     "gramWeight": 180.0
+    },
+    {
+     "label": "1.0 large (3-1/16\" dia)",
+     "gramWeight": 184.0
+    },
+    {
+     "label": "1.0 small (2-3/8\" dia)",
+     "gramWeight": 96.0
+    },
+    {
+     "label": "1.0 fruit (2-5/8\" dia)",
+     "gramWeight": 131.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169097/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170416",
+   "fdcId": 170416,
+   "description": "Parsley, fresh",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11297,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 36.0,
+    "protein": 2.97,
+    "fat_total": 0.79,
+    "fat_saturated": 0.132,
+    "carbohydrate": 6.33,
+    "fiber": 3.3,
+    "sugars_total": 0.85,
+    "cholesterol": 0.0,
+    "sodium": 56.0,
+    "potassium": 554.0,
+    "calcium": 138.0,
+    "iron": 6.2,
+    "magnesium": 50.0,
+    "zinc": 1.07,
+    "vitamin_c": 133.0,
+    "vitamin_a_rae": 421.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 152.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup chopped",
+     "gramWeight": 60.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 3.8
+    },
+    {
+     "label": "10.0 sprigs",
+     "gramWeight": 10.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170416/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169737",
+   "fdcId": 169737,
+   "description": "Pasta, cooked, enriched, without added salt",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20121,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 158.0,
+    "protein": 5.8,
+    "fat_total": 0.93,
+    "fat_saturated": 0.176,
+    "carbohydrate": 30.86,
+    "fiber": 1.8,
+    "sugars_total": 0.56,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 44.0,
+    "calcium": 7.0,
+    "iron": 1.28,
+    "magnesium": 18.0,
+    "zinc": 0.51,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 119.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup spaghetti not packed",
+     "gramWeight": 124.0
+    },
+    {
+     "label": "1.0 cup spaghetti packed",
+     "gramWeight": 151.0
+    },
+    {
+     "label": "1.0 cup elbows not packed",
+     "gramWeight": 120.0
+    },
+    {
+     "label": "1.0 cup elbows packed",
+     "gramWeight": 132.0
+    },
+    {
+     "label": "1.0 cup penne",
+     "gramWeight": 107.0
+    },
+    {
+     "label": "1.0 cup farfalle",
+     "gramWeight": 107.0
+    },
+    {
+     "label": "1.0 cup rotini",
+     "gramWeight": 107.0
+    },
+    {
+     "label": "1.0 cup shells",
+     "gramWeight": 105.0
+    },
+    {
+     "label": "1.0 cup lasagne",
+     "gramWeight": 116.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169737/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169736",
+   "fdcId": 169736,
+   "description": "Pasta, dry, enriched",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20120,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 371.0,
+    "protein": 13.04,
+    "fat_total": 1.51,
+    "fat_saturated": 0.277,
+    "carbohydrate": 74.67,
+    "fiber": 3.2,
+    "sugars_total": 2.67,
+    "cholesterol": 0.0,
+    "sodium": 6.0,
+    "potassium": 223.0,
+    "calcium": 21.0,
+    "iron": 3.3,
+    "magnesium": 53.0,
+    "zinc": 1.41,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 391.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup spaghetti",
+     "gramWeight": 91.0
+    },
+    {
+     "label": "2.0 oz",
+     "gramWeight": 57.0
+    },
+    {
+     "label": "1.0 cup elbows",
+     "gramWeight": 122.0
+    },
+    {
+     "label": "1.0 cup penne",
+     "gramWeight": 95.0
+    },
+    {
+     "label": "1.0 cup farfalle",
+     "gramWeight": 81.0
+    },
+    {
+     "label": "1.0 cup rotini",
+     "gramWeight": 96.0
+    },
+    {
+     "label": "1.0 cup shells",
+     "gramWeight": 64.0
+    },
+    {
+     "label": "1.0 cup lasagna",
+     "gramWeight": 90.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169736/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169928",
+   "fdcId": 169928,
+   "description": "Peaches, yellow, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9236,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 39.0,
+    "protein": 0.91,
+    "fat_total": 0.25,
+    "fat_saturated": 0.019,
+    "carbohydrate": 9.54,
+    "fiber": 1.5,
+    "sugars_total": 8.39,
+    "cholesterol": 0.0,
+    "sodium": 0.0,
+    "potassium": 190.0,
+    "calcium": 6.0,
+    "iron": 0.25,
+    "magnesium": 9.0,
+    "zinc": 0.17,
+    "vitamin_c": 6.6,
+    "vitamin_a_rae": 16.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 4.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup slices",
+     "gramWeight": 154.0
+    },
+    {
+     "label": "1.0 small (2-1/2\" dia)",
+     "gramWeight": 130.0
+    },
+    {
+     "label": "1.0 medium (2-2/3\" dia)",
+     "gramWeight": 150.0
+    },
+    {
+     "label": "1.0 large (2-3/4\" dia)",
+     "gramWeight": 175.0
+    },
+    {
+     "label": "1.0 extra large (3\" dia)",
+     "gramWeight": 224.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 147.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169928/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172470",
+   "fdcId": 172470,
+   "description": "Peanut butter, smooth style, without salt",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16398,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 598.0,
+    "protein": 22.21,
+    "fat_total": 51.36,
+    "fat_saturated": 10.325,
+    "carbohydrate": 22.31,
+    "fiber": 5.0,
+    "sugars_total": 10.49,
+    "cholesterol": 0.0,
+    "sodium": 17.0,
+    "potassium": 558.0,
+    "calcium": 49.0,
+    "iron": 1.74,
+    "magnesium": 168.0,
+    "zinc": 2.51,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 87.0
+   },
+   "portions": [
+    {
+     "label": "2.0 tbsp",
+     "gramWeight": 32.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 258.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172470/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172430",
+   "fdcId": 172430,
+   "description": "Peanuts, all types, raw",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16087,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 567.0,
+    "protein": 25.8,
+    "fat_total": 49.24,
+    "fat_saturated": 6.279,
+    "carbohydrate": 16.13,
+    "fiber": 8.5,
+    "sugars_total": 4.72,
+    "cholesterol": 0.0,
+    "sodium": 18.0,
+    "potassium": 705.0,
+    "calcium": 92.0,
+    "iron": 4.58,
+    "magnesium": 168.0,
+    "zinc": 3.27,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 240.0
+   },
+   "portions": [
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 146.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172430/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169118",
+   "fdcId": 169118,
+   "description": "Pears, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9252,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 57.0,
+    "protein": 0.36,
+    "fat_total": 0.14,
+    "fat_saturated": 0.022,
+    "carbohydrate": 15.23,
+    "fiber": 3.1,
+    "sugars_total": 9.75,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 116.0,
+    "calcium": 9.0,
+    "iron": 0.18,
+    "magnesium": 7.0,
+    "zinc": 0.1,
+    "vitamin_c": 4.3,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, slices",
+     "gramWeight": 140.0
+    },
+    {
+     "label": "1.0 cup, cubes",
+     "gramWeight": 161.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 148.0
+    },
+    {
+     "label": "1.0 medium",
+     "gramWeight": 178.0
+    },
+    {
+     "label": "1.0 large",
+     "gramWeight": 230.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 166.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169118/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170419",
+   "fdcId": 170419,
+   "description": "Peas, green, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11304,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 81.0,
+    "protein": 5.42,
+    "fat_total": 0.4,
+    "fat_saturated": 0.071,
+    "carbohydrate": 14.45,
+    "fiber": 5.7,
+    "sugars_total": 5.67,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 244.0,
+    "calcium": 25.0,
+    "iron": 1.47,
+    "magnesium": 33.0,
+    "zinc": 1.24,
+    "vitamin_c": 40.0,
+    "vitamin_a_rae": 38.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 65.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 145.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170419/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170427",
+   "fdcId": 170427,
+   "description": "Peppers, sweet, green, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11333,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 20.0,
+    "protein": 0.86,
+    "fat_total": 0.17,
+    "fat_saturated": 0.058,
+    "carbohydrate": 4.64,
+    "fiber": 1.7,
+    "sugars_total": 2.4,
+    "cholesterol": 0.0,
+    "sodium": 3.0,
+    "potassium": 175.0,
+    "calcium": 10.0,
+    "iron": 0.34,
+    "magnesium": 10.0,
+    "zinc": 0.13,
+    "vitamin_c": 80.4,
+    "vitamin_a_rae": 18.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 10.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped",
+     "gramWeight": 149.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 92.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 9.3
+    },
+    {
+     "label": "1.0 large (2-1/4 per lb, approx 3-3/4\" long, 3\" dia)",
+     "gramWeight": 164.0
+    },
+    {
+     "label": "1.0 medium (approx 2-3/4\" long, 2-1/2\" dia)",
+     "gramWeight": 119.0
+    },
+    {
+     "label": "1.0 ring (3\" dia, 1/4\" thick)",
+     "gramWeight": 10.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 74.0
+    },
+    {
+     "label": "10.0 strips",
+     "gramWeight": 27.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170427/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170108",
+   "fdcId": 170108,
+   "description": "Peppers, sweet, red, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11821,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 26.0,
+    "protein": 0.99,
+    "fat_total": 0.3,
+    "fat_saturated": 0.059,
+    "carbohydrate": 6.03,
+    "fiber": 2.1,
+    "sugars_total": 4.2,
+    "cholesterol": 0.0,
+    "sodium": 4.0,
+    "potassium": 211.0,
+    "calcium": 7.0,
+    "iron": 0.43,
+    "magnesium": 12.0,
+    "zinc": 0.25,
+    "vitamin_c": 127.7,
+    "vitamin_a_rae": 157.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 46.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped",
+     "gramWeight": 149.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 92.0
+    },
+    {
+     "label": "1.0 tablespoon",
+     "gramWeight": 9.3
+    },
+    {
+     "label": "1.0 large (2-1/4 per pound, approx 3-3/4\" long, 3\" dia.)",
+     "gramWeight": 164.0
+    },
+    {
+     "label": "1.0 medium (approx 2-3/4\" long, 2-1/2 dia.)",
+     "gramWeight": 119.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 74.0
+    },
+    {
+     "label": "1.0 ring (3\" dia., 1/4\" thick)",
+     "gramWeight": 10.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170108/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169124",
+   "fdcId": 169124,
+   "description": "Pineapple, raw, all varieties",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9266,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 50.0,
+    "protein": 0.54,
+    "fat_total": 0.12,
+    "fat_saturated": 0.009,
+    "carbohydrate": 13.12,
+    "fiber": 1.4,
+    "sugars_total": 9.85,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 109.0,
+    "calcium": 13.0,
+    "iron": 0.29,
+    "magnesium": 12.0,
+    "zinc": 0.12,
+    "vitamin_c": 47.8,
+    "vitamin_a_rae": 3.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 18.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chunks",
+     "gramWeight": 165.0
+    },
+    {
+     "label": "1.0 fruit",
+     "gramWeight": 905.0
+    },
+    {
+     "label": "1.0 slice (4-2/3\" dia x 3/4\" thick)",
+     "gramWeight": 166.0
+    },
+    {
+     "label": "1.0 slice (3-1/2\" dia x 3/4\" thick)",
+     "gramWeight": 84.0
+    },
+    {
+     "label": "1.0 slice, thin (3-1/2\" dia x 1/2\" thick)",
+     "gramWeight": 56.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169124/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168249",
+   "fdcId": 168249,
+   "description": "Pork, fresh, loin, tenderloin, separable lean only, raw",
+   "dataType": "SR Legacy",
+   "category": "Pork Products",
+   "ndbNumber": 10060,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 109.0,
+    "protein": 20.95,
+    "fat_total": 2.17,
+    "fat_saturated": 0.698,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 65.0,
+    "sodium": 53.0,
+    "potassium": 399.0,
+    "calcium": 5.0,
+    "iron": 0.98,
+    "magnesium": 27.0,
+    "zinc": 1.89,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.2,
+    "vitamin_b12": 0.51,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "4.0 oz",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 lb",
+     "gramWeight": 453.6
+    },
+    {
+     "label": "1.0 roast",
+     "gramWeight": 505.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168249/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170093",
+   "fdcId": 170093,
+   "description": "Potatoes, baked, flesh and skin, without salt",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11674,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 93.0,
+    "protein": 2.5,
+    "fat_total": 0.13,
+    "fat_saturated": 0.034,
+    "carbohydrate": 21.15,
+    "fiber": 2.2,
+    "sugars_total": 1.18,
+    "cholesterol": 0.0,
+    "sodium": 10.0,
+    "potassium": 535.0,
+    "calcium": 15.0,
+    "iron": 1.08,
+    "magnesium": 28.0,
+    "zinc": 0.36,
+    "vitamin_c": 9.6,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 28.0
+   },
+   "portions": [
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 148.0
+    },
+    {
+     "label": "1.0 potato large",
+     "gramWeight": 299.0
+    },
+    {
+     "label": "1.0 potato medium",
+     "gramWeight": 173.0
+    },
+    {
+     "label": "1.0 potato small",
+     "gramWeight": 138.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170093/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170026",
+   "fdcId": 170026,
+   "description": "Potatoes, flesh and skin, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11352,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 77.0,
+    "protein": 2.05,
+    "fat_total": 0.09,
+    "fat_saturated": 0.025,
+    "carbohydrate": 17.49,
+    "fiber": 2.1,
+    "sugars_total": 0.82,
+    "cholesterol": 0.0,
+    "sodium": 6.0,
+    "potassium": 425.0,
+    "calcium": 12.0,
+    "iron": 0.81,
+    "magnesium": 23.0,
+    "zinc": 0.3,
+    "vitamin_c": 19.7,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 15.0
+   },
+   "portions": [
+    {
+     "label": "0.5 cup, diced",
+     "gramWeight": 75.0
+    },
+    {
+     "label": "1.0 Potato large (3\" to 4-1/4\" dia)",
+     "gramWeight": 369.0
+    },
+    {
+     "label": "1.0 Potato medium (2-1/4\" to 3-1/4\" dia)",
+     "gramWeight": 213.0
+    },
+    {
+     "label": "1.0 Potato small (1-3/4\" to 2-1/2\" dia)",
+     "gramWeight": 170.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170026/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168448",
+   "fdcId": 168448,
+   "description": "Pumpkin, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11422,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 26.0,
+    "protein": 1.0,
+    "fat_total": 0.1,
+    "fat_saturated": 0.052,
+    "carbohydrate": 6.5,
+    "fiber": 0.5,
+    "sugars_total": 2.76,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 340.0,
+    "calcium": 21.0,
+    "iron": 0.8,
+    "magnesium": 12.0,
+    "zinc": 0.32,
+    "vitamin_c": 9.0,
+    "vitamin_a_rae": 426.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 16.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup (1\" cubes)",
+     "gramWeight": 116.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168448/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168917",
+   "fdcId": 168917,
+   "description": "Quinoa, cooked",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20137,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 120.0,
+    "protein": 4.4,
+    "fat_total": 1.92,
+    "fat_saturated": 0.231,
+    "carbohydrate": 21.3,
+    "fiber": 2.8,
+    "sugars_total": 0.87,
+    "cholesterol": 0.0,
+    "sodium": 7.0,
+    "potassium": 172.0,
+    "calcium": 17.0,
+    "iron": 1.49,
+    "magnesium": 64.0,
+    "zinc": 1.09,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 42.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 185.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168917/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168874",
+   "fdcId": 168874,
+   "description": "Quinoa, uncooked",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20035,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 368.0,
+    "protein": 14.12,
+    "fat_total": 6.07,
+    "fat_saturated": 0.706,
+    "carbohydrate": 64.16,
+    "fiber": 7.0,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 563.0,
+    "calcium": 47.0,
+    "iron": 4.57,
+    "magnesium": 197.0,
+    "zinc": 3.1,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 184.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 170.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168874/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169276",
+   "fdcId": 169276,
+   "description": "Radishes, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11429,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 16.0,
+    "protein": 0.68,
+    "fat_total": 0.1,
+    "fat_saturated": 0.032,
+    "carbohydrate": 3.4,
+    "fiber": 1.6,
+    "sugars_total": 1.86,
+    "cholesterol": 0.0,
+    "sodium": 39.0,
+    "potassium": 233.0,
+    "calcium": 25.0,
+    "iron": 0.34,
+    "magnesium": 10.0,
+    "zinc": 0.28,
+    "vitamin_c": 14.8,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 25.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup slices",
+     "gramWeight": 116.0
+    },
+    {
+     "label": "1.0 large (1\" to 1-1/4\" dia)",
+     "gramWeight": 9.0
+    },
+    {
+     "label": "1.0 medium (3/4\" to 1\" dia)",
+     "gramWeight": 4.5
+    },
+    {
+     "label": "1.0 slice",
+     "gramWeight": 1.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 2.0
+    },
+    {
+     "label": "0.5 cup slices",
+     "gramWeight": 58.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169276/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:167755",
+   "fdcId": 167755,
+   "description": "Raspberries, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9302,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 52.0,
+    "protein": 1.2,
+    "fat_total": 0.65,
+    "fat_saturated": 0.019,
+    "carbohydrate": 11.94,
+    "fiber": 6.5,
+    "sugars_total": 4.42,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 151.0,
+    "calcium": 25.0,
+    "iron": 0.69,
+    "magnesium": 22.0,
+    "zinc": 0.42,
+    "vitamin_c": 26.2,
+    "vitamin_a_rae": 2.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 21.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 123.0
+    },
+    {
+     "label": "1.0 pint as purchased, yields",
+     "gramWeight": 312.0
+    },
+    {
+     "label": "10.0 raspberries",
+     "gramWeight": 19.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/167755/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168878",
+   "fdcId": 168878,
+   "description": "Rice, white, long-grain, regular, enriched, cooked",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20045,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 130.0,
+    "protein": 2.69,
+    "fat_total": 0.28,
+    "fat_saturated": 0.077,
+    "carbohydrate": 28.17,
+    "fiber": 0.4,
+    "sugars_total": 0.05,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 35.0,
+    "calcium": 10.0,
+    "iron": 1.2,
+    "magnesium": 12.0,
+    "zinc": 0.49,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 97.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 158.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168878/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168877",
+   "fdcId": 168877,
+   "description": "Rice, white, long-grain, regular, raw, enriched",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20044,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 365.0,
+    "protein": 7.13,
+    "fat_total": 0.66,
+    "fat_saturated": 0.18,
+    "carbohydrate": 79.95,
+    "fiber": 1.3,
+    "sugars_total": 0.12,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 115.0,
+    "calcium": 28.0,
+    "iron": 4.31,
+    "magnesium": 25.0,
+    "zinc": 1.09,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 387.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 185.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168877/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173468",
+   "fdcId": 173468,
+   "description": "Salt, table",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2047,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 0.0,
+    "protein": 0.0,
+    "fat_total": 0.0,
+    "fat_saturated": 0.0,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 0.0,
+    "sodium": 38758.0,
+    "potassium": 8.0,
+    "calcium": 24.0,
+    "iron": 0.33,
+    "magnesium": 1.0,
+    "zinc": 0.1,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 6.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 18.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 292.0
+    },
+    {
+     "label": "1.0 dash",
+     "gramWeight": 0.4
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173468/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171192",
+   "fdcId": 171192,
+   "description": "Sauce, pasta, spaghetti/marinara, ready-to-serve",
+   "dataType": "SR Legacy",
+   "category": "Soups, Sauces, and Gravies",
+   "ndbNumber": 6931,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 50.0,
+    "protein": 1.39,
+    "fat_total": 1.61,
+    "fat_saturated": 0.218,
+    "carbohydrate": 7.43,
+    "fiber": 1.8,
+    "sugars_total": 4.91,
+    "cholesterol": 2.0,
+    "sodium": 437.0,
+    "potassium": 320.0,
+    "calcium": 26.0,
+    "iron": 0.73,
+    "magnesium": 18.0,
+    "zinc": 0.2,
+    "vitamin_c": 2.0,
+    "vitamin_a_rae": 31.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 13.0
+   },
+   "portions": [
+    {
+     "label": "1.0 serving 1/2 cup",
+     "gramWeight": 132.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171192/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170554",
+   "fdcId": 170554,
+   "description": "Seeds, chia seeds, dried",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12006,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 486.0,
+    "protein": 16.54,
+    "fat_total": 30.74,
+    "fat_saturated": 3.33,
+    "carbohydrate": 42.12,
+    "fiber": 34.4,
+    "cholesterol": 0.0,
+    "sodium": 16.0,
+    "potassium": 407.0,
+    "calcium": 631.0,
+    "iron": 7.72,
+    "magnesium": 335.0,
+    "zinc": 4.58,
+    "vitamin_c": 1.6,
+    "vitamin_b12": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170554/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169414",
+   "fdcId": 169414,
+   "description": "Seeds, flaxseed",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12220,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 534.0,
+    "protein": 18.29,
+    "fat_total": 42.16,
+    "fat_saturated": 3.663,
+    "carbohydrate": 28.88,
+    "fiber": 27.3,
+    "sugars_total": 1.55,
+    "cholesterol": 0.0,
+    "sodium": 30.0,
+    "potassium": 813.0,
+    "calcium": 255.0,
+    "iron": 5.73,
+    "magnesium": 392.0,
+    "zinc": 4.34,
+    "vitamin_c": 0.6,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 87.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp, whole",
+     "gramWeight": 10.3
+    },
+    {
+     "label": "1.0 cup, whole",
+     "gramWeight": 168.0
+    },
+    {
+     "label": "1.0 tbsp, ground",
+     "gramWeight": 7.0
+    },
+    {
+     "label": "1.0 tsp, whole",
+     "gramWeight": 3.4
+    },
+    {
+     "label": "1.0 tsp, ground",
+     "gramWeight": 2.5
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169414/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170556",
+   "fdcId": 170556,
+   "description": "Seeds, pumpkin and squash seed kernels, dried",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12014,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 559.0,
+    "protein": 30.23,
+    "fat_total": 49.05,
+    "fat_saturated": 8.659,
+    "carbohydrate": 10.71,
+    "fiber": 6.0,
+    "sugars_total": 1.4,
+    "cholesterol": 0.0,
+    "sodium": 7.0,
+    "potassium": 809.0,
+    "calcium": 46.0,
+    "iron": 8.82,
+    "magnesium": 592.0,
+    "zinc": 7.81,
+    "vitamin_c": 1.9,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 58.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 129.0
+    },
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170556/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170150",
+   "fdcId": 170150,
+   "description": "Seeds, sesame seeds, whole, dried",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12023,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 573.0,
+    "protein": 17.73,
+    "fat_total": 49.67,
+    "fat_saturated": 6.957,
+    "carbohydrate": 23.45,
+    "fiber": 11.8,
+    "sugars_total": 0.3,
+    "cholesterol": 0.0,
+    "sodium": 11.0,
+    "potassium": 468.0,
+    "calcium": 975.0,
+    "iron": 14.55,
+    "magnesium": 351.0,
+    "zinc": 7.75,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 97.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 144.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 9.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170150/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170562",
+   "fdcId": 170562,
+   "description": "Seeds, sunflower seed kernels, dried",
+   "dataType": "SR Legacy",
+   "category": "Nut and Seed Products",
+   "ndbNumber": 12036,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 584.0,
+    "protein": 20.78,
+    "fat_total": 51.46,
+    "fat_saturated": 4.455,
+    "carbohydrate": 20.0,
+    "fiber": 8.6,
+    "sugars_total": 2.62,
+    "cholesterol": 0.0,
+    "sodium": 9.0,
+    "potassium": 645.0,
+    "calcium": 78.0,
+    "iron": 5.25,
+    "magnesium": 325.0,
+    "zinc": 5.0,
+    "vitamin_c": 1.4,
+    "vitamin_a_rae": 3.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 227.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, with hulls, edible yield",
+     "gramWeight": 46.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 140.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170562/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:174278",
+   "fdcId": 174278,
+   "description": "Soy sauce made from soy (tamari)",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16124,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 60.0,
+    "protein": 10.51,
+    "fat_total": 0.1,
+    "fat_saturated": 0.011,
+    "carbohydrate": 5.57,
+    "fiber": 0.8,
+    "sugars_total": 1.7,
+    "cholesterol": 0.0,
+    "sodium": 5586.0,
+    "potassium": 212.0,
+    "calcium": 20.0,
+    "iron": 2.38,
+    "magnesium": 40.0,
+    "zinc": 0.43,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 18.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 18.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 6.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/174278/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:175215",
+   "fdcId": 175215,
+   "description": "Soymilk (all flavors), unsweetened, with added calcium, vitamins A and D",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16222,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 33.0,
+    "protein": 2.86,
+    "fat_total": 1.61,
+    "fat_saturated": 0.206,
+    "carbohydrate": 1.74,
+    "fiber": 0.5,
+    "sugars_total": 0.41,
+    "cholesterol": 0.0,
+    "sodium": 37.0,
+    "potassium": 120.0,
+    "calcium": 124.0,
+    "iron": 0.46,
+    "magnesium": 16.0,
+    "vitamin_c": 0.0,
+    "vitamin_d": 1.2,
+    "vitamin_b12": 1.11
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 243.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/175215/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171320",
+   "fdcId": 171320,
+   "description": "Spices, cinnamon, ground",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2010,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 247.0,
+    "protein": 3.99,
+    "fat_total": 1.24,
+    "fat_saturated": 0.345,
+    "carbohydrate": 80.59,
+    "fiber": 53.1,
+    "sugars_total": 2.17,
+    "cholesterol": 0.0,
+    "sodium": 10.0,
+    "potassium": 431.0,
+    "calcium": 1002.0,
+    "iron": 8.32,
+    "magnesium": 60.0,
+    "zinc": 1.83,
+    "vitamin_c": 3.8,
+    "vitamin_a_rae": 15.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 6.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 2.6
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 7.8
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171320/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170923",
+   "fdcId": 170923,
+   "description": "Spices, cumin seed",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2014,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 375.0,
+    "protein": 17.81,
+    "fat_total": 22.27,
+    "fat_saturated": 1.535,
+    "carbohydrate": 44.24,
+    "fiber": 10.5,
+    "sugars_total": 2.25,
+    "cholesterol": 0.0,
+    "sodium": 168.0,
+    "potassium": 1788.0,
+    "calcium": 931.0,
+    "iron": 66.36,
+    "magnesium": 366.0,
+    "zinc": 4.8,
+    "vitamin_c": 7.7,
+    "vitamin_a_rae": 64.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 10.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp, whole",
+     "gramWeight": 2.1
+    },
+    {
+     "label": "1.0 tbsp, whole",
+     "gramWeight": 6.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170923/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171329",
+   "fdcId": 171329,
+   "description": "Spices, paprika",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2028,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 282.0,
+    "protein": 14.14,
+    "fat_total": 12.89,
+    "fat_saturated": 2.14,
+    "carbohydrate": 53.99,
+    "fiber": 34.9,
+    "sugars_total": 10.34,
+    "cholesterol": 0.0,
+    "sodium": 68.0,
+    "potassium": 2280.0,
+    "calcium": 229.0,
+    "iron": 21.14,
+    "magnesium": 178.0,
+    "zinc": 4.33,
+    "vitamin_c": 0.9,
+    "vitamin_a_rae": 2463.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 49.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 2.3
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 6.8
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171329/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170931",
+   "fdcId": 170931,
+   "description": "Spices, pepper, black",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2030,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 251.0,
+    "protein": 10.39,
+    "fat_total": 3.26,
+    "fat_saturated": 1.392,
+    "carbohydrate": 63.95,
+    "fiber": 25.3,
+    "sugars_total": 0.64,
+    "cholesterol": 0.0,
+    "sodium": 20.0,
+    "potassium": 1329.0,
+    "calcium": 443.0,
+    "iron": 9.71,
+    "magnesium": 171.0,
+    "zinc": 1.19,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 27.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 17.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp, ground",
+     "gramWeight": 2.3
+    },
+    {
+     "label": "1.0 tbsp, ground",
+     "gramWeight": 6.9
+    },
+    {
+     "label": "1.0 tsp, whole",
+     "gramWeight": 2.9
+    },
+    {
+     "label": "1.0 dash",
+     "gramWeight": 0.1
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170931/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168462",
+   "fdcId": 168462,
+   "description": "Spinach, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11457,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 23.0,
+    "protein": 2.86,
+    "fat_total": 0.39,
+    "fat_saturated": 0.063,
+    "carbohydrate": 3.63,
+    "fiber": 2.2,
+    "sugars_total": 0.42,
+    "cholesterol": 0.0,
+    "sodium": 79.0,
+    "potassium": 558.0,
+    "calcium": 99.0,
+    "iron": 2.71,
+    "magnesium": 79.0,
+    "zinc": 0.53,
+    "vitamin_c": 28.1,
+    "vitamin_a_rae": 469.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 194.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 30.0
+    },
+    {
+     "label": "1.0 bunch",
+     "gramWeight": 340.0
+    },
+    {
+     "label": "1.0 leaf",
+     "gramWeight": 10.0
+    },
+    {
+     "label": "1.0 package (10 oz)",
+     "gramWeight": 284.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168462/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169291",
+   "fdcId": 169291,
+   "description": "Squash, summer, zucchini, includes skin, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11477,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 17.0,
+    "protein": 1.21,
+    "fat_total": 0.32,
+    "fat_saturated": 0.084,
+    "carbohydrate": 3.11,
+    "fiber": 1.0,
+    "sugars_total": 2.5,
+    "cholesterol": 0.0,
+    "sodium": 8.0,
+    "potassium": 261.0,
+    "calcium": 16.0,
+    "iron": 0.37,
+    "magnesium": 18.0,
+    "zinc": 0.32,
+    "vitamin_c": 17.9,
+    "vitamin_a_rae": 10.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 24.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, chopped",
+     "gramWeight": 124.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 large",
+     "gramWeight": 323.0
+    },
+    {
+     "label": "1.0 medium",
+     "gramWeight": 196.0
+    },
+    {
+     "label": "1.0 slice",
+     "gramWeight": 9.9
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 118.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169291/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169295",
+   "fdcId": 169295,
+   "description": "Squash, winter, butternut, raw",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11485,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 45.0,
+    "protein": 1.0,
+    "fat_total": 0.1,
+    "fat_saturated": 0.021,
+    "carbohydrate": 11.69,
+    "fiber": 2.0,
+    "sugars_total": 2.2,
+    "cholesterol": 0.0,
+    "sodium": 4.0,
+    "potassium": 352.0,
+    "calcium": 48.0,
+    "iron": 0.7,
+    "magnesium": 34.0,
+    "zinc": 0.15,
+    "vitamin_c": 21.0,
+    "vitamin_a_rae": 532.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 27.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, cubes",
+     "gramWeight": 140.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169295/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:167762",
+   "fdcId": 167762,
+   "description": "Strawberries, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9316,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 32.0,
+    "protein": 0.67,
+    "fat_total": 0.3,
+    "fat_saturated": 0.015,
+    "carbohydrate": 7.68,
+    "fiber": 2.0,
+    "sugars_total": 4.89,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 153.0,
+    "calcium": 16.0,
+    "iron": 0.41,
+    "magnesium": 13.0,
+    "zinc": 0.14,
+    "vitamin_c": 58.8,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 24.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, halves",
+     "gramWeight": 152.0
+    },
+    {
+     "label": "1.0 cup, pureed",
+     "gramWeight": 232.0
+    },
+    {
+     "label": "1.0 cup, sliced",
+     "gramWeight": 166.0
+    },
+    {
+     "label": "1.0 cup, whole",
+     "gramWeight": 144.0
+    },
+    {
+     "label": "1.0 extra large (1-5/8\" dia)",
+     "gramWeight": 27.0
+    },
+    {
+     "label": "1.0 large (1-3/8\" dia)",
+     "gramWeight": 18.0
+    },
+    {
+     "label": "1.0 medium (1-1/4\" dia)",
+     "gramWeight": 12.0
+    },
+    {
+     "label": "1.0 pint as purchased, yields",
+     "gramWeight": 357.0
+    },
+    {
+     "label": "1.0 small (1\" dia)",
+     "gramWeight": 7.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 147.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/167762/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168833",
+   "fdcId": 168833,
+   "description": "Sugars, brown",
+   "dataType": "SR Legacy",
+   "category": "Sweets",
+   "ndbNumber": 19334,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 380.0,
+    "protein": 0.12,
+    "fat_total": 0.0,
+    "fat_saturated": 0.0,
+    "carbohydrate": 98.09,
+    "fiber": 0.0,
+    "sugars_total": 97.02,
+    "cholesterol": 0.0,
+    "sodium": 28.0,
+    "potassium": 133.0,
+    "calcium": 83.0,
+    "iron": 0.71,
+    "magnesium": 9.0,
+    "zinc": 0.03,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 1.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tsp unpacked",
+     "gramWeight": 3.0
+    },
+    {
+     "label": "1.0 cup packed",
+     "gramWeight": 220.0
+    },
+    {
+     "label": "1.0 cup unpacked",
+     "gramWeight": 145.0
+    },
+    {
+     "label": "1.0 tsp packed",
+     "gramWeight": 4.6
+    },
+    {
+     "label": "1.0 tsp brownulated",
+     "gramWeight": 3.2
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168833/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169655",
+   "fdcId": 169655,
+   "description": "Sugars, granulated",
+   "dataType": "SR Legacy",
+   "category": "Sweets",
+   "ndbNumber": 19335,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 387.0,
+    "protein": 0.0,
+    "fat_total": 0.0,
+    "fat_saturated": 0.0,
+    "carbohydrate": 99.98,
+    "fiber": 0.0,
+    "sugars_total": 99.8,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 2.0,
+    "calcium": 1.0,
+    "iron": 0.05,
+    "magnesium": 0.0,
+    "zinc": 0.01,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 serving packet",
+     "gramWeight": 2.8
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 4.2
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 200.0
+    },
+    {
+     "label": "1.0 serving 1 cube",
+     "gramWeight": 2.3
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169655/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168483",
+   "fdcId": 168483,
+   "description": "Sweet potato, cooked, baked in skin, flesh, without salt",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11508,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 90.0,
+    "protein": 2.01,
+    "fat_total": 0.15,
+    "fat_saturated": 0.052,
+    "carbohydrate": 20.71,
+    "fiber": 3.3,
+    "sugars_total": 6.48,
+    "cholesterol": 0.0,
+    "sodium": 36.0,
+    "potassium": 475.0,
+    "calcium": 38.0,
+    "iron": 0.69,
+    "magnesium": 27.0,
+    "zinc": 0.32,
+    "vitamin_c": 19.6,
+    "vitamin_a_rae": 961.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 6.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 200.0
+    },
+    {
+     "label": "1.0 large",
+     "gramWeight": 180.0
+    },
+    {
+     "label": "1.0 medium (2\" dia, 5\" long, raw)",
+     "gramWeight": 114.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 60.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168483/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169661",
+   "fdcId": 169661,
+   "description": "Syrups, maple",
+   "dataType": "SR Legacy",
+   "category": "Sweets",
+   "ndbNumber": 19353,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 260.0,
+    "protein": 0.04,
+    "fat_total": 0.06,
+    "fat_saturated": 0.007,
+    "carbohydrate": 67.04,
+    "fiber": 0.0,
+    "sugars_total": 60.46,
+    "cholesterol": 0.0,
+    "sodium": 12.0,
+    "potassium": 212.0,
+    "calcium": 102.0,
+    "iron": 0.11,
+    "magnesium": 21.0,
+    "zinc": 1.47,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 20.0
+    },
+    {
+     "label": "1.0 serving 1/4 cup",
+     "gramWeight": 83.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 315.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169661/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172475",
+   "fdcId": 172475,
+   "description": "Tofu, raw, firm, prepared with calcium sulfate",
+   "dataType": "SR Legacy",
+   "category": "Legumes and Legume Products",
+   "ndbNumber": 16426,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 144.0,
+    "protein": 17.27,
+    "fat_total": 8.72,
+    "fat_saturated": 1.261,
+    "carbohydrate": 2.78,
+    "fiber": 2.3,
+    "cholesterol": 0.0,
+    "sodium": 14.0,
+    "potassium": 237.0,
+    "calcium": 683.0,
+    "iron": 2.66,
+    "magnesium": 58.0,
+    "zinc": 1.57,
+    "vitamin_c": 0.2,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 29.0
+   },
+   "portions": [
+    {
+     "label": "0.5 cup",
+     "gramWeight": 126.0
+    },
+    {
+     "label": "0.25 block",
+     "gramWeight": 81.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172475/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170051",
+   "fdcId": 170051,
+   "description": "Tomatoes, red, ripe, canned, packed in tomato juice",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11531,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 16.0,
+    "protein": 0.79,
+    "fat_total": 0.25,
+    "fat_saturated": 0.034,
+    "carbohydrate": 3.47,
+    "fiber": 1.9,
+    "sugars_total": 2.55,
+    "cholesterol": 0.0,
+    "sodium": 115.0,
+    "potassium": 191.0,
+    "calcium": 33.0,
+    "iron": 0.57,
+    "magnesium": 10.0,
+    "zinc": 0.12,
+    "vitamin_c": 12.6,
+    "vitamin_a_rae": 20.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 8.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 240.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 15.0
+    },
+    {
+     "label": "1.0 can",
+     "gramWeight": 190.0
+    },
+    {
+     "label": "1.0 large",
+     "gramWeight": 164.0
+    },
+    {
+     "label": "1.0 medium",
+     "gramWeight": 111.0
+    },
+    {
+     "label": "1.0 small",
+     "gramWeight": 82.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170051/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170457",
+   "fdcId": 170457,
+   "description": "Tomatoes, red, ripe, raw, year round average",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11529,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 18.0,
+    "protein": 0.88,
+    "fat_total": 0.2,
+    "fat_saturated": 0.028,
+    "carbohydrate": 3.89,
+    "fiber": 1.2,
+    "sugars_total": 2.63,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 237.0,
+    "calcium": 10.0,
+    "iron": 0.27,
+    "magnesium": 11.0,
+    "zinc": 0.17,
+    "vitamin_c": 13.7,
+    "vitamin_a_rae": 42.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 15.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup cherry tomatoes",
+     "gramWeight": 149.0
+    },
+    {
+     "label": "1.0 cup, chopped or sliced",
+     "gramWeight": 180.0
+    },
+    {
+     "label": "1.0 Italian tomato",
+     "gramWeight": 62.0
+    },
+    {
+     "label": "1.0 cherry",
+     "gramWeight": 17.0
+    },
+    {
+     "label": "1.0 large whole (3\" dia)",
+     "gramWeight": 182.0
+    },
+    {
+     "label": "1.0 medium whole (2-3/5\" dia)",
+     "gramWeight": 123.0
+    },
+    {
+     "label": "1.0 slice, medium (1/4\" thick)",
+     "gramWeight": 20.0
+    },
+    {
+     "label": "1.0 plum tomato",
+     "gramWeight": 62.0
+    },
+    {
+     "label": "1.0 small whole (2-2/5\" dia)",
+     "gramWeight": 91.0
+    },
+    {
+     "label": "1.0 slice, thick/large (1/2\" thick)",
+     "gramWeight": 27.0
+    },
+    {
+     "label": "1.0 wedge (1/4 of medium tomato)",
+     "gramWeight": 31.0
+    },
+    {
+     "label": "1.0 slice, thin/small",
+     "gramWeight": 15.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 148.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170457/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:175036",
+   "fdcId": 175036,
+   "description": "Tortillas, ready-to-bake or -fry, corn",
+   "dataType": "SR Legacy",
+   "category": "Baked Products",
+   "ndbNumber": 18363,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 218.0,
+    "protein": 5.7,
+    "fat_total": 2.85,
+    "fat_saturated": 0.453,
+    "carbohydrate": 44.64,
+    "fiber": 6.3,
+    "sugars_total": 0.88,
+    "cholesterol": 0.0,
+    "sodium": 45.0,
+    "potassium": 186.0,
+    "calcium": 81.0,
+    "iron": 1.23,
+    "magnesium": 72.0,
+    "zinc": 1.31,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 5.0
+   },
+   "portions": [
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "1.0 enchilada",
+     "gramWeight": 19.0
+    },
+    {
+     "label": "1.0 tortilla",
+     "gramWeight": 24.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/175036/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171505",
+   "fdcId": 171505,
+   "description": "Turkey, Ground, raw",
+   "dataType": "SR Legacy",
+   "category": "Poultry Products",
+   "ndbNumber": 5305,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 148.0,
+    "protein": 19.66,
+    "fat_total": 7.66,
+    "fat_saturated": 2.024,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 69.0,
+    "sodium": 58.0,
+    "potassium": 237.0,
+    "calcium": 19.0,
+    "iron": 1.09,
+    "magnesium": 23.0,
+    "zinc": 2.35,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 20.0,
+    "vitamin_d": 0.4,
+    "vitamin_b12": 1.0,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "4.0 oz",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 lb",
+     "gramWeight": 453.6
+    },
+    {
+     "label": "1.0 patty, 4 oz",
+     "gramWeight": 114.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171505/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:172241",
+   "fdcId": 172241,
+   "description": "Vinegar, balsamic",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2069,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 88.0,
+    "protein": 0.49,
+    "fat_total": 0.0,
+    "fat_saturated": 0.0,
+    "carbohydrate": 17.03,
+    "sugars_total": 14.95,
+    "sodium": 23.0,
+    "potassium": 112.0,
+    "calcium": 27.0,
+    "iron": 0.72,
+    "magnesium": 12.0,
+    "zinc": 0.08,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 16.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 255.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 5.3
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/172241/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173469",
+   "fdcId": 173469,
+   "description": "Vinegar, cider",
+   "dataType": "SR Legacy",
+   "category": "Spices and Herbs",
+   "ndbNumber": 2048,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 21.0,
+    "protein": 0.0,
+    "fat_total": 0.0,
+    "fat_saturated": 0.0,
+    "carbohydrate": 0.93,
+    "fiber": 0.0,
+    "sugars_total": 0.4,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 73.0,
+    "calcium": 7.0,
+    "iron": 0.2,
+    "magnesium": 5.0,
+    "zinc": 0.04,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 0.0
+   },
+   "portions": [
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 14.9
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 239.0
+    },
+    {
+     "label": "1.0 tsp",
+     "gramWeight": 5.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173469/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:167765",
+   "fdcId": 167765,
+   "description": "Watermelon, raw",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9326,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 30.0,
+    "protein": 0.61,
+    "fat_total": 0.15,
+    "fat_saturated": 0.016,
+    "carbohydrate": 7.55,
+    "fiber": 0.4,
+    "sugars_total": 6.2,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 112.0,
+    "calcium": 7.0,
+    "iron": 0.24,
+    "magnesium": 10.0,
+    "zinc": 0.1,
+    "vitamin_c": 8.1,
+    "vitamin_a_rae": 28.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 3.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, balls",
+     "gramWeight": 154.0
+    },
+    {
+     "label": "1.0 cup, diced",
+     "gramWeight": 152.0
+    },
+    {
+     "label": "1.0 melon (15\" long x 7-1/2\" dia)",
+     "gramWeight": 4518.0
+    },
+    {
+     "label": "1.0 wedge (approx 1/16 of melon)",
+     "gramWeight": 286.0
+    },
+    {
+     "label": "10.0 watermelon balls",
+     "gramWeight": 122.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 280.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/167765/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168894",
+   "fdcId": 168894,
+   "description": "Wheat flour, white, all-purpose, enriched, bleached",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20081,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 364.0,
+    "protein": 10.33,
+    "fat_total": 0.98,
+    "fat_saturated": 0.155,
+    "carbohydrate": 76.31,
+    "fiber": 2.7,
+    "sugars_total": 0.27,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 107.0,
+    "calcium": 15.0,
+    "iron": 4.64,
+    "magnesium": 22.0,
+    "zinc": 0.7,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 291.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 125.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168894/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171284",
+   "fdcId": 171284,
+   "description": "Yogurt, plain, whole milk",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1116,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 61.0,
+    "protein": 3.47,
+    "fat_total": 3.25,
+    "fat_saturated": 2.096,
+    "carbohydrate": 4.66,
+    "fiber": 0.0,
+    "sugars_total": 4.66,
+    "cholesterol": 13.0,
+    "sodium": 46.0,
+    "potassium": 155.0,
+    "calcium": 121.0,
+    "iron": 0.05,
+    "magnesium": 12.0,
+    "zinc": 0.59,
+    "vitamin_c": 0.5,
+    "vitamin_a_rae": 27.0,
+    "vitamin_d": 0.1,
+    "vitamin_b12": 0.37,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "1.0 container (6 oz)",
+     "gramWeight": 170.0
+    },
+    {
+     "label": "1.0 container (8 oz)",
+     "gramWeight": 227.0
+    },
+    {
+     "label": "0.5 container (4 oz)",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 cup (8 fl oz)",
+     "gramWeight": 245.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171284/nutrients",
+    "retrievedAt": "2026-10-19T13:36:39Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  }
+ ]
+}
