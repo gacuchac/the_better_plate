@@ -18,7 +18,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.1 | Privacy notice versions, consent events, admin MFA, passkeys | — | — | not-started |
 | §2.2 | Official USDA records, IDs, per-100 g, portions, source URL/date | `scripts/usda/import_starter.py`, `data/catalog/` | API "catalog" tests; importer `--check` | verified (all 7,793 SR Legacy foods) |
 | §2.2 | Versioned catalog on device: all of SR Legacy (owner decision, ADR-003) | catalog version + `GET /v1/catalog/manifest`, gzip bundle | API manifest/bundle/ETag/gzip | verified |
-| §2.2 | Search: words in any order, partial words, plurals; same ranking offline and online | `packages/nutrition/src/search.ts`, `GET /v1/foods`, `FoodPicker.tsx` | Unit "food search"; API search/paging; E2E ingredient search | verified |
+| §2.2 | Search: words in any order, partial words, plurals; everyday entries first on whole-word matches ("milk" → whole cow's milk, "steak" → beef steaks) from an editorial list checked against the catalog; a few regional synonyms (courgette, aubergine, mince, bell pepper, prawn); same ranking offline and online | `packages/nutrition/src/search.ts`, `GET /v1/foods`, `FoodPicker.tsx` | Unit "food search"; API search/paging; E2E ingredient search | verified |
 | §2.2 | Missing nutrients flagged, never zero | importer omits unreported; engine statuses | ENG "never treats a missing nutrient as zero" | verified |
 | §2.2 | Search, batch lookup, offline cache | `/v1/foods`, `/v1/foods/batch`, IndexedDB catalog | API search/batch; E2E offline reload, Explore | verified |
 | §2.2 | Online search of full USDA; delta updates; allergen/kosher flags; Foundation foods | — | — | not-started (online search blocked here: USDA hosts denied in cloud sessions) |
@@ -33,7 +33,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.5 | Static catalog bundle cached on device, IndexedDB recipes, durable outbox | `localdb.ts`, `sync.ts` | SYNC; E2E offline reload | verified |
 | §2.5 | Local-first save, refresh persistence, live local calculation | `RecipeEditor.tsx` | E2E offline journey | verified |
 | §2.5 | Storage persistence request; export unsynced drafts | `requestPersistentStorage`, You screen | none automated | implemented-unverified |
-| §2.5 | Quota/eviction recovery UI | — | — | not-started |
+| §2.5 | Quota/eviction recovery: eviction detected on next open (marker vs empty database), plain notice, synced data restored by the full pull; out-of-space saves show a notice with "Download unsynced changes"; catalog stays usable in memory when it cannot be stored; storage use and persistence on You | `localdb.ts`, `store.tsx`, `ui/common.tsx` StorageBanner | E2E "when the browser clears local data or runs out of space…" | verified (local; quota simulated by the browser's own QuotaExceededError) |
 | §2.6 | Versioned batch sync, bounded ops, UUID idempotency, per-op status, cursor pull, tombstones | `modules/sync.ts`, `contracts` | API "batch sync protocol 1" (6 tests) | verified |
 | §2.6 | Coalesce edits; sync on resume/reconnect/debounce/Sync now | `sync.ts`, `store.tsx` | SYNC coalescing; E2E reconnect | verified |
 | §2.6 | Conflict UI: keep local / cloud / both, no silent overwrite | `RecipeEditor.tsx` ConflictBanner | SYNC; E2E two-device conflict | verified (keep both via UI; keep mine/cloud unit-tested) |

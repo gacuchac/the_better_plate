@@ -410,3 +410,39 @@ test("share a recipe: review what is shared, open the link signed out, then revo
   await shot(reader, info, "shared-recipe-revoked", "Revoked link: nothing of the recipe remains");
   await guest.close();
 });
+
+test("when the browser clears local data or runs out of space, the app says so and recovers", async ({ page }, info) => {
+  await signIn(page, newEmail("evict"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Survives eviction");
+  await addIngredient(page, "broccoli raw", BROCCOLI);
+  await saveAndSync(page);
+
+  // Simulate the browser evicting this site's personal database under storage pressure.
+  await page.goto("/#/kitchen");
+  await page.evaluate(async () => {
+    const dbs = await indexedDB.databases();
+    const name = dbs.find((d) => d.name?.startsWith("betterplate-user-"))!.name!;
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.deleteDatabase(name);
+      req.onsuccess = req.onblocked = () => resolve();
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("storage-banner")).toContainText("This browser cleared your kitchen from this device");
+  await expect(page.getByTestId("recipe-card")).toContainText("Survives eviction");
+  await shot(page, info, "storage-evicted", "After eviction: plain notice, synced recipes restored from the account");
+  await page.getByRole("button", { name: "Got it" }).click();
+  await expect(page.getByTestId("storage-banner")).toHaveCount(0);
+
+  // A save that fails for lack of space.
+  await page.evaluate(() => {
+    void Promise.reject(new DOMException("The quota has been exceeded.", "QuotaExceededError"));
+  });
+  await expect(page.getByTestId("storage-banner")).toContainText("This device is out of storage");
+  await expect(page.getByRole("button", { name: "Download unsynced changes" })).toBeVisible();
+  await shot(page, info, "storage-full", "Out of space: what happened and how to keep unsynced changes");
+
+  await page.getByRole("link", { name: "You", exact: true }).click();
+  await expect(page.getByTestId("storage-info")).toContainText("MB used");
+});

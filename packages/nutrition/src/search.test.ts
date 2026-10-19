@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { EVERYDAY_FOODS } from "./everyday-foods.ts";
 import { buildSearchIndex, searchIndex, singular } from "./search.ts";
 
 // Descriptions written in USDA SR Legacy style for ranking checks. No nutrient data involved.
@@ -18,6 +20,12 @@ const names = [
   "Salmon nuggets, breaded, frozen, heated",
   "Fish, salmon, Atlantic, farmed, raw",
   "OLIVE GARDEN, spaghetti with meat sauce",
+  "Milk, sheep, fluid",
+  "Milk, whole, 3.25% milkfat, with added vitamin D",
+  "Egg, whole, raw, fresh",
+  "Eggplant, raw",
+  "Squash, summer, zucchini, includes skin, raw",
+  "Peppers, sweet, red, raw",
 ].map((description, i) => ({ id: `fx:${i}`, description }));
 const index = buildSearchIndex(names);
 const search = (q: string, limit?: number) => searchIndex(index, q, limit).map((f) => f.description);
@@ -57,5 +65,28 @@ describe("food search", () => {
     expect(search("broccoli dragonfruit")).toEqual([]);
     expect(search("raw", 3)).toHaveLength(3);
     expect(search("", 5)).toHaveLength(5);
+  });
+});
+
+describe("everyday words", () => {
+  it("finds what most home cooks mean first", () => {
+    expect(search("milk")[0]).toBe("Milk, whole, 3.25% milkfat, with added vitamin D");
+    expect(search("egg")[0]).toBe("Egg, whole, raw, fresh");
+  });
+
+  it("lifts an everyday food only on whole-word matches", () => {
+    expect(search("egg")).toEqual(["Egg, whole, raw, fresh", "Eggplant, raw"]);
+  });
+
+  it("understands a few words USDA spells differently", () => {
+    expect(search("courgette")).toEqual(["Squash, summer, zucchini, includes skin, raw"]);
+    expect(search("bell pepper")[0]).toBe("Peppers, sweet, red, raw");
+    expect(search("beef mince")).toEqual(["Beef, ground, 85% lean meat / 15% fat, raw"]);
+  });
+
+  it("every everyday entry exists in the imported USDA catalog", () => {
+    const catalog = JSON.parse(readFileSync(new URL("../../../data/catalog/starter-catalog.json", import.meta.url), "utf8")) as { foods: { description: string }[] };
+    const present = new Set(catalog.foods.map((f) => f.description));
+    expect(EVERYDAY_FOODS.filter((d) => !present.has(d))).toEqual([]);
   });
 });

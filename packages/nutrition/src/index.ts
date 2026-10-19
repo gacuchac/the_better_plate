@@ -5,3 +5,4 @@ export * from "./search.ts";
 export * from "./meals.ts";
 export * from "./daily-values.ts";
 export * from "./safety.ts";
+export * from "./everyday-foods.ts";

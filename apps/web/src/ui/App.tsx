@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { trackRoute } from "../activity.ts";
 import { useApp } from "../store.tsx";
-import { navigate, SyncChip, useRoute } from "./common.tsx";
+import { navigate, StorageBanner, SyncChip, useRoute } from "./common.tsx";
 import { Cook } from "./Cook.tsx";
 import { Icon, type IconName } from "./icons.tsx";
 import { Meals } from "./Meals.tsx";
@@ -91,6 +91,7 @@ export function App() {
           )}
           <SyncChip />
         </div>
+        <StorageBanner />
         <main id="main">{screen}</main>
       </div>
       <ReportIssue route={route} />
