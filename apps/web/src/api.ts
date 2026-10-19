@@ -50,6 +50,13 @@ export interface CatalogBundle {
 
 export const api = {
   me: () => request<Me>("/v1/me"),
+  signInMethods: () => request<{ methods: ("email_code" | "google")[] }>("/v1/sign-in-methods"),
+  /** Starts Google sign-in; the server answers with Google's URL and the page navigates there. */
+  googleSignIn: (returnTo: string) =>
+    request<{ url: string; redirect: boolean }>("/v1/auth/sign-in/social", {
+      method: "POST",
+      json: { provider: "google", callbackURL: returnTo, errorCallbackURL: `${returnTo}?signin=google_failed` },
+    }),
   sendCode: (email: string) => request<{ success: boolean }>("/v1/auth/email-otp/send-verification-otp", { method: "POST", json: { email, type: "sign-in" } }),
   signIn: (email: string, otp: string) => request<unknown>("/v1/auth/sign-in/email-otp", { method: "POST", json: { email, otp } }),
   signOut: () => request<unknown>("/v1/auth/sign-out", { method: "POST", json: {} }),

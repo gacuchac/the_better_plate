@@ -16,6 +16,9 @@ const apiEnv = {
   SESSION_SECRET: randomBytes(32).toString("hex"),
   BETTERPLATE_SKIP_ENV_FILE: "1",
   RATE_LIMIT_MULTIPLIER: "50",
+  // Fake OAuth client: the journey stops at Google's door (intercepted), never calls Google.
+  GOOGLE_CLIENT_ID: "e2e-client.apps.googleusercontent.com",
+  GOOGLE_CLIENT_SECRET: "e2e-only-google-secret",
 };
 
 export default defineConfig({

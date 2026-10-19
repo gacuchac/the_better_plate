@@ -23,7 +23,26 @@ export const authOptions = {
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
   },
-  account: { modelName: "accounts" },
+  account: {
+    modelName: "accounts",
+    // Google sign-in joins an existing account with the same Google-verified email instead of
+    // creating a duplicate. Better Auth only links when the local email is verified too.
+    accountLinking: { enabled: true, trustedProviders: ["google"] },
+    // We never call Google APIs; tokens are kept only because the library stores them, so encrypt them.
+    encryptOAuthTokens: true,
+  },
+  // Optional, server-side only. Scopes are Google's minimum: openid, email, profile (for the name).
+  socialProviders: config.google
+    ? {
+        google: {
+          clientId: config.google.clientId,
+          clientSecret: config.google.clientSecret,
+          prompt: "select_account" as const,
+          // Keep the name only; the profile photo is not needed (data minimization).
+          mapProfileToUser: (profile: { name?: string }) => ({ name: profile.name ?? "", image: undefined }),
+        },
+      }
+    : {},
   verification: { modelName: "verifications" },
   emailAndPassword: { enabled: false },
   rateLimit: {

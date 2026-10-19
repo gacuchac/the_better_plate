@@ -237,6 +237,24 @@
           "email",
           "displayName"
         ]
+      },
+      "SignInMethods": {
+        "type": "object",
+        "properties": {
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "email_code",
+                "google"
+              ]
+            }
+          }
+        },
+        "required": [
+          "methods"
+        ]
       }
     },
     "parameters": {}
@@ -5095,6 +5113,26 @@
                   "required": [
                     "error"
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sign-in-methods": {
+      "get": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Sign-in methods enabled on this server",
+        "responses": {
+          "200": {
+            "description": "Methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInMethods"
                 }
               }
             }

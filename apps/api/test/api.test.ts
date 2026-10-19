@@ -296,3 +296,33 @@ describe("account deletion", () => {
     expect(rows[0].n).toBe(0);
   });
 });
+
+describe("Google sign-in", () => {
+  it("lists the enabled sign-in methods", async () => {
+    const res = await call("/v1/sign-in-methods");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ methods: ["google", "email_code"] });
+  });
+
+  it("redirects to Google with our callback and minimal scopes", async () => {
+    const res = await call("/v1/auth/sign-in/social", {
+      method: "POST",
+      json: { provider: "google", callbackURL: "http://localhost:3000/", errorCallbackURL: "http://localhost:3000/?signin=failed" },
+    });
+    expect(res.status).toBe(200);
+    const { url, redirect } = await res.json();
+    expect(redirect).toBe(true);
+    const target = new URL(url);
+    expect(target.origin).toBe("https://accounts.google.com");
+    expect(target.searchParams.get("client_id")).toBe("test-client.apps.googleusercontent.com");
+    expect(target.searchParams.get("redirect_uri")).toBe("http://localhost:4000/v1/auth/callback/google");
+    expect(target.searchParams.get("scope")?.split(" ").sort()).toEqual(["email", "openid", "profile"]);
+    expect(target.searchParams.get("state")).toBeTruthy();
+    expect(target.searchParams.get("code_challenge")).toBeTruthy();
+  });
+
+  it("refuses a callback URL on another origin", async () => {
+    const res = await call("/v1/auth/sign-in/social", { method: "POST", json: { provider: "google", callbackURL: "https://evil.example/" } });
+    expect(res.status).toBe(403);
+  });
+});
