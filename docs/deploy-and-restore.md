@@ -1,6 +1,6 @@
 # Deploy and restore
 
-**Nothing is deployed yet.** The owner is starting on Railway's 30-day trial (no card); steps below.
+**Dev is deployed** at https://thebetterplate-dev.up.railway.app (Railway 30-day trial, no card), built from the `dev` branch. Sign-in waits on email setup (step 5).
 
 ## Local
 - Start: `pnpm dev` (development) or `pnpm start` (built, with service worker).
@@ -9,7 +9,7 @@
 
 ## Railway dev environment (not yet verified by a deploy)
 
-One service built from the root `Dockerfile` (config in `railway.json`): the API serves the PWA from the same origin. The pre-deploy command `node apps/api/dist/db/cli.mjs setup` runs migrations and seeds the starter catalog (idempotent). Health check: `/v1/health/ready`.
+One service built from the root `Dockerfile` (config in `railway.json`): the API serves the PWA from the same origin. On every start the container runs `node apps/api/dist/db/cli.mjs setup` (migrations and starter-catalog seed; idempotent and lock-guarded) before the server. Health check: `/v1/health/ready`.
 
 Owner setup in the Railway dashboard (no tokens needed for this path; Railway's GitHub integration builds on every push to `dev`):
 1. New project → **Empty Project**, then **Create → Database → PostgreSQL**.
@@ -25,7 +25,7 @@ Owner setup in the Railway dashboard (no tokens needed for this path; Railway's 
    DATABASE_URL=${{Postgres.DATABASE_URL}}
    SESSION_SECRET=replace-with-a-random-value
    ```
-   Generate the secret on your own computer and paste it only into Railway: `openssl rand -base64 48` (Mac/Linux) or, in PowerShell, `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))`.
+   Generate the secret on your own computer and paste it only into Railway: `openssl rand -base64 48` (Mac/Linux) or, in PowerShell, `$b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)`.
 5. Email for sign-in codes (until set, the app runs but cannot send codes): `EMAIL_PROVIDER=resend` or `brevo`, `EMAIL_PROVIDER_API_KEY`, and `AUTH_EMAIL_FROM` (a sender verified with that provider).
 
 Then: hosted pass of the two-pass gate (same Playwright suite against the dev URL).

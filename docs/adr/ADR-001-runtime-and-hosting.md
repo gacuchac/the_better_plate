@@ -11,7 +11,7 @@ PRODUCT.md needs an independently deployable versioned API, an offline-first PWA
 - **Web:** React 19 + Vite PWA (`vite-plugin-pwa`, Workbox app-shell precache). IndexedDB via `idb`.
 - **Shared engine:** `packages/nutrition` is pure TypeScript with no I/O; the server recomputes nutrition on every write and stores it with the catalog and engine version.
 - **Database:** PostgreSQL 16. Local: native cluster (`scripts/db-up.sh`; Homebrew or Docker fallbacks). Cloud: Railway PostgreSQL per environment.
-- **Hosting target:** one Railway service (the API, which also serves the built PWA with `SERVE_WEB=true`) plus Railway PostgreSQL, built from the root `Dockerfile` with `railway.json` (migrations and catalog seed run as the pre-deploy command). GitHub Actions CI. No worker until a workload needs one; catalog imports run as a GitHub Actions job.
+- **Hosting target:** one Railway service (the API, which also serves the built PWA with `SERVE_WEB=true`) plus Railway PostgreSQL, built from the root `Dockerfile` with `railway.json` (migrations and catalog seed run at container start, before the server). GitHub Actions CI. No worker until a workload needs one; catalog imports run as a GitHub Actions job.
 - **Why one service (2026-10-19 amendment):** the owner starts on Railway's 30-day trial ($5 credit, 0.5 GB RAM per service). One app service instead of two roughly halves memory cost, and same-origin hosting keeps session cookies first-party, avoiding the `*.up.railway.app` public-suffix cookie problem noted in ADR-002. The API stays independently usable at `/v1` by other clients; splitting web out later is a deploy change, not a code change (the web build reads `PUBLIC_API_URL` when set).
 
 ## Alternatives considered

@@ -1,0 +1,42 @@
+name: Hosted check
+
+# Hosted pass of the two-pass gate: Playwright against the deployed Railway dev URL.
+# Runs after Railway reports a successful deployment of dev, and on demand. Not on PR pushes:
+# a PR's code is not what is deployed, so its result would describe the wrong commit.
+on:
+  deployment_status:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hosted-check
+  cancel-in-progress: false
+
+jobs:
+  hosted:
+    name: Playwright against Railway dev
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    env:
+      HOSTED_URL: https://thebetterplate-dev.up.railway.app
+      E2E_OUT: ${{ github.workspace }}/artifacts/qa/hosted/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Playwright hosted suite (desktop + mobile)
+        run: pnpm exec playwright test -c playwright.hosted.config.ts
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hosted-evidence-${{ github.run_id }}
+          path: artifacts/qa/hosted
+          retention-days: 7

@@ -10,12 +10,12 @@ export function SignIn() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const describe = (err: unknown) =>
+  const describe = (err: unknown, fallback: string) =>
     err instanceof NetworkError
       ? "You're offline. Signing in needs a connection."
       : err instanceof ApiRequestError && err.status === 429
         ? "Too many attempts. Wait a minute and try again."
-        : "That didn't work. Check the code and try again.";
+        : fallback;
 
   async function sendCode(e: FormEvent) {
     e.preventDefault();
@@ -25,7 +25,7 @@ export function SignIn() {
       await api.sendCode(email.trim());
       setStep("code");
     } catch (err) {
-      setError(describe(err));
+      setError(describe(err, "We couldn't send a code right now. Check the address and try again in a moment."));
     } finally {
       setBusy(false);
     }
@@ -39,7 +39,7 @@ export function SignIn() {
       await api.signIn(email.trim(), code.trim());
       setAccount(await api.me());
     } catch (err) {
-      setError(describe(err));
+      setError(describe(err, "That didn't work. Check the code and try again."));
     } finally {
       setBusy(false);
     }
