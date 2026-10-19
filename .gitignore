@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.p12
+*service-account*.json
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
