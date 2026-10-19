@@ -73,9 +73,23 @@ export type UserDatabase = IDBPDatabase<UserDB>;
 
 export const userDbName = (userId: string) => `betterplate-user-${userId}`;
 
-export function openUserDb(userId: string): Promise<UserDatabase> {
+const seenKey = (userId: string) => `bp.db-seen.${userId}`;
+
+/**
+ * Opens the account's database. If this device held it before (a marker in localStorage) but
+ * it comes back empty, the browser evicted it; onEvicted lets the app tell the person.
+ */
+export function openUserDb(userId: string, onEvicted?: () => void): Promise<UserDatabase> {
   return openDB<UserDB>(userDbName(userId), 2, {
     upgrade(db, oldVersion) {
+      if (oldVersion === 0) {
+        try {
+          if (localStorage.getItem(seenKey(userId))) onEvicted?.();
+          localStorage.setItem(seenKey(userId), "1");
+        } catch {
+          // Storage blocked: nothing to compare against.
+        }
+      }
       if (oldVersion < 1) {
         db.createObjectStore("recipes", { keyPath: "id" }).createIndex("byUpdated", "updatedAt");
         const outbox = db.createObjectStore("outbox", { keyPath: "opId" });
@@ -92,6 +106,11 @@ export function openUserDb(userId: string): Promise<UserDatabase> {
 }
 
 export async function deleteUserDb(userId: string): Promise<void> {
+  try {
+    localStorage.removeItem(seenKey(userId));
+  } catch {
+    // ignore
+  }
   await deleteDB(userDbName(userId));
 }
 
@@ -118,6 +137,23 @@ export async function writeCatalog(bundle: CatalogBundle): Promise<void> {
     await db.put("catalog", bundle, "current");
   } finally {
     db.close();
+  }
+}
+
+/** True when the browser refused a write because the device or origin is out of space. */
+export function isQuotaError(err: unknown): boolean {
+  const name = (err as { name?: string } | null)?.name;
+  return name === "QuotaExceededError" || name === "NS_ERROR_DOM_QUOTA_REACHED";
+}
+
+export const STORAGE_FULL_EVENT = "bp:storage-full";
+
+export async function storageInfo(): Promise<{ persisted: boolean | null; usage: number | null; quota: number | null }> {
+  try {
+    const [persisted, estimate] = await Promise.all([navigator.storage?.persisted?.() ?? null, navigator.storage?.estimate?.() ?? null]);
+    return { persisted, usage: estimate?.usage ?? null, quota: estimate?.quota ?? null };
+  } catch {
+    return { persisted: null, usage: null, quota: null };
   }
 }
 

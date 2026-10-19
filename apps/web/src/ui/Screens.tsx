@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { calculateRecipe, formatAmount, type FoodRecord } from "@betterplate/nutrition";
 import { ApiRequestError, api } from "../api.ts";
-import type { LocalRecipe } from "../localdb.ts";
+import { storageInfo, type LocalRecipe } from "../localdb.ts";
 import { useApp, useSyncStatus } from "../store.tsx";
 import { localDate, formatDay } from "../meals.ts";
-import { EmptyState, navigate, Sheet } from "./common.tsx";
+import { downloadJson, EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
 import { NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 
@@ -176,25 +176,18 @@ export function You() {
   const status = useSyncStatus(engine);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-
-  function download(data: unknown, name: string) {
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${name}-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
+  const [storage, setStorage] = useState<Awaited<ReturnType<typeof storageInfo>> | null>(null);
+  useEffect(() => void storageInfo().then(setStorage), []);
 
   async function exportUnsynced() {
     if (!engine) return;
-    download(await engine.exportUnsynced(), "better-plate-unsynced");
+    downloadJson(await engine.exportUnsynced(), "better-plate-unsynced");
   }
 
   async function exportAll() {
     setNote(null);
     try {
-      download(await api.exportData(), "better-plate-export");
+      downloadJson(await api.exportData(), "better-plate-export");
     } catch (err) {
       setNote(err instanceof ApiRequestError ? err.message : "You need to be online to download your data.");
     }
@@ -231,6 +224,11 @@ export function You() {
       <dl className="facts">
         <dt>Email</dt>
         <dd data-testid="account-email" data-private>{account?.email}</dd>
+        <dt>On this device</dt>
+        <dd data-testid="storage-info">
+          {storage?.usage != null ? `${(storage.usage / 1_000_000).toFixed(1)} MB used. ` : ""}
+          {storage?.persisted ? "Kept by the browser even when space runs low." : "The browser may clear it if the device runs low on space; synced data comes back from your account."}
+        </dd>
         <dt>Sync</dt>
         <dd>{online ? status.replace("-", " ") : "offline"}{engine?.lastSyncedAt ? `, last checked ${new Date(engine.lastSyncedAt).toLocaleTimeString()}` : ""}</dd>
       </dl>

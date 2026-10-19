@@ -113,3 +113,43 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
     </div>
   );
 }
+
+/** Saves data as a dated JSON file through the browser's download. */
+export function downloadJson(data: unknown, name: string) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name}-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Says plainly when the browser cleared this device's copy or ran out of space. */
+export function StorageBanner() {
+  const { storageNotice, dismissStorageNotice, engine } = useApp();
+  if (!storageNotice) return null;
+  return (
+    <div className="banner banner-warn" role="alert" data-testid="storage-banner">
+      {storageNotice === "evicted" ? (
+        <p>
+          <strong>This browser cleared your kitchen from this device.</strong> Everything that had synced is coming back from your account. Changes that hadn't synced yet
+          couldn't be recovered.
+        </p>
+      ) : (
+        <p>
+          <strong>This device is out of storage,</strong> so your last change couldn't be saved here. Free up some space, or download your unsynced changes to keep them, then try again.
+        </p>
+      )}
+      <div className="banner-actions">
+        {storageNotice === "full" && engine && (
+          <button type="button" className="btn-secondary" onClick={() => void engine.exportUnsynced().then((d) => downloadJson(d, "better-plate-unsynced"))}>
+            Download unsynced changes
+          </button>
+        )}
+        <button type="button" className="btn-secondary" onClick={dismissStorageNotice}>
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}

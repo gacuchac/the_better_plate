@@ -5,7 +5,12 @@
  * word > inside a word ("loin" finds "sirloin"). Simple English plurals match ("steaks" finds
  * "steak"). Ties go to the main food name, raw entries, then shorter names; restaurant and brand
  * entries (USDA writes their names in capitals, like "OLIVE GARDEN, …") come after generic foods.
+ * Everyday entries (everyday-foods.ts) rank first among matches, so "milk" finds cow's milk.
  */
+
+import { EVERYDAY_FOODS, SEARCH_SYNONYMS } from "./everyday-foods.ts";
+
+const EVERYDAY = new Set(EVERYDAY_FOODS);
 
 export interface SearchIndex<T> {
   entries: SearchEntry<T>[];
@@ -20,6 +25,7 @@ interface SearchEntry<T> {
   head: [number, number];
   raw: boolean;
   brand: boolean;
+  everyday: boolean;
   length: number;
   sortKey: string;
 }
@@ -64,6 +70,7 @@ export function buildSearchIndex<T extends { description: string }>(items: Itera
       head,
       raw: tokens.includes("raw"),
       brand: /[A-Z]{2}/.test(firstWord) && firstWord === firstWord.toUpperCase(),
+      everyday: EVERYDAY.has(item.description),
       length: item.description.length,
       sortKey: item.description.toLowerCase(),
     });
@@ -86,13 +93,18 @@ function bestMatch(entry: SearchEntry<unknown>, query: string[]): { score: numbe
 }
 
 export function searchIndex<T>(index: SearchIndex<T>, query: string, limit = 30): T[] {
-  const words = normalizeSearchText(query).split(" ").filter(Boolean).slice(0, MAX_QUERY_WORDS);
+  const words = normalizeSearchText(query)
+    .split(" ")
+    .filter(Boolean)
+    .flatMap((w) => (SEARCH_SYNONYMS[w] ?? SEARCH_SYNONYMS[singular(w)] ?? w).split(" "))
+    .slice(0, MAX_QUERY_WORDS);
   if (words.length === 0) return index.entries.slice(0, limit).map((e) => e.item);
   const queries = words.map(forms);
   const scored: { entry: SearchEntry<T>; score: number }[] = [];
   for (const entry of index.entries) {
     let score = 0;
     let ok = true;
+    let whole = true;
     for (const [i, q] of queries.entries()) {
       const m = bestMatch(entry, q);
       if (m.score === 0) {
@@ -100,11 +112,14 @@ export function searchIndex<T>(index: SearchIndex<T>, query: string, limit = 30)
         break;
       }
       score += m.score * 10;
+      if (m.score < 3) whole = false;
       // The first word usually names the food itself ("beef", "rice"); favor it in the main name.
       if (i === 0 && m.score >= 2 && m.at >= entry.head[0] && m.at < entry.head[1]) score += m.at === entry.head[0] ? 8 : 5;
     }
     if (!ok) continue;
     if (entry.raw) score += 2;
+    // Only when every word is a whole word, so "egg" does not lift "Eggplant".
+    if (entry.everyday && whole) score += 12;
     if (entry.brand) score -= 10;
     scored.push({ entry, score });
   }

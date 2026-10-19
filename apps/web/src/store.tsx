@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { FoodRecord } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError, type CatalogBundle, type Me } from "./api.ts";
-import { deleteUserDb, openUserDb, readCatalog, requestPersistentStorage, writeCatalog, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
+import { deleteUserDb, isQuotaError, openUserDb, readCatalog, STORAGE_FULL_EVENT, requestPersistentStorage, writeCatalog, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
 import { SyncEngine } from "./sync.ts";
 
 const ACCOUNT_KEY = "bp.account";
@@ -20,6 +20,9 @@ export type CatalogState =
   | { status: "ready"; bundle: CatalogBundle; foods: Map<string, FoodRecord>; offline: boolean }
   | { status: "unavailable"; message: string };
 
+/** evicted: the browser cleared this device's copy; full: a save failed for lack of space. */
+export type StorageNotice = "evicted" | "full" | null;
+
 interface AppState {
   account: Me | null;
   accountChecked: boolean;
@@ -32,6 +35,8 @@ interface AppState {
   setAccount: (me: Me) => void;
   signOut: (opts?: { discardUnsynced?: boolean }) => Promise<void>;
   refreshRecipes: () => Promise<void>;
+  storageNotice: StorageNotice;
+  dismissStorageNotice: () => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -76,7 +81,10 @@ async function loadCatalog(): Promise<CatalogState> {
     const manifest = await api.manifest();
     if (cached && cached.version === manifest.version) return ready(cached, false);
     const bundle = await api.bundle(manifest.bundleUrl);
-    await writeCatalog(bundle);
+    // Out of space: keep using the foods for this visit and say so, rather than failing.
+    await writeCatalog(bundle).catch((err) => {
+      if (isQuotaError(err)) dispatchEvent(new Event(STORAGE_FULL_EVENT));
+    });
     return ready(bundle, false);
   } catch (err) {
     if (cached) return ready(cached, err instanceof NetworkError);
@@ -93,6 +101,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [plans, setPlans] = useState<LocalPlan[]>([]);
   const [logs, setLogs] = useState<LocalLog[]>([]);
   const online = useOnline();
+  const [storageNotice, setStorageNotice] = useState<StorageNotice>(null);
+
+  useEffect(() => {
+    const full = () => setStorageNotice("full");
+    addEventListener(STORAGE_FULL_EVENT, full);
+    return () => removeEventListener(STORAGE_FULL_EVENT, full);
+  }, []);
 
   useEffect(() => {
     void loadCatalog().then(setCatalog);
@@ -132,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     let disposed = false;
     let cleanup = () => {};
-    void openUserDb(account.id).then((db) => {
+    void openUserDb(account.id, () => setStorageNotice("evicted")).then((db) => {
       if (disposed) return db.close();
       const e = new SyncEngine(db);
       const refresh = () =>
@@ -186,8 +201,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [account?.id]);
 
   const value = useMemo<AppState>(
-    () => ({ account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes }),
-    [account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes],
+    () => ({ account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes, storageNotice, dismissStorageNotice: () => setStorageNotice(null) }),
+    [account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes, storageNotice],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
