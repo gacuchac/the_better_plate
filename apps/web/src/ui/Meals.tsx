@@ -100,7 +100,7 @@ export function Meals({ date: routeDate }: { date?: string }) {
               const total = day.totals!.find((x) => x.key === d.key);
               if (!total) return null;
               return (
-                <li key={d.key} className="nutrient-row static">
+                <li key={d.key} className="nutrient-row static" data-testid={`day-nutrient-${d.key}`}>
                   <NutrientLine row={total} name={nutrientName(d.key, d.name)} />
                 </li>
               );

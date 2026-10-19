@@ -261,8 +261,31 @@ test("plan a meal, mark it eaten, and see plans kept apart from what was eaten",
 
   await page.getByTestId("day-totals").click();
   await expect(page.getByRole("dialog")).toContainText("Plans are not included");
-  await expect(page.getByRole("dialog")).toContainText("FDA Daily Values");
-  await shot(page, info, "meals-day-nutrients", "Day nutrients with % of FDA Daily Values and source");
+  // Grams only until the person sets their own targets; label Daily Values are cited, not applied.
+  const sheet = page.getByRole("dialog");
+  await expect(sheet).toContainText("FDA Daily Values");
+  await expect(sheet).toContainText("Set your own daily targets to see percentages");
+  await expect(sheet).not.toContainText("%");
+  await shot(page, info, "meals-day-nutrients", "Day nutrients in grams, no percentages until targets are set");
+  await sheet.getByRole("link", { name: "Set targets" }).click();
+  await expect(page.getByRole("heading", { name: "Daily targets" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Dietary Guidelines for Americans, 2025–2030" })).toHaveAttribute("href", "https://realfood.gov");
+  await page.getByLabel("Protein", { exact: true }).fill("155");
+  await page.getByLabel("Fiber", { exact: true }).fill("-3");
+  await expect(page.getByRole("alert")).toContainText("Use a number above zero");
+  await page.getByLabel("Fiber", { exact: true }).fill("");
+  await page.getByRole("button", { name: "Save targets" }).click();
+  await expect(page.getByTestId("targets-status")).toHaveText("Saved on this device.");
+  await shot(page, info, "targets", "Daily targets the person types in, kept on this device");
+  await page.goBack();
+  await page.getByTestId("day-totals").click();
+  const proteinRow = page.getByTestId("day-nutrient-protein");
+  await expect(proteinRow).toContainText("of your target");
+  const grams = Number((await proteinRow.textContent())!.match(/([\d.]+) g/)![1]);
+  await expect(proteinRow).toContainText(`${Math.round((grams / 155) * 100)}% of your target`);
+  await expect(page.getByTestId("day-nutrient-fiber")).not.toContainText("%");
+  await expect(page.getByRole("dialog")).toContainText("Percentages compare with the daily targets you set");
+  await shot(page, info, "meals-day-targets", "Protein as a share of the person's own target; others stay in grams");
   await page.getByRole("button", { name: "Close" }).click();
 
   // Offline: a new log is saved on this device, then synced.
@@ -472,6 +495,8 @@ test("use the app in Spanish: interface, Spanish food words, nutrient names and 
   await expect(panel).toContainText("Nutrición");
   await expect(panel).toContainText("Proteína");
   await expect(panel).toContainText("Valores Diarios de la FDA");
+  await expect(panel).toContainText("Define tus propias metas diarias");
+  await expect(panel).not.toContainText("%");
   await shot(page, info, "es-recipe", "Recipe editor and nutrition panel in Spanish, decimal commas");
 
   await page.getByRole("link", { name: "Cocinar" }).click();

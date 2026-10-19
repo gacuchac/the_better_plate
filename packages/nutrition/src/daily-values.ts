@@ -33,3 +33,15 @@ export const FDA_DAILY_VALUES: DailyValue[] = [
   { key: "vitamin_b12", amount: 2.4, unit: "µg" },
   { key: "folate_dfe", amount: 400, unit: "µg" },
 ];
+
+/**
+ * The current U.S. dietary guidance (released 2026-01-07), linked for people choosing their own
+ * targets. Linked only: the app does not turn its advice into numbers for anyone.
+ */
+export const DIETARY_GUIDELINES_SOURCE = {
+  publisher: "U.S. Department of Agriculture and U.S. Department of Health and Human Services",
+  title: "Dietary Guidelines for Americans, 2025–2030",
+  url: "https://realfood.gov",
+  releasedAt: "2026-01-07",
+  retrievedAt: "2026-10-19",
+} as const;

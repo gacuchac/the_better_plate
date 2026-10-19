@@ -9,6 +9,7 @@ import { downloadJson, EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
 import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
+import { useTargets } from "../targets.ts";
 import { dateLocale, formatQty, nutrientName, t as translate, useT, type MessageKey } from "../i18n.ts";
 
 const STATE_LABEL: Record<LocalRecipe["state"], MessageKey> = {
@@ -187,6 +188,7 @@ export function Explore() {
 
 export function You() {
   const { account, engine, signOut, online } = useApp();
+  const targets = useTargets(account?.id);
   const t = useT();
   const status = useSyncStatus(engine);
   const [busy, setBusy] = useState(false);
@@ -248,6 +250,10 @@ export function You() {
         <dd>
           {t(!online ? "sync.offline" : SYNC_WORDS[status])}
           {engine?.lastSyncedAt ? `, ${t("you.lastChecked", { time: new Date(engine.lastSyncedAt).toLocaleTimeString(dateLocale()) })}` : ""}
+        </dd>
+        <dt>{t("targets.title")}</dt>
+        <dd data-testid="targets-summary">
+          {targets.length ? t("targets.count", { n: targets.length }) : t("targets.noneSet")} <a href="#/targets">{targets.length ? t("targets.change") : t("targets.set")}</a>
         </dd>
         <dt>{t("lang.label")}</dt>
         <dd>

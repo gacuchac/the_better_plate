@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { DAILY_VALUE_SOURCE, FDA_DAILY_VALUES, percentDailyValue, type FoodRecord, type NutrientDefinition, type NutrientTotal, type RecipeNutrition } from "@betterplate/nutrition";
+import { DAILY_VALUE_SOURCE, percentDailyValue, type FoodRecord, type NutrientDefinition, type NutrientTotal, type RecipeNutrition } from "@betterplate/nutrition";
 import type { RecipeIngredientInput } from "@betterplate/contracts";
 import { Sheet } from "./common.tsx";
-import { dateLocale, formatQty, nutrientName, t as translate, useT } from "../i18n.ts";
+import { useApp } from "../store.tsx";
+import { useTargets } from "../targets.ts";
+import { formatQty, nutrientName, t as translate, useT } from "../i18n.ts";
 
 const PRIMARY = ["energy_kcal", "protein", "carbohydrate", "fat_total", "fiber"];
 
@@ -140,11 +142,16 @@ function SourceList({
   );
 }
 
-/** One nutrient: amount, % of the FDA reference Daily Value where one exists, and a calm bar. */
+/**
+ * One nutrient: the amount, and a percent with a calm bar only against a daily target the
+ * person set themselves. Without one, no percent: reference values aren't personal needs.
+ */
 export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "amount" | "unit" | "status">; name: string }) {
   const t = useT();
-  const pct = percentDailyValue(row, FDA_DAILY_VALUES);
-  const hasDv = FDA_DAILY_VALUES.some((d) => d.key === row.key);
+  const { account } = useApp();
+  const targets = useTargets(account?.id);
+  const pct = percentDailyValue(row, targets);
+  const hasTarget = targets.some((d) => d.key === row.key && d.unit === row.unit);
   return (
     <>
       <span className="nutrient-name">{name}</span>
@@ -153,9 +160,9 @@ export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "
           {row.status === "partial" && <span className="qualifier">{t("nutrition.atLeast")} </span>}
           {formatQty(row.amount, row.unit)}
         </span>
-        {pct !== null && <span className="dv"> · {Math.round(pct).toLocaleString(dateLocale())}%</span>}
+        {pct !== null && <span className="dv"> · {t("targets.pctOfYours", { pct: Math.round(pct) })}</span>}
       </span>
-      {hasDv &&
+      {hasTarget &&
         (row.status === "unknown" ? (
           <span className="bar unknown" aria-hidden="true" />
         ) : (
@@ -167,10 +174,18 @@ export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "
   );
 }
 
+/** Says what percentages mean here, links to the person's own targets, and cites the label reference. */
 export function DailyValueNote() {
   const t = useT();
+  const { account } = useApp();
+  const targets = useTargets(account?.id);
   return (
-    <p className="fine">
+    <p className="fine" data-testid="targets-note">
+      {account ? (
+        <>
+          {targets.length ? t("targets.noteSet") : t("targets.noteUnset")} <a href="#/targets">{targets.length ? t("targets.change") : t("targets.set")}</a>{" "}
+        </>
+      ) : null}
       {t("dv.before")}{" "}
       <a href={DAILY_VALUE_SOURCE.url} target="_blank" rel="noopener noreferrer">
         {t("dv.link")}
