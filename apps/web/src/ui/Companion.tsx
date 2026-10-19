@@ -43,6 +43,37 @@ export function useAiSettings(accountId: string | undefined, online: boolean): A
   return value;
 }
 
+let panelOpen = false;
+const openListeners = new Set<() => void>();
+function setPanelOpen(v: boolean) {
+  panelOpen = v;
+  openListeners.forEach((fn) => fn());
+}
+function usePanelOpen() {
+  return useSyncExternalStore(
+    (fn) => {
+      openListeners.add(fn);
+      return () => void openListeners.delete(fn);
+    },
+    () => panelOpen,
+  );
+}
+
+/** Opens the companion; lives in the top bar so it never covers the screen's own buttons. */
+export function CompanionButton() {
+  const { account, online } = useApp();
+  const t = useT();
+  const settings = useAiSettings(account?.id, online);
+  const open = usePanelOpen();
+  if (!account || settings === false || open) return null;
+  return (
+    <button type="button" className="companion-launch" aria-label={t("agent.open")} onClick={() => setPanelOpen(true)} data-testid="companion-open">
+      <Icon name="sparkle" size={18} />
+      <span>{t("agent.open")}</span>
+    </button>
+  );
+}
+
 /**
  * The companion panel. It is not modal: on desktop it sits beside the app, on phones it covers
  * the lower part, so the person can watch the screens change as the agent works.
@@ -51,7 +82,8 @@ export function Companion() {
   const { account, engine, catalog, online } = useApp();
   const t = useT();
   const settings = useAiSettings(account?.id, online);
-  const [open, setOpen] = useState(false);
+  const open = usePanelOpen();
+  const setOpen = setPanelOpen;
   const [text, setText] = useState("");
   const logRef = useRef<HTMLOListElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -79,14 +111,7 @@ export function Companion() {
     void session!.send(message, provider!, { engine: engine!, foods: catalog.status === "ready" ? catalog.foods : new Map(), nutrients: catalog.status === "ready" ? catalog.bundle.nutrients : [], accountId: account!.id, navigate });
   }
 
-  if (!open) {
-    return (
-      <button type="button" className="companion-fab" onClick={() => setOpen(true)} data-testid="companion-open">
-        <Icon name="sparkle" size={20} />
-        <span>{t("agent.open")}</span>
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
     <aside className="companion" aria-label={t("agent.title")} data-testid="companion">

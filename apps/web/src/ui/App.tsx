@@ -14,7 +14,7 @@ import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
 import { Targets } from "./Targets.tsx";
 import { AiSettings } from "./AiSettings.tsx";
-import { Companion } from "./Companion.tsx";
+import { Companion, CompanionButton } from "./Companion.tsx";
 import { useT, type MessageKey } from "../i18n.ts";
 
 const NAV: { path: string; label: MessageKey; icon: IconName }[] = [
@@ -121,7 +121,10 @@ export function App() {
           ) : (
             <span />
           )}
-          <SyncChip />
+          <span className="topbar-actions">
+            <CompanionButton />
+            <SyncChip />
+          </span>
         </div>
         <StorageBanner />
         <main id="main">{screen}</main>

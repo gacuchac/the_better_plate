@@ -437,14 +437,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .target-unit { width: 2.5rem; color: var(--ink-3); }
 
 /* ---------- AI companion: non-modal so the app stays visible while it works ---------- */
-.companion-fab {
-  position: fixed; z-index: 11; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom));
-  min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
-  color: var(--ink); font: inherit; font-weight: 650; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-  box-shadow: 0 2px 8px rgba(23, 33, 30, 0.08);
+.topbar-actions { display: inline-flex; align-items: center; gap: 8px; }
+.companion-launch {
+  min-height: 36px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); font: inherit; font-size: 0.8125rem; font-weight: 650; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
 }
-.companion-fab svg { color: var(--sage-ink); }
-.has-action-bar .companion-fab { bottom: calc(140px + env(safe-area-inset-bottom)); }
+.companion-launch svg { color: var(--sage-ink); }
+@media (max-width: 480px) { .companion-launch { min-width: 44px; min-height: 44px; justify-content: center; padding: 0; } .companion-launch span { display: none; } }
 .companion {
   position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; height: 58vh;
   background: var(--surface); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0;
@@ -487,8 +486,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 body.companion-open .report-btn { display: none; }
 @media (max-width: 899px) { body.companion-open .content { padding-bottom: 60vh; } }
 @media (min-width: 900px) {
-  .companion-fab { right: 24px; bottom: 80px; }
-  .has-action-bar .companion-fab { bottom: 144px; }
   .companion { top: 0; left: auto; width: 400px; height: auto; border-top: 0; border-left: 1px solid var(--line); border-radius: 0; box-shadow: none; }
   body.companion-open .content { margin-right: 400px; }
   body.companion-open .action-bar { right: 400px; }
