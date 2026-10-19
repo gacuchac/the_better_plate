@@ -1,13 +1,11 @@
 name: Hosted check
 
 # Hosted pass of the two-pass gate: Playwright against the deployed Railway dev URL.
-# Runs after Railway reports a successful deployment, on demand, and when the hosted suite changes.
+# Runs after Railway reports a successful deployment of dev, and on demand. Not on PR pushes:
+# a PR's code is not what is deployed, so its result would describe the wrong commit.
 on:
   deployment_status:
   workflow_dispatch:
-  push:
-    branches-ignore: [main, dev]
-    paths: ["e2e-hosted/**", "playwright.hosted.config.ts", ".github/workflows/hosted-check.yml"]
 
 permissions:
   contents: read

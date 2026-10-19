@@ -55,11 +55,19 @@ healthRoutes.openapi(
   }),
   async (c) => {
     try {
+      await pool.query("select 1");
+    } catch (err) {
+      console.error(JSON.stringify({ level: "error", msg: "readiness: database unreachable", error: (err as Error).message }));
+      return c.json({ status: "not_ready", checks: { database: "unreachable" } }, 503);
+    }
+    try {
       const { rows } = await pool.query("select version from catalog_versions where is_current");
       if (!rows[0]) return c.json({ status: "not_ready", checks: { database: "ok", catalog: "missing" } }, 503);
       return c.json({ status: "ok", checks: { database: "ok", catalog: rows[0].version as string } }, 200);
-    } catch {
-      return c.json({ status: "not_ready", checks: { database: "unreachable" } }, 503);
+    } catch (err) {
+      // Usually means migrations have not run against this database yet.
+      console.error(JSON.stringify({ level: "error", msg: "readiness: schema not ready", error: (err as Error).message }));
+      return c.json({ status: "not_ready", checks: { database: "ok", catalog: "schema_missing" } }, 503);
     }
   },
 );

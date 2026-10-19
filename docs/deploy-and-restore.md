@@ -9,7 +9,7 @@
 
 ## Railway dev environment (not yet verified by a deploy)
 
-One service built from the root `Dockerfile` (config in `railway.json`): the API serves the PWA from the same origin. The pre-deploy command `node apps/api/dist/db/cli.mjs setup` runs migrations and seeds the starter catalog (idempotent). Health check: `/v1/health/ready`.
+One service built from the root `Dockerfile` (config in `railway.json`): the API serves the PWA from the same origin. On every start the container runs `node apps/api/dist/db/cli.mjs setup` (migrations and starter-catalog seed; idempotent and lock-guarded) before the server. Health check: `/v1/health/ready`.
 
 Owner setup in the Railway dashboard (no tokens needed for this path; Railway's GitHub integration builds on every push to `dev`):
 1. New project → **Empty Project**, then **Create → Database → PostgreSQL**.
