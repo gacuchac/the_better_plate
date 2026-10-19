@@ -1,0 +1,74 @@
+name: CI
+
+# Lint/typecheck, unit + API tests against PostgreSQL, and the Playwright local pass,
+# on every PR into dev or main and on pushes to work branches.
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches-ignore: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    name: Typecheck, unit, API and E2E
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: betterplate
+          POSTGRES_PASSWORD: betterplate
+          POSTGRES_DB: betterplate
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U betterplate" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: betterplate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Create test databases
+        run: |
+          for db in betterplate_test betterplate_e2e; do
+            psql -h localhost -U betterplate -d betterplate -c "create database $db" || true
+          done
+      - name: Typecheck, catalog integrity, unit and API tests
+        run: bash scripts/test.sh
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Playwright journeys (desktop + mobile)
+        run: bash scripts/e2e.sh
+        env:
+          E2E_RUN_ID: ci-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Upload QA evidence (synthetic data only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-evidence-${{ github.run_id }}
+          path: artifacts/qa
+          retention-days: 7

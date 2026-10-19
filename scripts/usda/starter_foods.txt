@@ -1,0 +1,173 @@
+# Starter catalog: exact USDA FoodData Central "SR Legacy" descriptions, one per line.
+# The import script requires an exact (case-insensitive) description match and
+# reports misses instead of guessing. Lines starting with # are ignored.
+# SR Legacy is USDA's final Standard Reference release (April 2018): frozen,
+# comprehensive nutrient profiles and household portions, public domain.
+
+# Fruits
+Apples, raw, with skin
+Bananas, raw
+Oranges, raw, all commercial varieties
+Strawberries, raw
+Blueberries, raw
+Grapes, red or green (European type, such as Thompson seedless), raw
+Lemons, raw, without peel
+Limes, raw
+Avocados, raw, all commercial varieties
+Pears, raw
+Peaches, yellow, raw
+Pineapple, raw, all varieties
+Mangos, raw
+Watermelon, raw
+Raspberries, raw
+Kiwifruit, green, raw
+Cherries, sweet, raw
+Melons, cantaloupe, raw
+Raisins, dark, seedless
+Dates, medjool
+
+# Vegetables
+Broccoli, raw
+Broccoli, cooked, boiled, drained, without salt
+Cauliflower, raw
+Carrots, raw
+Spinach, raw
+Kale, raw
+Tomatoes, red, ripe, raw, year round average
+Onions, raw
+Garlic, raw
+Potatoes, flesh and skin, raw
+Potatoes, baked, flesh and skin, without salt
+Sweet potato, raw, unprepared
+Sweet potato, cooked, baked in skin, flesh, without salt
+Peppers, sweet, red, raw
+Peppers, sweet, green, raw
+Cucumber, with peel, raw
+Lettuce, cos or romaine, raw
+Lettuce, iceberg (includes crisphead types), raw
+Mushrooms, white, raw
+Squash, summer, zucchini, includes skin, raw
+Cabbage, raw
+Celery, raw
+Asparagus, raw
+Peas, green, raw
+Corn, sweet, yellow, raw
+Beans, snap, green, raw
+Eggplant, raw
+Brussels sprouts, raw
+Beets, raw
+Ginger root, raw
+Squash, winter, butternut, raw
+Pumpkin, raw
+Arugula, raw
+Leeks, (bulb and lower leaf-portion), raw
+Radishes, raw
+Basil, fresh
+Parsley, fresh
+Coriander (cilantro) leaves, raw
+
+# Legumes and soy
+Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt
+Lentils, mature seeds, cooked, boiled, without salt
+Lentils, raw
+Beans, black, mature seeds, cooked, boiled, without salt
+Beans, kidney, red, mature seeds, cooked, boiled, without salt
+Tofu, raw, firm, prepared with calcium sulfate
+Edamame, frozen, prepared
+Peanut butter, smooth style, without salt
+Hummus, commercial
+
+# Grains
+Rice, white, long-grain, regular, raw, enriched
+Rice, white, long-grain, regular, enriched, cooked
+Rice, brown, long-grain, raw
+Rice, brown, long-grain, cooked
+Pasta, dry, enriched
+Pasta, cooked, enriched, without added salt
+Cereals, oats, regular and quick, not fortified, dry
+Quinoa, uncooked
+Quinoa, cooked
+Bread, whole-wheat, commercially prepared
+Bread, white, commercially prepared (includes soft bread crumbs)
+Wheat flour, white, all-purpose, enriched, bleached
+Wheat flour, whole-grain
+Couscous, cooked
+Barley, pearled, cooked
+Tortillas, ready-to-bake or -fry, corn
+Cornmeal, whole-grain, yellow
+
+# Meat, fish and eggs
+Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw
+Chicken, broilers or fryers, breast, meat only, cooked, roasted
+Chicken, broilers or fryers, dark meat, thigh, meat only, raw
+Beef, ground, 85% lean meat / 15% fat, raw
+Beef, ground, 90% lean meat / 10% fat, raw
+Pork, fresh, loin, tenderloin, separable lean only, raw
+Turkey, ground, raw
+Fish, salmon, Atlantic, farmed, raw
+Fish, salmon, Atlantic, farmed, cooked, dry heat
+Fish, tuna, light, canned in water, drained solids
+Fish, cod, Atlantic, raw
+Fish, tilapia, raw
+Crustaceans, shrimp, mixed species, raw
+Egg, whole, raw, fresh
+Egg, whole, cooked, hard-boiled
+Egg, white, raw, fresh
+
+# Dairy and alternatives
+Milk, whole, 3.25% milkfat, with added vitamin D
+Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D
+Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)
+Yogurt, Greek, plain, nonfat
+Yogurt, plain, whole milk
+Cheese, cheddar
+Cheese, mozzarella, whole milk
+Cheese, parmesan, grated
+Cheese, feta
+Cheese, cottage, lowfat, 2% milkfat
+Butter, salted
+Butter, without salt
+Cream, fluid, heavy whipping
+Soymilk (all flavors), unsweetened, with added calcium, vitamins A and D
+Beverages, almond milk, unsweetened, shelf stable
+
+# Oils and fats
+Oil, olive, salad or cooking
+Oil, canola
+Oil, sunflower, linoleic, (approx. 65%)
+Oil, coconut
+Oil, sesame, salad or cooking
+Oil, avocado
+
+# Nuts and seeds
+Nuts, almonds
+Nuts, walnuts, english
+Nuts, cashew nuts, raw
+Peanuts, all types, raw
+Seeds, chia seeds, dried
+Seeds, flaxseed
+Seeds, sunflower seed kernels, dried
+Seeds, pumpkin and squash seed kernels, dried
+Seeds, sesame seeds, whole, dried
+Nuts, coconut milk, canned (liquid expressed from grated meat and water)
+
+# Pantry
+Honey
+Sugars, granulated
+Sugars, brown
+Syrups, maple
+Salt, table
+Spices, pepper, black
+Spices, cinnamon, ground
+Spices, cumin seed
+Spices, paprika
+Soy sauce made from soy (tamari)
+Vinegar, balsamic
+Vinegar, cider
+Sauce, pasta, spaghetti/marinara, ready-to-serve
+Tomato products, canned, paste, without salt added
+Tomatoes, red, ripe, canned, packed in tomato juice
+Mustard, prepared, yellow
+Cocoa, dry powder, unsweetened
+Chocolate, dark, 70-85% cacao solids
+Beverages, water, tap, drinking
