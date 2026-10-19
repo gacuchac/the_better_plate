@@ -86,7 +86,7 @@ export const EXPORT_FORMAT = "betterplate.export/1" as const;
 /** Everything stored about one account, as data the person can keep or take elsewhere. */
 export async function exportAccount(userId: string) {
   const q = <T extends object>(sql: string) => pool.query<T & Record<string, never>>(sql, [userId]).then((r) => r.rows as T[]);
-  const [users, logins, sessions, recipes, revisions, plans, logs, shares, reports, consents, aiKeys, aiSettings, aiUsage, images, houseUsage] = await Promise.all([
+  const [users, logins, sessions, recipes, revisions, plans, logs, shares, reports, consents, aiKeys, aiSettings, aiUsage, images, houseUsage, connectedApps] = await Promise.all([
     q<{ id: string; email: string; name: string; emailVerified: boolean; createdAt: Date }>(`select id, email, name, "emailVerified", "createdAt" from "users" where id = $1`),
     q<{ providerId: string; createdAt: Date }>(`select "providerId", "createdAt" from "accounts" where "userId" = $1 order by "createdAt"`),
     q<{ createdAt: Date; expiresAt: Date; ipAddress: string | null; userAgent: string | null }>(`select "createdAt", "expiresAt", "ipAddress", "userAgent" from "sessions" where "userId" = $1 order by "createdAt"`),
@@ -114,6 +114,10 @@ export async function exportAccount(userId: string) {
     q<{ day: Date; model: string; requests: number; input_tokens: string; output_tokens: string }>(
       "select day, model, requests, input_tokens, output_tokens from ai_house_usage where user_id = $1 order by day",
     ),
+    q<{ name: string | null; redirect_uris: string[] | null; scopes: string[]; created_at: Date }>(
+      `select c.name, c."redirectUris" as redirect_uris, k.scopes, k."createdAt" as created_at
+         from "oauthConsent" k join "oauthClient" c on c."clientId" = k."clientId" where k."userId" = $1 order by k."createdAt"`,
+    ),
   ]);
   const user = users[0]!;
   return {
@@ -131,6 +135,8 @@ export async function exportAccount(userId: string) {
       dailyUsage: aiUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens) })),
       includedDailyUsage: houseUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), model: u.model, requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens) })),
     },
+    // Assistants (Claude, ChatGPT) allowed to reach this kitchen; tokens themselves are never exported.
+    connectedApps: connectedApps.map((a) => ({ name: a.name, redirectUris: a.redirect_uris ?? [], scopes: a.scopes, connectedAt: a.created_at.toISOString() })),
     recipes: recipes.map(toRecipe),
     recipeRevisions: revisions.map((r) => ({ recipeId: r.recipe_id, version: r.version, deleted: r.deleted, body: r.body, nutrition: r.nutrition, catalogVersion: r.catalog_version, createdAt: r.created_at.toISOString() })),
     recipeImages: images.map((i) => ({

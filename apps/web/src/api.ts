@@ -76,6 +76,19 @@ export interface CatalogBundle {
 /** Stored recipe images are served to their owner only (session cookie). */
 export const imageUrl = (id: string) => `${API_URL}/v1/images/${id}`;
 
+export interface OAuthClientInfo {
+  client_id: string;
+  client_name?: string;
+  client_uri?: string;
+}
+
+export interface ConnectedApp {
+  id: string;
+  clientId: string;
+  scopes: string[];
+  createdAt?: string;
+}
+
 export const api = {
   me: () => request<Me>("/v1/me"),
   signInMethods: () => request<{ methods: ("email_code" | "google")[] }>("/v1/sign-in-methods"),
@@ -108,5 +121,10 @@ export const api = {
   searchPhotos: (description: string) => request<{ results: PhotoSearchResult[] }>(`/v1/photos/search?q=${encodeURIComponent(description)}`, { cache: "no-store" }),
   importPhoto: (sourceId: string, alt?: string) => request<RecipeImage>("/v1/images/import", { method: "POST", json: { source: "openverse", sourceId, alt } }),
   generateImage: (prompt: string, alt: string) => request<RecipeImage>("/v1/images/generate", { method: "POST", json: { prompt, alt } }),
+  oauthClient: (clientId: string) => request<OAuthClientInfo>(`/v1/auth/oauth2/public-client?client_id=${encodeURIComponent(clientId)}`, { cache: "no-store" }),
+  oauthConsent: (accept: boolean, oauthQuery: string) =>
+    request<{ redirect: boolean; url: string }>("/v1/auth/oauth2/consent", { method: "POST", json: { accept, oauth_query: oauthQuery } }),
+  connectedApps: () => request<ConnectedApp[]>("/v1/auth/oauth2/get-consents", { cache: "no-store" }),
+  disconnectApp: (id: string) => request<unknown>("/v1/auth/oauth2/delete-consent", { method: "POST", json: { id } }),
   feedback: (report: FeedbackReport) => request<{ id: string; receivedAt: string; duplicate: boolean }>("/v1/feedback", { method: "POST", json: report }),
 };

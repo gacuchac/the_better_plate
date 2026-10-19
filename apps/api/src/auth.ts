@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
-import { emailOTP } from "better-auth/plugins";
+import { emailOTP, jwt } from "better-auth/plugins";
+import { oauthProvider } from "@better-auth/oauth-provider";
 import { config } from "./config.ts";
 import { pool } from "./db/pool.ts";
 import { sendEmail } from "./lib/mailer.ts";
@@ -9,6 +10,11 @@ import { sendEmail } from "./lib/mailer.ts";
  * see docs/adr/ADR-002-auth.md). Email one-time codes verify email ownership on every
  * sign-in; no passwords are stored. Sessions are httpOnly cookies.
  */
+/** Scopes the connector can ask for; see docs/adr/ADR-007-connector.md. */
+export const CONNECTOR_SCOPES = ["kitchen:read", "kitchen:write"] as const;
+/** The MCP endpoint is the protected resource; access tokens carry it as their audience. */
+export const MCP_RESOURCE = `${config.publicApiUrl}/mcp`;
+
 export const authOptions = {
   appName: "The Better Plate",
   database: pool,
@@ -59,7 +65,24 @@ export const authOptions = {
     useSecureCookies: !config.isLocal,
     defaultCookieAttributes: { sameSite: "lax" as const, httpOnly: true },
   },
+  // The JWT plugin's session-to-JWT endpoint isn't needed; it only signs connector tokens here.
+  disabledPaths: ["/token"],
   plugins: [
+    jwt({ jwt: { issuer: `${config.publicApiUrl}/v1/auth`, audience: MCP_RESOURCE } }),
+    // Lets Claude, ChatGPT and other MCP clients sign in to The Better Plate (OAuth 2.1 with PKCE,
+    // dynamic client registration) and act in the person's kitchen with the scopes they approve.
+    oauthProvider({
+      loginPage: `${config.publicAppUrl}/#/connect/login`,
+      consentPage: `${config.publicAppUrl}/#/connect`,
+      scopes: ["openid", "profile", "email", "offline_access", ...CONNECTOR_SCOPES],
+      allowDynamicClientRegistration: true,
+      // MCP clients register themselves before anyone signs in; the consent screen names them.
+      allowUnauthenticatedClientRegistration: true,
+      clientRegistrationDefaultApplicationType: "infer",
+      // Every registered client may ask for the MCP resource; the person still approves each one.
+      clientRegistrationDefaultResources: [MCP_RESOURCE],
+      resources: [{ identifier: MCP_RESOURCE, accessTokenTtl: 900, allowedScopes: ["openid", "profile", "email", "offline_access", ...CONNECTOR_SCOPES] }],
+    }),
     emailOTP({
       otpLength: 6,
       expiresIn: 600,

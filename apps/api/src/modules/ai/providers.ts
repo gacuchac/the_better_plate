@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "@hono/zod-openapi";
-import { AI_TOOL_NAMES, AI_TOOLS, type AiProvider } from "@betterplate/contracts";
+import { AI_TOOL_NAMES, AI_TOOLS, type AiProvider, type AiToolName } from "@betterplate/contracts";
 import { config } from "../../config.ts";
 import { ApiError } from "../../lib/http.ts";
 import { redact } from "../feedback.ts";
@@ -24,6 +24,8 @@ export interface TurnArgs {
   system: string;
   conversation: Native[];
   input: TurnInput;
+  /** Tools offered to the model; all of them when omitted. */
+  tools?: readonly AiToolName[];
 }
 
 interface Adapter {
@@ -32,11 +34,12 @@ interface Adapter {
   turn(args: TurnArgs): Promise<ProviderTurn>;
 }
 
-const toolSchemas = AI_TOOL_NAMES.map((name) => ({
+const allToolSchemas = AI_TOOL_NAMES.map((name) => ({
   name,
   description: AI_TOOLS[name].description,
   parameters: z.toJSONSchema(AI_TOOLS[name].input, { io: "input" }) as Record<string, unknown>,
 }));
+export const toolSchemasFor = (tools?: readonly AiToolName[]) => (tools ? allToolSchemas.filter((t) => tools.includes(t.name)) : allToolSchemas);
 
 const MAX_TOKENS = 16_000;
 
@@ -71,7 +74,7 @@ const anthropic: Adapter = {
     }
   },
 
-  async turn({ apiKey, model, system, conversation, input }) {
+  async turn({ apiKey, model, system, conversation, input, tools }) {
     const client = new Anthropic({ apiKey, maxRetries: 2, timeout: 180_000 });
     const next: Anthropic.Beta.BetaMessageParam =
       input.type === "message"
@@ -84,7 +87,7 @@ const anthropic: Adapter = {
         max_tokens: MAX_TOKENS,
         system,
         messages,
-        tools: toolSchemas.map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool.InputSchema })),
+        tools: toolSchemasFor(tools).map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool.InputSchema })),
         output_config: { effort: "medium" },
         ...(FALLBACK_MODELS.test(model) ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
       });
@@ -143,14 +146,14 @@ const openai: Adapter = {
     });
   },
 
-  async turn({ apiKey, model, system, conversation, input }) {
+  async turn({ apiKey, model, system, conversation, input, tools }) {
     const next: Native[] =
       input.type === "message" ? [{ role: "user", content: input.text }] : input.results.map((r) => ({ role: "tool", tool_call_id: r.id, content: r.isError ? `Error: ${r.output}` : r.output }));
     const messages = [...conversation, ...next];
     const data = await openaiFetch(apiKey, "/chat/completions", {
       model,
       messages: [{ role: "system", content: system }, ...messages],
-      tools: toolSchemas.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } })),
+      tools: toolSchemasFor(tools).map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } })),
     });
     const choice = (data.choices as { message: { content: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[]; refusal?: string | null } }[])[0];
     if (!choice) throw new ApiError(503, "ai_provider_error", "OpenAI returned no answer");

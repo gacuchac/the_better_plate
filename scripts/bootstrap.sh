@@ -35,6 +35,8 @@ DATABASE_URL=postgresql://betterplate:betterplate@localhost:5432/betterplate
 SESSION_SECRET=$SECRET
 # AI companion on locally; provider keys are encrypted with a key derived from SESSION_SECRET.
 FEATURE_AI_COMPANION_ENABLED=true
+# Claude/ChatGPT connector (MCP with OAuth) on locally (ADR-007).
+FEATURE_MCP_CONNECTOR_ENABLED=true
 # USDA key: read from the USDA_API_KEY (or USDA_FDC_API_KEY) environment variable; DEMO_KEY otherwise.
 ENV
 fi

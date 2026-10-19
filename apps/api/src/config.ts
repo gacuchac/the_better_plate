@@ -108,6 +108,7 @@ function loadConfig() {
   }
 
   const aiEnabled = process.env.FEATURE_AI_COMPANION_ENABLED === "true";
+  const connectorEnabled = process.env.FEATURE_MCP_CONNECTOR_ENABLED === "true";
   const byokKey = byokEncryptionKey(isLocal, aiEnabled, sessionSecret);
 
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
@@ -132,7 +133,7 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: aiEnabled },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
     house: houseConfig(),

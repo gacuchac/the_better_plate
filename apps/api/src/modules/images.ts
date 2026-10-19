@@ -193,6 +193,32 @@ export async function resolveRecipeImage(
 
 // ---------------------------------------------------------------- routes
 
+/** Openly licensed photos for a plain description, best matches first (at most 12). */
+export async function searchPhotos(q: string): Promise<PhotoSearchResult[]> {
+  const words = keywords(q);
+  // The full description first; if that finds too little, each main word on its own, ranked below by how many words a photo mentions.
+  const seen = new Map<string, OpenverseImage>();
+  const search = async (query: string) => {
+    const params = new URLSearchParams({ q: query, license: ALLOWED.join(","), page_size: "20", mature: "false" });
+    return ((await openverseJson(`?${params}`)) as { results?: OpenverseImage[] }).results ?? [];
+  };
+  const add = (list: OpenverseImage[]) => list.forEach((img) => img?.id && !seen.has(img.id) && seen.set(img.id, img));
+  add(await search(q));
+  if (seen.size < 8 && words.length > 1) (await Promise.all(words.slice(0, 4).map(search))).forEach(add);
+  const ranked = [...seen.values()].map((img, i) => ({ img, i, score: relevance(img, words) })).sort((a, b) => b.score - a.score || a.i - b.i);
+  return ranked.map((r) => toResult(r.img)).filter((r): r is PhotoSearchResult => r !== null).slice(0, 12);
+}
+
+/** Copies an Openverse photo into the person's images after re-checking its license by id. */
+export async function importPhoto(userId: string, sourceId: string, alt: string | undefined): Promise<RecipeImage> {
+  if (!UUID.test(sourceId)) throw new ApiError(400, "photo_not_found", "Unknown photo");
+  const result = toResult((await openverseJson(`${sourceId}/`)) as OpenverseImage);
+  if (!result) throw new ApiError(422, "photo_license", "That photo's license doesn't allow use here");
+  const { bytes, mime } = await download(openverse(`${sourceId}/thumb/?full_size=true`));
+  const { thumbnailUrl: _t, width: _w, height: _h, ...credit } = result;
+  return store(userId, { kind: "photo", credit, generator: null, bytes, mime }, alt ?? result.title);
+}
+
 export const imageRoutes = new OpenAPIHono<AppEnv>();
 imageRoutes.use("/v1/photos/search", rateLimit("photo search", 60, 60));
 imageRoutes.use("/v1/images/import", rateLimit("photo import", 30, 3600));
@@ -215,20 +241,7 @@ imageRoutes.openapi(
   }),
   async (c) => {
     requireUser(c);
-    const { q } = c.req.valid("query");
-    const words = keywords(q);
-    // The full description first; if that finds too little, each main word on its own, ranked below by how many words a photo mentions.
-    const seen = new Map<string, OpenverseImage>();
-    const search = async (query: string) => {
-      const params = new URLSearchParams({ q: query, license: ALLOWED.join(","), page_size: "20", mature: "false" });
-      return ((await openverseJson(`?${params}`)) as { results?: OpenverseImage[] }).results ?? [];
-    };
-    const add = (list: OpenverseImage[]) => list.forEach((img) => img?.id && !seen.has(img.id) && seen.set(img.id, img));
-    add(await search(q));
-    if (seen.size < 8 && words.length > 1) (await Promise.all(words.slice(0, 4).map(search))).forEach(add);
-    const ranked = [...seen.values()].map((img, i) => ({ img, i, score: relevance(img, words) })).sort((a, b) => b.score - a.score || a.i - b.i);
-    const results = ranked.map((r) => toResult(r.img)).filter((r): r is PhotoSearchResult => r !== null).slice(0, 12);
-    return c.json({ results }, 200);
+    return c.json({ results: await searchPhotos(c.req.valid("query").q) }, 200);
   },
 );
 
@@ -247,12 +260,7 @@ imageRoutes.openapi(
   async (c) => {
     const user = requireUser(c);
     const { sourceId, alt } = c.req.valid("json");
-    if (!UUID.test(sourceId)) throw new ApiError(400, "photo_not_found", "Unknown photo");
-    const result = toResult((await openverseJson(`${sourceId}/`)) as OpenverseImage);
-    if (!result) throw new ApiError(422, "photo_license", "That photo's license doesn't allow use here");
-    const { bytes, mime } = await download(openverse(`${sourceId}/thumb/?full_size=true`));
-    const { thumbnailUrl: _t, width: _w, height: _h, ...credit } = result;
-    return c.json(await store(user.id, { kind: "photo", credit, generator: null, bytes, mime }, alt ?? result.title), 201);
+    return c.json(await importPhoto(user.id, sourceId, alt), 201);
   },
 );
 

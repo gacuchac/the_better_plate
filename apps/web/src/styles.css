@@ -415,6 +415,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 /* ---------- privacy notice and consent ---------- */
 .notice { max-width: 680px; }
 .notice h1 { margin-bottom: 8px; }
+.connect-scopes { padding-left: 20px; line-height: 1.6; }
+.connect-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.connect-actions button { min-height: 44px; }
 .notice-section { margin-top: 20px; }
 .notice-section h2 { margin-bottom: 6px; }
 .notice-section p { margin: 0; line-height: 1.6; color: var(--ink-2); }
