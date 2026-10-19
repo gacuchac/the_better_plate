@@ -3,13 +3,47 @@ import {
   SyncBatchRequestSchema,
   SyncBatchResponseSchema,
   SyncChangesResponseSchema,
+  type SyncChange,
   type SyncOperation,
   type SyncResult,
 } from "@betterplate/contracts";
 import { pool, withTransaction } from "../db/pool.ts";
 import { type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
 import { ErrorResponses } from "./common.ts";
-import { deleteRecipe, putRecipe, toRecipe, type WriteOutcome } from "./recipes.ts";
+import { createLog, deleteLog, deletePlan, LOG_COLUMNS, PLAN_COLUMNS, putPlan, toLog, toPlan } from "./meals.ts";
+import { deleteRecipe, putRecipe, toRecipe } from "./recipes.ts";
+
+async function runOperation(client: Parameters<typeof putRecipe>[0], userId: string, op: SyncOperation): Promise<SyncResult> {
+  const base = { opId: op.opId, entityId: op.entityId, replayed: false };
+  switch (op.type) {
+    case "recipe.put":
+    case "recipe.delete": {
+      const outcome =
+        op.type === "recipe.put"
+          ? await putRecipe(client, userId, op.entityId, op.baseVersion, op.body)
+          : await deleteRecipe(client, userId, op.entityId, op.baseVersion);
+      if (outcome.status === "applied") return { ...base, status: "applied", version: outcome.version };
+      if (outcome.status === "conflict") return { ...base, status: "conflict", version: outcome.server?.version ?? null, server: outcome.server };
+      return { ...base, status: "rejected", version: null, error: { code: outcome.code, message: outcome.message } };
+    }
+    case "plan.put":
+    case "plan.delete": {
+      const outcome =
+        op.type === "plan.put"
+          ? await putPlan(client, userId, op.entityId, op.baseVersion, op.body)
+          : await deletePlan(client, userId, op.entityId, op.baseVersion);
+      if (outcome.status === "applied") return { ...base, status: "applied", version: outcome.version };
+      if (outcome.status === "conflict") return { ...base, status: "conflict", version: outcome.server?.version ?? null, serverPlannedMeal: outcome.server };
+      return { ...base, status: "rejected", version: null, error: { code: outcome.code, message: outcome.message } };
+    }
+    case "log.create":
+    case "log.delete": {
+      const outcome = op.type === "log.create" ? await createLog(client, userId, op.entityId, op.body) : await deleteLog(client, userId, op.entityId);
+      if (outcome.status === "applied") return { ...base, status: "applied", version: null };
+      return { ...base, status: "rejected", version: null, error: { code: outcome.code, message: outcome.message } };
+    }
+  }
+}
 
 /**
  * Applies one client operation exactly once. The (user, opId) row is inserted first in the
@@ -31,23 +65,13 @@ async function applyOperation(userId: string, op: SyncOperation): Promise<SyncRe
       return { ...rows[0]!.result, replayed: true };
     }
 
-    let outcome: WriteOutcome;
+    let result: SyncResult;
     try {
-      outcome =
-        op.type === "recipe.put"
-          ? await putRecipe(client, userId, op.entityId, op.baseVersion, op.body)
-          : await deleteRecipe(client, userId, op.entityId, op.baseVersion);
+      result = await runOperation(client, userId, op);
     } catch (err) {
       console.error(JSON.stringify({ level: "error", msg: "sync operation failed", opId: op.opId, type: op.type, error: (err as Error).message }));
       throw err;
     }
-
-    const result: SyncResult =
-      outcome.status === "applied"
-        ? { opId: op.opId, entityId: op.entityId, status: "applied", replayed: false, version: outcome.version }
-        : outcome.status === "conflict"
-          ? { opId: op.opId, entityId: op.entityId, status: "conflict", replayed: false, version: outcome.server?.version ?? null, server: outcome.server }
-          : { opId: op.opId, entityId: op.entityId, status: "rejected", replayed: false, version: null, error: { code: outcome.code, message: outcome.message } };
 
     // Every answer is stored, conflicts included: replaying an opId returns the same answer,
     // and a resolved conflict is sent as a new operation with a new opId.
@@ -95,7 +119,7 @@ syncRoutes.openapi(
     method: "get",
     path: "/v1/sync/changes",
     tags: ["sync"],
-    summary: "Pull changes after a cursor, including deletion tombstones",
+    summary: "Pull changes to recipes, planned meals and eaten logs after a cursor, including deletion tombstones",
     request: {
       query: z.object({
         cursor: z.string().regex(/^\d{1,19}$/).default("0"),
@@ -110,22 +134,23 @@ syncRoutes.openapi(
   async (c) => {
     const user = requireUser(c);
     const { cursor, limit } = c.req.valid("query");
-    const { rows } = await pool.query(
-      "select * from recipes where user_id = $1 and server_seq > $2 order by server_seq limit $3",
-      [user.id, cursor, limit + 1],
-    );
-    const page = rows.slice(0, limit);
+    // One global sequence orders every entity; merge the three per-user feeds by it.
+    const [recipes, plans, logs] = await Promise.all([
+      pool.query("select * from recipes where user_id = $1 and server_seq > $2 order by server_seq limit $3", [user.id, cursor, limit + 1]),
+      pool.query(`select ${PLAN_COLUMNS} from planned_meals where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
+      pool.query(`select ${LOG_COLUMNS} from consumption_events where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
+    ]);
+    const all: SyncChange[] = [
+      ...recipes.rows.map((r) => ({ entity: "recipe" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: r.deleted_at ? null : toRecipe(r) })),
+      ...plans.rows.map((r) => ({ entity: "planned_meal" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, plannedMeal: r.deleted_at ? null : toPlan(r) })),
+      ...logs.rows.map((r) => ({ entity: "meal_log" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, mealLog: r.deleted_at ? null : toLog(r) })),
+    ].sort((a, b) => (BigInt(a.seq) < BigInt(b.seq) ? -1 : 1));
+    const page = all.slice(0, limit);
     return c.json(
       {
-        changes: page.map((r) => ({
-          entity: "recipe" as const,
-          entityId: r.id,
-          seq: String(r.server_seq),
-          deleted: r.deleted_at !== null,
-          recipe: r.deleted_at ? null : toRecipe(r),
-        })),
-        cursor: page.length ? String(page[page.length - 1].server_seq) : cursor,
-        hasMore: rows.length > limit,
+        changes: page,
+        cursor: page.length ? page[page.length - 1]!.seq : cursor,
+        hasMore: all.length > limit,
       },
       200,
     );

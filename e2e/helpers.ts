@@ -33,7 +33,7 @@ export async function readCode(request: APIRequestContext, email: string): Promi
 
 export async function signIn(page: Page, email: string, info?: TestInfo) {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Your kitchen, with you everywhere" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cook what you love, know what's in it" })).toBeVisible();
   await page.getByLabel("Email").fill(email);
   if (info) await shot(page, info, "sign-in", "Sign-in screen: email only, adults-only note");
   await page.getByRole("button", { name: "Email me a sign-in code" }).click();

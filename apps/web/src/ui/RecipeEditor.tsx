@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { RecipeBodySchema, type RecipeBody, type RecipeIngredientInput } from "@betterplate/contracts";
-import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
+import { calculateRecipe, formatAmount, type FoodRecord } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp } from "../store.tsx";
 import { EmptyState, navigate, Sheet } from "./common.tsx";
 import { FoodPicker } from "./FoodPicker.tsx";
+import { Icon } from "./icons.tsx";
+import { LogSheet, PlanSheet } from "./MealSheets.tsx";
 import { NutritionPanel } from "./Nutrition.tsx";
+
+const MACROS = [
+  { key: "energy_kcal", label: "kcal" },
+  { key: "protein", label: "Protein" },
+  { key: "carbohydrate", label: "Carbs" },
+  { key: "fat_total", label: "Fat" },
+];
 
 const blank = (): RecipeBody => ({ title: "", servings: 2, ingredients: [], method: "" });
 
@@ -21,6 +30,7 @@ export function RecipeEditor({ id }: { id: string }) {
   const [picking, setPicking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const [sheet, setSheet] = useState<"plan" | "log" | null>(null);
 
   useEffect(() => {
     if (!engine) return;
@@ -100,24 +110,51 @@ export function RecipeEditor({ id }: { id: string }) {
       )}
       <div className="editor-grid">
         <section className="editor-main" aria-label="Recipe">
-          <label htmlFor="title">Recipe name</label>
-          <input id="title" className="title-input" value={draft.title} placeholder="e.g. Lemon rice with broccoli" onChange={(e) => update({ title: e.target.value })} />
+          <label htmlFor="title" className="sr-only">
+            Recipe name
+          </label>
+          <input id="title" className="title-input" value={draft.title} placeholder="Name your recipe" onChange={(e) => update({ title: e.target.value })} />
 
-          <label htmlFor="servings">Servings</label>
-          <input
-            id="servings"
-            type="number"
-            min={0.25}
-            step={0.25}
-            inputMode="decimal"
-            value={draft.servings}
-            onChange={(e) => update({ servings: Number(e.target.value) })}
-          />
+          <div className="stepper-row">
+            <label htmlFor="servings">Servings</label>
+            <div className="stepper">
+              <button type="button" aria-label="One serving fewer" onClick={() => update({ servings: Math.max(1, Math.ceil(draft.servings) - 1) })}>
+                −
+              </button>
+              <input id="servings" type="number" min={0.25} step={0.25} inputMode="decimal" value={draft.servings} onChange={(e) => update({ servings: Number(e.target.value) })} />
+              <button type="button" aria-label="One serving more" onClick={() => update({ servings: Math.floor(draft.servings) + 1 })}>
+                +
+              </button>
+            </div>
+          </div>
+
+          {draft.ingredients.length > 0 && (
+            <a className="card summary-card" href="#nutrition" onClick={(e) => { e.preventDefault(); document.getElementById("nutrition")?.scrollIntoView({ behavior: "smooth" }); }} data-testid="nutrition-summary">
+              <span className="card-head" style={{ marginBottom: 0 }}>
+                <span className="hint" style={{ margin: 0 }}>
+                  Per serving · <span className="estimated">Estimated</span>
+                </span>
+                <span style={{ fontSize: "0.8125rem", fontWeight: 650, color: "var(--sage-ink)" }}>Details and sources</span>
+              </span>
+              <span className="macro-grid">
+                {MACROS.map((m) => {
+                  const t = nutrition.perServing.find((x) => x.key === m.key);
+                  const v = !t || t.amount === null ? "–" : t.unit === "kcal" ? Math.round(t.amount).toString() : formatAmount(t.amount, t.unit);
+                  return (
+                    <span key={m.key}>
+                      <span className="macro-value" style={{ display: "block" }}>{t?.status === "partial" ? `≥ ${v}` : v}</span>
+                      <span className="macro-label">{m.label}</span>
+                    </span>
+                  );
+                })}
+              </span>
+            </a>
+          )}
 
           <div className="section-head">
             <h2>Ingredients</h2>
-            <button type="button" className="btn-secondary" onClick={() => setPicking(true)}>
-              Add ingredient
+            <button type="button" className="btn-soft" onClick={() => setPicking(true)}>
+              <Icon name="plus" size={18} /> Add ingredient
             </button>
           </div>
           {draft.ingredients.length === 0 && <p className="hint">Add foods from the USDA list saved on this device.</p>}
@@ -163,7 +200,7 @@ export function RecipeEditor({ id }: { id: string }) {
                       ))}
                     </select>
                     <button type="button" className="icon-btn" aria-label={`Remove ${food?.description ?? "ingredient"}`} onClick={() => update({ ingredients: draft.ingredients.filter((i) => i.id !== ing.id) })}>
-                      ✕
+                      <Icon name="close" />
                     </button>
                   </div>
                   <label className="check">
@@ -205,27 +242,47 @@ export function RecipeEditor({ id }: { id: string }) {
               ))}
             </ul>
           )}
-          <div className="actions">
-            <button type="button" className="btn-primary" onClick={() => void save()} disabled={!dirty && loaded !== null}>
-              Save recipe
-            </button>
-            {dirty && <span className="hint">Unsaved changes</span>}
-            {loaded && (
+          {loaded && (
+            <div className="actions">
               <button type="button" className="btn-link danger" onClick={() => void remove()}>
-                Delete
+                Delete recipe
               </button>
-            )}
-          </div>
+            </div>
+          )}
           {message && (
             <p className="hint" role="status" data-testid="save-message">
               {message}
             </p>
           )}
         </section>
-        <aside className="editor-side">
+        <aside className="editor-side" id="nutrition">
           <NutritionPanel nutrition={nutrition} nutrients={nutrients} foods={foods} ingredients={draft.ingredients} catalogVersion={catalog.bundle.version} />
         </aside>
       </div>
+      <div className={`action-bar${dirty || !loaded ? " single" : ""}`} data-testid="recipe-actions">
+        {dirty || !loaded ? (
+          <>
+            <span className="hint" style={{ margin: 0 }}>{dirty ? "Unsaved changes" : "New recipe"}</span>
+            <button type="button" className="btn-primary" onClick={() => void save()} disabled={!dirty && loaded !== null}>
+              Save recipe
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="btn-secondary" onClick={() => setSheet("plan")}>
+              Plan
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setSheet("log")}>
+              I ate this
+            </button>
+            <a className="btn-primary" href={`#/cook/${id}`}>
+              Cook
+            </a>
+          </>
+        )}
+      </div>
+      {sheet === "plan" && loaded && <PlanSheet recipeId={id} title={loaded.body.title} onClose={() => setSheet(null)} />}
+      {sheet === "log" && loaded && <LogSheet recipeId={id} recipe={loaded.body} onClose={() => setSheet(null)} />}
       {picking && (
         <Sheet title="Add ingredient" onClose={() => setPicking(false)}>
           <FoodPicker foods={foods} online={online} onPick={addFood} />

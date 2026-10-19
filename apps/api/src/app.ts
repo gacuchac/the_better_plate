@@ -13,6 +13,7 @@ import { ApiError, type AppEnv, csrfMiddleware, errorBody, sessionMiddleware } f
 import { accountRoutes, devRoutes, healthRoutes } from "./modules/account.ts";
 import { catalogRoutes } from "./modules/catalog.ts";
 import { recipeRoutes } from "./modules/recipes.ts";
+import { mealRoutes } from "./modules/meals.ts";
 import { syncRoutes } from "./modules/sync.ts";
 
 export const API_VERSION = "0.1.0";
@@ -77,6 +78,7 @@ export function createApp() {
   app.route("/", healthRoutes);
   app.route("/", catalogRoutes);
   app.route("/", recipeRoutes);
+  app.route("/", mealRoutes);
   app.route("/", syncRoutes);
   app.route("/", accountRoutes);
   app.route("/", devRoutes);

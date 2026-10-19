@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useApp, useSyncStatus } from "../store.tsx";
+import { Icon } from "./icons.tsx";
 
 // ---------- tiny hash router (deep-linkable, works offline from the cached shell) ----------
 
@@ -69,8 +70,8 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <header className="sheet-head">
           <h2>{title}</h2>
-          <button type="button" className="icon-btn" aria-label="Close" onClick={onClose}>
-            ✕
+          <button type="button" className="icon-btn round" aria-label="Close" onClick={onClose}>
+            <Icon name="close" />
           </button>
         </header>
         <div className="sheet-body">{children}</div>

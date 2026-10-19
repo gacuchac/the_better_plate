@@ -3,7 +3,9 @@ import { calculateRecipe, formatAmount, type FoodRecord } from "@betterplate/nut
 import { ApiRequestError, api } from "../api.ts";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp, useSyncStatus } from "../store.tsx";
+import { localDate, formatDay } from "../meals.ts";
 import { EmptyState, navigate, Sheet } from "./common.tsx";
+import { Icon } from "./icons.tsx";
 import { NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 
 const STATE_LABEL: Record<LocalRecipe["state"], string> = {
@@ -13,26 +15,54 @@ const STATE_LABEL: Record<LocalRecipe["state"], string> = {
   rejected: "Needs attention",
 };
 
+function greeting(d = new Date()) {
+  const h = d.getHours();
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+
 export function Kitchen() {
-  const { recipes, catalog } = useApp();
+  const { recipes, catalog, account, plans, logs } = useApp();
+  const today = localDate();
+  const planned = plans.filter((p) => p.body.date === today).length;
+  const eaten = logs.filter((l) => l.body.localDate === today).length;
+  const count = (n: number) => (n === 1 ? "1 meal" : `${n} meals`);
   return (
     <div className="screen">
-      <header className="screen-head">
+      <header className="home-head">
         <div>
           <p className="eyebrow">Your Kitchen</p>
-          <h1>Recipes</h1>
+          <h1 className="greeting">
+            {greeting()}
+            {account?.displayName ? `, ${account.displayName.split(" ")[0]}` : ""}
+          </h1>
         </div>
-        <button type="button" className="btn-primary" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
-          New recipe
-        </button>
       </header>
-      <p className="catalog-status" data-testid="catalog-status">
-        {catalog.status === "ready"
-          ? `${catalog.bundle.foodCount.toLocaleString()} USDA foods saved on this device${catalog.offline ? " (offline copy)" : ""}.`
-          : catalog.status === "loading"
-            ? "Getting the USDA foods ready…"
-            : catalog.message}
-      </p>
+
+      <a className="card today-card" href="#/meals" data-testid="today-card">
+        <div className="card-head" style={{ marginBottom: 0 }}>
+          <h2>Today</h2>
+          <span className="hint" style={{ margin: 0 }}>
+            {formatDay(today, { weekday: "short", day: "numeric", month: "short" })}
+          </span>
+        </div>
+        <div className="today-stats">
+          <div>
+            <div className="stat-label">Planned</div>
+            <div className="stat-value">{count(planned)}</div>
+          </div>
+          <div>
+            <div className="stat-label">Eaten</div>
+            <div className="stat-value">{count(eaten)}</div>
+          </div>
+        </div>
+      </a>
+
+      <div className="section-title">
+        <h2>Recipes</h2>
+        <button type="button" className="btn-primary fab" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
+          <Icon name="plus" /> New recipe
+        </button>
+      </div>
       {recipes.length === 0 ? (
         <EmptyState title="No recipes yet">
           <p>Start with something you already love to cook. It saves on this device first and syncs when you're online.</p>
@@ -44,6 +74,13 @@ export function Kitchen() {
           ))}
         </ul>
       )}
+      <p className="catalog-status" data-testid="catalog-status">
+        {catalog.status === "ready"
+          ? `${catalog.bundle.foodCount.toLocaleString()} USDA foods saved on this device${catalog.offline ? " (offline copy)" : ""}.`
+          : catalog.status === "loading"
+            ? "Getting the USDA foods ready…"
+            : catalog.message}
+      </p>
     </div>
   );
 }
@@ -55,13 +92,17 @@ function RecipeCard({ recipe }: { recipe: LocalRecipe }) {
     const n = calculateRecipe(recipe.body, catalog.foods, catalog.bundle.nutrients);
     return n.perServing.find((t) => t.key === "energy_kcal") ?? null;
   }, [recipe.body, catalog]);
+  const servings = recipe.body.servings === 1 ? "1 serving" : `${recipe.body.servings} servings`;
   return (
     <li>
       <a className="recipe-card" href={`#/recipe/${recipe.id}`} data-testid="recipe-card">
+        <span className="monogram" aria-hidden="true">
+          {recipe.body.title.trim().charAt(0).toUpperCase() || "?"}
+        </span>
         <span className="recipe-title">{recipe.body.title}</span>
         <span className="recipe-meta">
-          {recipe.body.ingredients.length} ingredients · {recipe.body.servings} servings
-          {energy && energy.amount !== null ? ` · ~${formatAmount(energy.amount, "kcal")} per serving (estimated)` : ""}
+          {servings}
+          {energy && energy.amount !== null ? ` · ${formatAmount(energy.amount, "kcal")} each, estimated` : ""}
         </span>
         <span className={`state state-${recipe.state}`}>{STATE_LABEL[recipe.state]}</span>
       </a>

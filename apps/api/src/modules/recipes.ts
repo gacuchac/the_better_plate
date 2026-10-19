@@ -72,7 +72,7 @@ export async function computeNutrition(input: Pick<RecipeBody, "servings" | "ing
 }
 
 /** Serializes one user's writes so change-feed sequence order equals commit order for that user. */
-async function lockUser(client: pg.PoolClient, userId: string) {
+export async function lockUser(client: pg.PoolClient, userId: string) {
   await client.query("select pg_advisory_xact_lock(hashtextextended($1, 0))", [userId]);
 }
 

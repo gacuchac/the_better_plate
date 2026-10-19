@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatAmount, type FoodRecord, type NutrientDefinition, type RecipeNutrition } from "@betterplate/nutrition";
+import { DAILY_VALUE_SOURCE, FDA_DAILY_VALUES, formatAmount, percentDailyValue, type FoodRecord, type NutrientDefinition, type NutrientTotal, type RecipeNutrition } from "@betterplate/nutrition";
 import type { RecipeIngredientInput } from "@betterplate/contracts";
 import { Sheet } from "./common.tsx";
 
@@ -65,13 +65,9 @@ export function NutritionPanel({
             return (
               <li key={row.key} data-testid={`nutrient-${row.key}`}>
                 <button type="button" className="nutrient-row" onClick={() => setSourceKey(row.key)} aria-label={`${def?.name}: sources`}>
-                  <span className="nutrient-name">{def?.name ?? row.key}</span>
-                  <span className={`nutrient-value status-${row.status}`}>
-                    {row.status === "partial" && <span className="qualifier">at least </span>}
-                    {formatAmount(row.amount, row.unit)}
-                  </span>
+                  <NutrientLine row={row} name={def?.name ?? row.key} />
                 </button>
-                {row.status === "partial" && <p className="nutrient-note">Some ingredients don't report this nutrient.</p>}
+                {row.status === "partial" && <p className="nutrient-note">Some ingredients don't report this nutrient, so the total may be higher.</p>}
               </li>
             );
           })}
@@ -87,6 +83,7 @@ export function NutritionPanel({
           ))}
         </ul>
       )}
+      <DailyValueNote />
       <p className="fine">
         Estimates from USDA FoodData Central (SR Legacy), catalog {catalogVersion}. Not medical advice. "Not reported" means the source has no value, not zero.
       </p>
@@ -136,5 +133,43 @@ function SourceList({
         );
       })}
     </ul>
+  );
+}
+
+/** One nutrient: amount, % of the FDA reference Daily Value where one exists, and a calm bar. */
+export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "amount" | "unit" | "status">; name: string }) {
+  const pct = percentDailyValue(row, FDA_DAILY_VALUES);
+  const hasDv = FDA_DAILY_VALUES.some((d) => d.key === row.key);
+  return (
+    <>
+      <span className="nutrient-name">{name}</span>
+      <span>
+        <span className={`nutrient-value status-${row.status}`}>
+          {row.status === "partial" && <span className="qualifier">at least </span>}
+          {formatAmount(row.amount, row.unit)}
+        </span>
+        {pct !== null && <span className="dv"> · {Math.round(pct)}%</span>}
+      </span>
+      {hasDv &&
+        (row.status === "unknown" ? (
+          <span className="bar unknown" aria-hidden="true" />
+        ) : (
+          <span className="bar" aria-hidden="true">
+            <span style={{ width: `${Math.min(100, pct ?? 0)}%` }} />
+          </span>
+        ))}
+    </>
+  );
+}
+
+export function DailyValueNote() {
+  return (
+    <p className="fine">
+      Percentages compare with the{" "}
+      <a href={DAILY_VALUE_SOURCE.url} target="_blank" rel="noopener noreferrer">
+        FDA Daily Values
+      </a>{" "}
+      used on U.S. food labels (current as of {DAILY_VALUE_SOURCE.contentCurrentAsOf}, retrieved {DAILY_VALUE_SOURCE.retrievedAt}). They are reference amounts, not personal targets.
+    </p>
   );
 }

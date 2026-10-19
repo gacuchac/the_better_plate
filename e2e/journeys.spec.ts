@@ -11,7 +11,7 @@ test("create a recipe with live nutrition, sources and oil handling, then sync",
 
   await page.getByRole("button", { name: "New recipe" }).click();
   await page.getByLabel("Recipe name").fill("Lemon rice with broccoli");
-  await page.getByLabel("Servings").fill("2");
+  await page.getByLabel("Servings", { exact: true }).fill("2");
   await addIngredient(page, "rice white cooked", RICE);
   const rice = page.getByTestId("ingredient-row").filter({ hasText: RICE });
   await rice.getByLabel("Unit").selectOption("g");
@@ -57,7 +57,7 @@ test("create a recipe with live nutrition, sources and oil handling, then sync",
   expect(shownPerServing).toBe(`${serverKcal.toFixed(0)} kcal`);
   expect(saved.nutrition.disclosures).toEqual([]);
 
-  await page.getByRole("link", { name: "‹ Recipes" }).click();
+  await page.getByRole("link", { name: "Back to Kitchen" }).click();
   await expect(page.getByTestId("recipe-card")).toContainText("Lemon rice with broccoli");
   await expect(page.getByTestId("recipe-card")).toContainText("Synced");
   await shot(page, info, "kitchen-with-recipe", "Kitchen list with synced recipe");
@@ -104,7 +104,7 @@ test("accounts are isolated on a shared device and on the server", async ({ page
 
   await page.getByRole("link", { name: "You", exact: true }).click();
   await page.getByRole("button", { name: "Sign out" }).click();
-  await expect(page.getByRole("heading", { name: "Your kitchen, with you everywhere" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cook what you love, know what's in it" })).toBeVisible();
   const leftover = await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name));
   expect(leftover.filter((n) => n?.startsWith("betterplate-user-"))).toEqual([]);
 
@@ -148,7 +148,7 @@ test("conflicting edits from two devices ask before overwriting", async ({ brows
 
   await l.getByRole("button", { name: "Keep both" }).click();
   await expectSynced(l);
-  await l.getByRole("link", { name: "‹ Recipes" }).click();
+  await l.getByRole("link", { name: "Back to Kitchen" }).click();
   await expect(l.getByTestId("recipe-card")).toHaveCount(2);
   await shot(l, info, "conflict-kept-both", "Both versions kept as separate recipes");
   const { recipes } = await (await l.request.get(`${API}/v1/recipes`)).json();
@@ -195,4 +195,107 @@ test("Continue with Google sends you to Google with this app's callback", async 
   await page.goto("/?signin=google_failed");
   await expect(page.getByRole("alert")).toContainText("Google sign-in didn't finish");
   expect(new URL(page.url()).search).toBe("");
+});
+
+test("plan a meal, mark it eaten, and see plans kept apart from what was eaten", async ({ page, context }, info) => {
+  await signIn(page, newEmail("meals"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Lemon rice");
+  await page.getByLabel("Servings", { exact: true }).fill("2");
+  await addIngredient(page, "rice white cooked", RICE);
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Unit").selectOption("g");
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Amount").fill("300");
+  await addIngredient(page, "broccoli raw", BROCCOLI);
+  await saveAndSync(page);
+  await shot(page, info, "recipe-actions", "Saved recipe: Plan, I ate this and Cook in the action bar");
+
+  await page.getByRole("button", { name: "Plan" }).click();
+  const plan = page.getByRole("dialog", { name: "Plan this meal" });
+  await plan.getByRole("button", { name: "Dinner" }).click();
+  await shot(page, info, "plan-sheet", "Plan sheet: day, meal and servings; plans never count as eaten");
+  await plan.getByRole("button", { name: "Add to plan" }).click();
+  await expect(plan).toBeHidden();
+
+  await page.getByRole("button", { name: "I ate this" }).click();
+  const eat = page.getByRole("dialog", { name: "I ate this" });
+  await eat.getByRole("button", { name: "Lunch" }).click();
+  await shot(page, info, "log-sheet", "I ate this: day, meal and servings eaten");
+  await eat.getByRole("button", { name: "Save as eaten" }).click();
+  await expect(eat).toBeHidden();
+  await expectSynced(page);
+
+  await page.getByRole("link", { name: "Back to Kitchen" }).click();
+  await expect(page.getByTestId("today-card")).toContainText("Planned1 meal");
+  await expect(page.getByTestId("today-card")).toContainText("Eaten1 meal");
+  await shot(page, info, "kitchen-today", "Home: today's planned and eaten counts, recipe list");
+
+  await page.getByTestId("today-card").click();
+  await expect(page.getByTestId("eaten-row")).toHaveCount(1);
+  await expect(page.getByTestId("planned-row")).toContainText("Lemon rice");
+  await expect(page.getByTestId("eaten-card")).toContainText("Day in progress");
+
+  // The day total is the server's frozen snapshot for the one eaten meal, not the plan.
+  const today = await page.evaluate(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  const meals = await (await page.request.get(`${API}/v1/meals?from=${today}&to=${today}`)).json();
+  expect(meals.eaten).toHaveLength(1);
+  expect(meals.planned).toHaveLength(1);
+  const kcal = meals.eaten[0].eaten.find((t: { key: string }) => t.key === "energy_kcal").amount as number;
+  await expect(page.getByTestId("day-totals")).toContainText(String(Math.round(kcal)));
+  await shot(page, info, "meals-day", "Day view: eaten with estimated totals, plan shown separately");
+
+  await page.getByTestId("planned-row").getByRole("button", { name: "I ate this" }).click();
+  await page.getByRole("dialog", { name: "I ate this" }).getByRole("button", { name: "Save as eaten" }).click();
+  await expect(page.getByTestId("planned-row")).toContainText("Eaten");
+  await expect(page.getByTestId("eaten-row")).toHaveCount(2);
+
+  await page.getByTestId("day-totals").click();
+  await expect(page.getByRole("dialog")).toContainText("Plans are not included");
+  await expect(page.getByRole("dialog")).toContainText("FDA Daily Values");
+  await shot(page, info, "meals-day-nutrients", "Day nutrients with % of FDA Daily Values and source");
+  await page.getByRole("button", { name: "Close" }).click();
+
+  // Offline: a new log is saved on this device, then synced.
+  await context.setOffline(true);
+  await page.getByRole("button", { name: /Remove Lemon rice from eaten/ }).first().click();
+  await expect(page.getByTestId("eaten-row")).toHaveCount(1);
+  await expect(page.getByTestId("sync-status")).toContainText("Saved on this device");
+  await context.setOffline(false);
+  await expectSynced(page);
+  const after = await (await page.request.get(`${API}/v1/meals?from=${today}&to=${today}`)).json();
+  expect(after.eaten).toHaveLength(1);
+
+  await page.getByRole("tab", { name: "7 days" }).click();
+  await expect(page.getByTestId("week-day")).toHaveCount(7);
+  await expect(page.getByTestId("week-summary")).toContainText("1 of 7 days");
+  await shot(page, info, "meals-week", "7 days: logged days only, nothing-logged days never shown as zero");
+});
+
+test("cook mode shows your steps one at a time, timers, and cited safe temperatures", async ({ page }, info) => {
+  await signIn(page, newEmail("cook"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Seared chicken");
+  await addIngredient(page, "chicken breast raw", "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw");
+  await page.getByLabel("Method").fill("1. Pat the chicken dry and season.\n2. Sear 6 minutes per side.\n3. Rest before slicing.");
+  await saveAndSync(page);
+
+  await page.getByRole("link", { name: "Cook" }).click();
+  await expect(page.getByTestId("cook-mode")).toContainText("Before you start");
+  const safe = page.getByTestId("safe-temperatures");
+  await expect(safe).toContainText("165°F (74°C)");
+  await expect(safe.getByRole("link")).toHaveAttribute("href", /foodsafety\.gov/);
+  await shot(page, info, "cook-before-start", "Cook mode: safe minimum temperature from FoodSafety.gov with source");
+
+  await page.getByRole("button", { name: "Start cooking" }).click();
+  await expect(page.getByTestId("cook-step")).toHaveText("Pat the chicken dry and season.");
+  await page.getByRole("button", { name: "Next step" }).click();
+  await expect(page.getByTestId("cook-timer")).toContainText("06:00");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+  await shot(page, info, "cook-step-timer", "Step 2 of 3 with the timer the cook wrote (6 minutes)");
+  await page.getByRole("button", { name: "Next step" }).click();
+  await page.getByRole("link", { name: "Done" }).click();
+  await expect(page.getByLabel("Recipe name")).toHaveValue("Seared chicken");
 });

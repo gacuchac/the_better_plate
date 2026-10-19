@@ -275,6 +275,119 @@ describe("batch sync protocol 1", () => {
   });
 });
 
+describe("planned and eaten meals", () => {
+  const batch = async (client: Client, operations: unknown[]) => {
+    const res = await client.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations } });
+    expect(res.status).toBe(200);
+    return SyncBatchResponseSchema.parse(await res.json()).results;
+  };
+  const recipeSnapshot = () => ({ title: "Lemon rice", servings: 2, ingredients: [ingredient(rice, 300), ingredient(broccoli, 150)] });
+  const log = (body: Record<string, unknown> = {}) => ({
+    opId: uuid(), type: "log.create" as const, entityId: uuid(),
+    body: { plannedMealId: null, recipeId: uuid(), recipe: recipeSnapshot(), servings: 1, slot: "lunch", localDate: "2026-10-19", eatenAt: "2026-10-19T12:30:00-03:00", ...body },
+  });
+  const plan = (entityId: string, baseVersion: number | null, date = "2026-10-19", title = "Lemon rice") => ({
+    opId: uuid(), type: "plan.put" as const, entityId, baseVersion, body: { date, slot: "dinner", recipeId: uuid(), title, servings: 1 },
+  });
+
+  it("keeps plans and eaten logs separate; a plan never counts as eaten", async () => {
+    const fay = await signIn();
+    const planId = uuid();
+    expect((await batch(fay, [plan(planId, null)]))[0]).toMatchObject({ status: "applied", version: 1 });
+    const meals = await (await fay.request("/v1/meals?from=2026-10-19&to=2026-10-19")).json();
+    expect(meals.planned).toHaveLength(1);
+    expect(meals.eaten).toEqual([]);
+  });
+
+  it("logs a meal with a server-computed nutrition snapshot scaled by servings eaten", async () => {
+    const fay = await signIn();
+    const op = log({ servings: 1.5 });
+    expect((await batch(fay, [op]))[0]).toMatchObject({ status: "applied" });
+    const meals = await (await fay.request("/v1/meals?from=2026-10-19&to=2026-10-19")).json();
+    const [eaten] = meals.eaten;
+    const [r, b] = [await food(rice), await food(broccoli)];
+    const kcalPerServing = (r.nutrientsPer100g.energy_kcal! * 3 + b.nutrientsPer100g.energy_kcal! * 1.5) / 2;
+    expect(eaten.nutrition.perServing.find((t: { key: string }) => t.key === "energy_kcal").amount).toBeCloseTo(kcalPerServing, 6);
+    expect(eaten.eaten.find((t: { key: string }) => t.key === "energy_kcal").amount).toBeCloseTo(kcalPerServing * 1.5, 6);
+    expect(eaten.nutrition.catalogVersion).toMatch(/^usda-sr-legacy-/);
+    expect(eaten.localDate).toBe("2026-10-19");
+  });
+
+  it("never logs the same meal twice, even with a new opId; separate meals are kept apart", async () => {
+    const fay = await signIn();
+    const op = log();
+    await batch(fay, [op]);
+    const [dupe] = await batch(fay, [{ ...op, opId: uuid() }]);
+    expect(dupe!.status).toBe("applied");
+    const [replay] = await batch(fay, [op]);
+    expect(replay!.replayed).toBe(true);
+    await batch(fay, [log()]);
+    const meals = await (await fay.request("/v1/meals?from=2026-10-19&to=2026-10-19")).json();
+    expect(meals.eaten).toHaveLength(2);
+  });
+
+  it("keeps history on the eater's own calendar day across time zones", async () => {
+    const fay = await signIn();
+    // 23:30 in Santiago is already the next day in UTC; the log stays on the local day.
+    await batch(fay, [log({ localDate: "2026-10-19", eatenAt: "2026-10-19T23:30:00-03:00" })]);
+    const day = await (await fay.request("/v1/meals?from=2026-10-19&to=2026-10-19")).json();
+    expect(day.eaten).toHaveLength(1);
+    expect((await (await fay.request("/v1/meals?from=2026-10-20&to=2026-10-20")).json()).eaten).toEqual([]);
+  });
+
+  it("preserves the snapshot when the catalog-backed recipe changes later", async () => {
+    const fay = await signIn();
+    const op = log();
+    await batch(fay, [op]);
+    const { rows } = await pool.query("select nutrition from consumption_events where id = $1", [op.entityId]);
+    const before = rows[0].nutrition;
+    await batch(fay, [{ opId: uuid(), type: "recipe.put", entityId: op.body.recipeId, baseVersion: null, body: { title: "Lemon rice v2", servings: 1, ingredients: [ingredient(oil, 50)], method: "" } }]);
+    const after = (await pool.query("select nutrition from consumption_events where id = $1", [op.entityId])).rows[0].nutrition;
+    expect(after).toEqual(before);
+  });
+
+  it("rejects logs that reference foods not in the catalog", async () => {
+    const fay = await signIn();
+    const [res] = await batch(fay, [log({ recipe: { title: "x", servings: 1, ingredients: [ingredient("fdc:1", 5)] } })]);
+    expect(res).toMatchObject({ status: "rejected", error: { code: "unknown_food" } });
+  });
+
+  it("returns plan conflicts with the server copy and retracts logs with tombstones", async () => {
+    const fay = await signIn();
+    const planId = uuid();
+    await batch(fay, [plan(planId, null)]);
+    await batch(fay, [plan(planId, 1, "2026-10-20", "Moved on phone")]);
+    const [conflict] = await batch(fay, [plan(planId, 1, "2026-10-21", "Moved on laptop")]);
+    expect(conflict).toMatchObject({ status: "conflict", version: 2 });
+    expect(conflict!.serverPlannedMeal).toMatchObject({ date: "2026-10-20", title: "Moved on phone" });
+
+    const op = log();
+    await batch(fay, [op]);
+    await batch(fay, [{ opId: uuid(), type: "log.delete", entityId: op.entityId }]);
+    const changes = SyncChangesResponseSchema.parse(await (await fay.request("/v1/sync/changes")).json()).changes;
+    expect(changes.find((c) => c.entityId === op.entityId)).toMatchObject({ entity: "meal_log", deleted: true, mealLog: null });
+    expect(changes.find((c) => c.entityId === planId)).toMatchObject({ entity: "planned_meal", plannedMeal: { title: "Moved on phone" } });
+    const { rows } = await pool.query("select recipe, nutrition from consumption_events where id = $1", [op.entityId]);
+    expect(rows[0]).toEqual({ recipe: {}, nutrition: {} });
+  });
+
+  it("never exposes or touches another user's meals", async () => {
+    const [fay, gus] = await Promise.all([signIn(), signIn()]);
+    const planId = uuid();
+    const op = log();
+    await batch(fay, [plan(planId, null), op]);
+    expect((await (await gus.request("/v1/meals?from=2026-10-19&to=2026-10-19")).json())).toMatchObject({ planned: [], eaten: [] });
+    const results = await batch(gus, [plan(planId, 1, "2026-10-19", "hijack"), { opId: uuid(), type: "log.delete", entityId: op.entityId }, { ...op, opId: uuid() }]);
+    expect(results.map((r) => r.status)).toEqual(["rejected", "rejected", "rejected"]);
+    expect((await (await fay.request("/v1/meals?from=2026-10-19&to=2026-10-19")).json()).eaten).toHaveLength(1);
+  });
+
+  it("bounds the date range", async () => {
+    expect((await alice.request("/v1/meals?from=2026-10-01&to=2026-12-01")).status).toBe(400);
+    expect((await alice.request("/v1/meals?from=2026-10-20&to=2026-10-19")).status).toBe(400);
+  });
+});
+
 describe("request safety", () => {
   it("rejects cross-site origins and non-JSON bodies on mutations", async () => {
     const evil = await alice.request("/v1/recipes", { method: "POST", json: { title: "x", servings: 1, ingredients: [] }, headers: { origin: "https://evil.example" } });

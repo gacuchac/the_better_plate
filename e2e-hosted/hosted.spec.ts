@@ -24,14 +24,14 @@ test("health, catalog and server-side guards", async ({ request }) => {
 
 test("app shell loads over HTTPS and works offline after the first visit", async ({ page, context }, info) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Your kitchen, with you everywhere" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cook what you love, know what's in it" })).toBeVisible();
   expect(page.url().startsWith(process.env.HOSTED_URL!)).toBe(true);
   await shot(page, info, "hosted-sign-in", "Hosted sign-in screen");
 
   await waitForServiceWorker(page);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Your kitchen, with you everywhere" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cook what you love, know what's in it" })).toBeVisible();
   await shot(page, info, "hosted-offline-shell", "Hosted app shell reloaded with no network");
   await context.setOffline(false);
 });

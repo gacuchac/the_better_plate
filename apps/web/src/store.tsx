@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { FoodRecord } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError, type CatalogBundle, type Me } from "./api.ts";
-import { deleteUserDb, openUserDb, readCatalog, requestPersistentStorage, writeCatalog, type LocalRecipe } from "./localdb.ts";
+import { deleteUserDb, openUserDb, readCatalog, requestPersistentStorage, writeCatalog, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
 import { SyncEngine } from "./sync.ts";
 
 const ACCOUNT_KEY = "bp.account";
@@ -26,6 +26,8 @@ interface AppState {
   engine: SyncEngine | null;
   catalog: CatalogState;
   recipes: LocalRecipe[];
+  plans: LocalPlan[];
+  logs: LocalLog[];
   online: boolean;
   setAccount: (me: Me) => void;
   signOut: (opts?: { discardUnsynced?: boolean }) => Promise<void>;
@@ -88,6 +90,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [engine, setEngine] = useState<SyncEngine | null>(null);
   const [catalog, setCatalog] = useState<CatalogState>({ status: "loading" });
   const [recipes, setRecipes] = useState<LocalRecipe[]>([]);
+  const [plans, setPlans] = useState<LocalPlan[]>([]);
+  const [logs, setLogs] = useState<LocalLog[]>([]);
   const online = useOnline();
 
   useEffect(() => {
@@ -122,6 +126,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!account) {
       setEngine(null);
       setRecipes([]);
+      setPlans([]);
+      setLogs([]);
       return;
     }
     let disposed = false;
@@ -129,7 +135,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void openUserDb(account.id).then((db) => {
       if (disposed) return db.close();
       const e = new SyncEngine(db);
-      const refresh = () => void e.listRecipes().then((r) => !disposed && setRecipes(r));
+      const refresh = () =>
+        void Promise.all([e.listRecipes(), e.listPlans(), e.listLogs()]).then(([r, p, l]) => {
+          if (disposed) return;
+          setRecipes(r);
+          setPlans(p);
+          setLogs(l);
+        });
       const unsub = e.subscribe(refresh);
       const resume = () => document.visibilityState === "visible" && void e.syncNow();
       const reconnect = () => void e.syncNow();
@@ -174,8 +186,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [account?.id]);
 
   const value = useMemo<AppState>(
-    () => ({ account, accountChecked, engine, catalog, recipes, online, setAccount, signOut, refreshRecipes }),
-    [account, accountChecked, engine, catalog, recipes, online, setAccount, signOut, refreshRecipes],
+    () => ({ account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes }),
+    [account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

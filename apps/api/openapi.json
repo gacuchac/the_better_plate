@@ -3703,6 +3703,572 @@
         }
       }
     },
+    "/v1/meals": {
+      "get": {
+        "tags": [
+          "meals"
+        ],
+        "summary": "My planned and eaten meals for a date range (at most 31 days)",
+        "description": "Plans and logs are returned separately and must never be added together. Each log carries its own immutable nutrition snapshot; `eaten` is per-serving nutrition × servings eaten. Writes go through POST /v1/sync/batch.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": true,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": true,
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "to": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "planned": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "slot": {
+                            "type": "string",
+                            "enum": [
+                              "breakfast",
+                              "lunch",
+                              "dinner",
+                              "snack"
+                            ]
+                          },
+                          "recipeId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "title": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "servings": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 100
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "date",
+                          "slot",
+                          "recipeId",
+                          "title",
+                          "servings",
+                          "id",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    },
+                    "eaten": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "plannedMealId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "recipeId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "recipe": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "servings": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 100
+                              },
+                              "ingredients": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "format": "uuid"
+                                    },
+                                    "foodId": {
+                                      "type": "string",
+                                      "pattern": "^fdc:\\d{1,9}$"
+                                    },
+                                    "quantity": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 100000
+                                    },
+                                    "unit": {
+                                      "type": "string",
+                                      "enum": [
+                                        "g",
+                                        "kg",
+                                        "oz",
+                                        "lb",
+                                        "portion"
+                                      ]
+                                    },
+                                    "portionIndex": {
+                                      "type": [
+                                        "integer",
+                                        "null"
+                                      ],
+                                      "minimum": 0,
+                                      "maximum": 100
+                                    },
+                                    "role": {
+                                      "type": "string",
+                                      "enum": [
+                                        "ingredient",
+                                        "cooking_oil"
+                                      ]
+                                    },
+                                    "oilDiscardedGrams": {
+                                      "type": [
+                                        "number",
+                                        "null"
+                                      ],
+                                      "minimum": 0,
+                                      "maximum": 100000
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "foodId",
+                                    "quantity",
+                                    "unit",
+                                    "role"
+                                  ]
+                                },
+                                "maxItems": 100
+                              }
+                            },
+                            "required": [
+                              "title",
+                              "servings",
+                              "ingredients"
+                            ]
+                          },
+                          "servings": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 100
+                          },
+                          "slot": {
+                            "type": "string",
+                            "enum": [
+                              "breakfast",
+                              "lunch",
+                              "dinner",
+                              "snack"
+                            ]
+                          },
+                          "localDate": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "eatenAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "nutrition": {
+                            "type": "object",
+                            "properties": {
+                              "engineVersion": {
+                                "type": "string"
+                              },
+                              "catalogVersion": {
+                                "type": "string"
+                              },
+                              "servings": {
+                                "type": "number"
+                              },
+                              "totals": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string"
+                                    },
+                                    "amount": {
+                                      "type": [
+                                        "number",
+                                        "null"
+                                      ]
+                                    },
+                                    "unit": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "known",
+                                        "partial",
+                                        "unknown"
+                                      ]
+                                    },
+                                    "missingFrom": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "amount",
+                                    "unit",
+                                    "status",
+                                    "missingFrom"
+                                  ]
+                                }
+                              },
+                              "perServing": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string"
+                                    },
+                                    "amount": {
+                                      "type": [
+                                        "number",
+                                        "null"
+                                      ]
+                                    },
+                                    "unit": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "known",
+                                        "partial",
+                                        "unknown"
+                                      ]
+                                    },
+                                    "missingFrom": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "amount",
+                                    "unit",
+                                    "status",
+                                    "missingFrom"
+                                  ]
+                                }
+                              },
+                              "disclosures": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "code": {
+                                      "type": "string"
+                                    },
+                                    "ingredientId": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "code",
+                                    "ingredientId"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "engineVersion",
+                              "catalogVersion",
+                              "servings",
+                              "totals",
+                              "perServing",
+                              "disclosures"
+                            ]
+                          },
+                          "eaten": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "type": [
+                                    "number",
+                                    "null"
+                                  ]
+                                },
+                                "unit": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "known",
+                                    "partial",
+                                    "unknown"
+                                  ]
+                                },
+                                "missingFrom": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "amount",
+                                "unit",
+                                "status",
+                                "missingFrom"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "plannedMealId",
+                          "recipeId",
+                          "recipe",
+                          "servings",
+                          "slot",
+                          "localDate",
+                          "eatenAt",
+                          "id",
+                          "createdAt",
+                          "nutrition",
+                          "eaten"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "planned",
+                    "eaten"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/sync/batch": {
       "post": {
         "tags": [
@@ -3877,6 +4443,291 @@
                             "type",
                             "entityId",
                             "baseVersion"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "plan.put"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "baseVersion": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "exclusiveMinimum": 0
+                            },
+                            "body": {
+                              "type": "object",
+                              "properties": {
+                                "date": {
+                                  "type": "string",
+                                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                },
+                                "slot": {
+                                  "type": "string",
+                                  "enum": [
+                                    "breakfast",
+                                    "lunch",
+                                    "dinner",
+                                    "snack"
+                                  ]
+                                },
+                                "recipeId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 120
+                                },
+                                "servings": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 100
+                                }
+                              },
+                              "required": [
+                                "date",
+                                "slot",
+                                "recipeId",
+                                "title",
+                                "servings"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId",
+                            "baseVersion",
+                            "body"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "plan.delete"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "baseVersion": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId",
+                            "baseVersion"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "log.create"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "body": {
+                              "type": "object",
+                              "properties": {
+                                "plannedMealId": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                },
+                                "recipeId": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                },
+                                "recipe": {
+                                  "type": "object",
+                                  "properties": {
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "servings": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 100
+                                    },
+                                    "ingredients": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                          },
+                                          "foodId": {
+                                            "type": "string",
+                                            "pattern": "^fdc:\\d{1,9}$"
+                                          },
+                                          "quantity": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "maximum": 100000
+                                          },
+                                          "unit": {
+                                            "type": "string",
+                                            "enum": [
+                                              "g",
+                                              "kg",
+                                              "oz",
+                                              "lb",
+                                              "portion"
+                                            ]
+                                          },
+                                          "portionIndex": {
+                                            "type": [
+                                              "integer",
+                                              "null"
+                                            ],
+                                            "minimum": 0,
+                                            "maximum": 100
+                                          },
+                                          "role": {
+                                            "type": "string",
+                                            "enum": [
+                                              "ingredient",
+                                              "cooking_oil"
+                                            ]
+                                          },
+                                          "oilDiscardedGrams": {
+                                            "type": [
+                                              "number",
+                                              "null"
+                                            ],
+                                            "minimum": 0,
+                                            "maximum": 100000
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "foodId",
+                                          "quantity",
+                                          "unit",
+                                          "role"
+                                        ]
+                                      },
+                                      "maxItems": 100
+                                    }
+                                  },
+                                  "required": [
+                                    "title",
+                                    "servings",
+                                    "ingredients"
+                                  ]
+                                },
+                                "servings": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 100
+                                },
+                                "slot": {
+                                  "type": "string",
+                                  "enum": [
+                                    "breakfast",
+                                    "lunch",
+                                    "dinner",
+                                    "snack"
+                                  ]
+                                },
+                                "localDate": {
+                                  "type": "string",
+                                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                },
+                                "eatenAt": {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              },
+                              "required": [
+                                "plannedMealId",
+                                "recipeId",
+                                "recipe",
+                                "servings",
+                                "slot",
+                                "localDate",
+                                "eatenAt"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId",
+                            "body"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "log.delete"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId"
                           ]
                         }
                       ]
@@ -4172,6 +5023,66 @@
                               "nutrition"
                             ]
                           },
+                          "serverPlannedMeal": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "slot": {
+                                "type": "string",
+                                "enum": [
+                                  "breakfast",
+                                  "lunch",
+                                  "dinner",
+                                  "snack"
+                                ]
+                              },
+                              "recipeId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "servings": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 100
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "version": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "date",
+                              "slot",
+                              "recipeId",
+                              "title",
+                              "servings",
+                              "id",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
+                            ]
+                          },
                           "error": {
                             "type": "object",
                             "properties": {
@@ -4354,7 +5265,7 @@
         "tags": [
           "sync"
         ],
-        "summary": "Pull changes after a cursor, including deletion tombstones",
+        "summary": "Pull changes to recipes, planned meals and eaten logs after a cursor, including deletion tombstones",
         "parameters": [
           {
             "schema": {
@@ -4394,7 +5305,9 @@
                           "entity": {
                             "type": "string",
                             "enum": [
-                              "recipe"
+                              "recipe",
+                              "planned_meal",
+                              "meal_log"
                             ]
                           },
                           "entityId": {
@@ -4639,6 +5552,375 @@
                               "createdAt",
                               "updatedAt",
                               "nutrition"
+                            ]
+                          },
+                          "plannedMeal": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "slot": {
+                                "type": "string",
+                                "enum": [
+                                  "breakfast",
+                                  "lunch",
+                                  "dinner",
+                                  "snack"
+                                ]
+                              },
+                              "recipeId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "servings": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 100
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "version": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "date",
+                              "slot",
+                              "recipeId",
+                              "title",
+                              "servings",
+                              "id",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
+                            ]
+                          },
+                          "mealLog": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "plannedMealId": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "recipeId": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "recipe": {
+                                "type": "object",
+                                "properties": {
+                                  "title": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  "servings": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 100
+                                  },
+                                  "ingredients": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "format": "uuid"
+                                        },
+                                        "foodId": {
+                                          "type": "string",
+                                          "pattern": "^fdc:\\d{1,9}$"
+                                        },
+                                        "quantity": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0,
+                                          "maximum": 100000
+                                        },
+                                        "unit": {
+                                          "type": "string",
+                                          "enum": [
+                                            "g",
+                                            "kg",
+                                            "oz",
+                                            "lb",
+                                            "portion"
+                                          ]
+                                        },
+                                        "portionIndex": {
+                                          "type": [
+                                            "integer",
+                                            "null"
+                                          ],
+                                          "minimum": 0,
+                                          "maximum": 100
+                                        },
+                                        "role": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ingredient",
+                                            "cooking_oil"
+                                          ]
+                                        },
+                                        "oilDiscardedGrams": {
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
+                                          "minimum": 0,
+                                          "maximum": 100000
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "foodId",
+                                        "quantity",
+                                        "unit",
+                                        "role"
+                                      ]
+                                    },
+                                    "maxItems": 100
+                                  }
+                                },
+                                "required": [
+                                  "title",
+                                  "servings",
+                                  "ingredients"
+                                ]
+                              },
+                              "servings": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 100
+                              },
+                              "slot": {
+                                "type": "string",
+                                "enum": [
+                                  "breakfast",
+                                  "lunch",
+                                  "dinner",
+                                  "snack"
+                                ]
+                              },
+                              "localDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "eatenAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "nutrition": {
+                                "type": "object",
+                                "properties": {
+                                  "engineVersion": {
+                                    "type": "string"
+                                  },
+                                  "catalogVersion": {
+                                    "type": "string"
+                                  },
+                                  "servings": {
+                                    "type": "number"
+                                  },
+                                  "totals": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "amount": {
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ]
+                                        },
+                                        "unit": {
+                                          "type": "string"
+                                        },
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "known",
+                                            "partial",
+                                            "unknown"
+                                          ]
+                                        },
+                                        "missingFrom": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "amount",
+                                        "unit",
+                                        "status",
+                                        "missingFrom"
+                                      ]
+                                    }
+                                  },
+                                  "perServing": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "amount": {
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ]
+                                        },
+                                        "unit": {
+                                          "type": "string"
+                                        },
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "known",
+                                            "partial",
+                                            "unknown"
+                                          ]
+                                        },
+                                        "missingFrom": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "amount",
+                                        "unit",
+                                        "status",
+                                        "missingFrom"
+                                      ]
+                                    }
+                                  },
+                                  "disclosures": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "code": {
+                                          "type": "string"
+                                        },
+                                        "ingredientId": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "code",
+                                        "ingredientId"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "engineVersion",
+                                  "catalogVersion",
+                                  "servings",
+                                  "totals",
+                                  "perServing",
+                                  "disclosures"
+                                ]
+                              },
+                              "eaten": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string"
+                                    },
+                                    "amount": {
+                                      "type": [
+                                        "number",
+                                        "null"
+                                      ]
+                                    },
+                                    "unit": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "known",
+                                        "partial",
+                                        "unknown"
+                                      ]
+                                    },
+                                    "missingFrom": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "amount",
+                                    "unit",
+                                    "status",
+                                    "missingFrom"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "plannedMealId",
+                              "recipeId",
+                              "recipe",
+                              "servings",
+                              "slot",
+                              "localDate",
+                              "eatenAt",
+                              "id",
+                              "createdAt",
+                              "nutrition",
+                              "eaten"
                             ]
                           }
                         },
