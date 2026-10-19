@@ -41,7 +41,7 @@ export async function signIn(page: Page, email: string, info?: TestInfo) {
   await page.getByLabel("Code").fill(await readCode(page.request, email));
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
-  await expect(page.getByTestId("catalog-status")).toContainText("USDA starter foods saved on this device");
+  await expect(page.getByTestId("catalog-status")).toContainText("USDA foods saved on this device");
 }
 
 export async function addIngredient(page: Page, search: string, exact: string) {

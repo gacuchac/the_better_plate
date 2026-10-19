@@ -3,6 +3,8 @@ import path from "node:path";
 import type pg from "pg";
 import { REPO_ROOT } from "../config.ts";
 
+const SEED_BATCH = 500;
+
 export const CATALOG_FILE = path.join(REPO_ROOT, "data", "catalog", "starter-catalog.json");
 
 interface CatalogSnapshot {
@@ -51,16 +53,23 @@ export async function seedCatalog(pool: pg.Pool, log: (msg: string) => void = co
        on conflict (version) do update set is_current = true`,
       [snap.version, snap.schema, snap.retrievedAt, snap.contentSha256, snap.foods.length, JSON.stringify(snap.source), JSON.stringify(snap.nutrients)],
     );
-    for (const f of snap.foods) {
-      // Food ids are stable across catalog versions; recipes keep their own nutrition snapshots.
+    // Food ids are stable across catalog versions; recipes keep their own nutrition snapshots.
+    // Rows go in batches through jsonb_to_recordset: thousands of foods in a few round trips.
+    for (let i = 0; i < snap.foods.length; i += SEED_BATCH) {
+      const rows = snap.foods.slice(i, i + SEED_BATCH).map((f) => ({
+        id: f.id, fdc_id: f.fdcId, description: f.description, data_type: f.dataType, category: f.category,
+        ndb_number: f.ndbNumber == null ? null : String(f.ndbNumber), publication_date: f.publicationDate,
+        nutrients_per_100g: f.nutrientsPer100g, portions: f.portions, source: f.source,
+      }));
       await client.query(
         `insert into food_items (id, fdc_id, description, data_type, category, ndb_number, publication_date, nutrients_per_100g, portions, source, catalog_version)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+         select r.id, r.fdc_id, r.description, r.data_type, r.category, r.ndb_number, r.publication_date, r.nutrients_per_100g, r.portions, r.source, $2
+         from jsonb_to_recordset($1::jsonb) as r(id text, fdc_id int, description text, data_type text, category text, ndb_number text,
+           publication_date text, nutrients_per_100g jsonb, portions jsonb, source jsonb)
          on conflict (id) do update set description = excluded.description, data_type = excluded.data_type, category = excluded.category,
            ndb_number = excluded.ndb_number, publication_date = excluded.publication_date, nutrients_per_100g = excluded.nutrients_per_100g,
            portions = excluded.portions, source = excluded.source, catalog_version = excluded.catalog_version, updated_at = now()`,
-        [f.id, f.fdcId, f.description, f.dataType, f.category, f.ndbNumber == null ? null : String(f.ndbNumber), f.publicationDate,
-          JSON.stringify(f.nutrientsPer100g), JSON.stringify(f.portions), JSON.stringify(f.source), snap.version],
+        [JSON.stringify(rows), snap.version],
       );
     }
     await client.query("commit");

@@ -1,8 +1,8 @@
 # Data provenance
 
 ## Food composition: USDA FoodData Central, SR Legacy
-- **What:** 149 foods (requested 150; `Crustaceans, shrimp, mixed species, raw` had no exact match and was left out). Snapshot `data/catalog/starter-catalog.json`, version `usda-sr-legacy-2026-10-19-a0e32df9`, retrieved 2026-10-19T13:41:26Z. Report: `data/catalog/IMPORT_REPORT.md`.
-- **How:** `scripts/usda/import_starter.py` resolves each exact description in `scripts/usda/starter_foods.txt` via the official FDC search API (`dataType: SR Legacy`), then fetches full records. It ran in GitHub Actions (`.github/workflows/catalog-import.yml`) with the repository `USDA_API_KEY` secret because cloud agent sessions cannot reach USDA hosts.
+- **What:** all 7,793 SR Legacy foods (owner decision, ADR-003). Snapshot `data/catalog/starter-catalog.json` (compact JSON, about 7 MB, about 0.6 MB gzipped), version `usda-sr-legacy-2026-10-19-df16ae75`, retrieved 2026-10-19T15:35:01Z. Report: `data/catalog/IMPORT_REPORT.md`.
+- **How:** `scripts/usda/import_starter.py` lists every SR Legacy id with the official FDC `/foods/list` API, then fetches full records 20 at a time with `/foods` (about 430 calls). It refuses to write fewer than 7,000 foods. It runs in GitHub Actions (`.github/workflows/catalog-import.yml`) with the repository `USDA_API_KEY` secret, because cloud agent sessions cannot reach USDA hosts.
 - **Kept per food:** FDC ID, description, category, NDB number, publication date, household portions with gram weights, 19 tracked nutrients per 100 g exactly as published, source URL `https://fdc.nal.usda.gov/food-details/<id>/nutrients`, retrieval timestamp.
 - **Not reported ≠ zero:** nutrients USDA does not report are omitted, and the engine treats them as unknown. Reported zeros stay zero.
 - **License:** FoodData Central data is public domain (CC0 1.0) per USDA.

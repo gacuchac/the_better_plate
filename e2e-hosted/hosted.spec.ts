@@ -9,7 +9,7 @@ test("health, catalog and server-side guards", async ({ request }) => {
   expect(ready.status(), `readiness: ${await ready.text()}`).toBe(200);
 
   const manifest = await (await request.get("/v1/catalog/manifest")).json();
-  expect(manifest.foodCount).toBe(149);
+  expect(manifest.foodCount).toBeGreaterThanOrEqual(7000);
 
   // Local-only helpers and unreleased features are closed on the hosted stack.
   expect((await request.get("/v1/dev/mailbox?email=a@example.test")).status()).toBe(404);

@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
+import { buildSearchIndex, searchIndex, type FoodRecord, type NutrientDefinition, type SearchIndex } from "@betterplate/nutrition";
+import { compress } from "hono/compress";
 import { pool } from "../db/pool.ts";
 import { ApiError, type AppEnv, rateLimit } from "../lib/http.ts";
 import { ErrorResponses } from "./common.ts";
@@ -63,6 +64,33 @@ export async function foodsByIds(ids: string[]): Promise<Map<string, ReturnType<
   return new Map(rows.map((r) => [r.id, toFood(r)]));
 }
 
+// The catalog only changes with a new version, so the search index and the serialized bundle are
+// built once per version and kept in memory (about 7,800 foods).
+let searchCache: { version: string; index: SearchIndex<{ id: string; description: string }> } | null = null;
+let bundleCache: { version: string; body: string } | null = null;
+
+export async function searchFoods(query: string, limit: number, offset: number) {
+  const cat = await currentCatalog();
+  if (searchCache?.version !== cat.version) {
+    const { rows } = await pool.query<{ id: string; description: string }>(
+      "select id, description from food_items where catalog_version = $1 order by lower(description)",
+      [cat.version],
+    );
+    searchCache = { version: cat.version, index: buildSearchIndex(rows) };
+  }
+  const hits = searchIndex(searchCache.index, query, offset + limit + 1).slice(offset);
+  const found = await foodsByIds(hits.slice(0, limit).map((h) => h.id));
+  return { foods: hits.slice(0, limit).flatMap((h) => found.get(h.id) ?? []), more: hits.length > limit };
+}
+
+async function bundleBody(cat: CatalogVersion): Promise<string> {
+  if (bundleCache?.version !== cat.version) {
+    const { rows } = await pool.query<FoodRow>("select * from food_items where catalog_version = $1 order by lower(description)", [cat.version]);
+    bundleCache = { version: cat.version, body: JSON.stringify({ ...cat, foods: rows.map(toFood) }) };
+  }
+  return bundleCache.body;
+}
+
 // ---------- schemas ----------
 
 const PortionSchema = z.object({ label: z.string(), gramWeight: z.number() });
@@ -107,6 +135,9 @@ export const catalogRoutes = new OpenAPIHono<AppEnv>();
 catalogRoutes.use("/v1/foods/*", rateLimit("food lookup", 300, 60));
 catalogRoutes.use("/v1/foods", rateLimit("food search", 300, 60));
 catalogRoutes.use("/v1/catalog/*", rateLimit("catalog", 120, 60));
+// Public, non-personal data only, so compression is safe here (no secrets to leak through sizes).
+catalogRoutes.use("/v1/catalog/bundle", compress());
+catalogRoutes.use("/v1/foods", compress());
 
 catalogRoutes.openapi(
   createRoute({
@@ -141,11 +172,8 @@ catalogRoutes.openapi(
     c.header("ETag", etag);
     c.header("Cache-Control", "public, max-age=300");
     if (c.req.header("if-none-match") === etag) return c.body(null, 304);
-    const { rows } = await pool.query<FoodRow>(
-      "select * from food_items where catalog_version = $1 order by lower(description)",
-      [cat.version],
-    );
-    return c.json({ ...cat, foods: rows.map(toFood) }, 200);
+    c.header("Content-Type", "application/json; charset=UTF-8");
+    return c.body(await bundleBody(cat), 200);
   },
 );
 
@@ -159,7 +187,7 @@ catalogRoutes.openapi(
       query: z.object({
         query: z.string().trim().max(100).default(""),
         limit: z.coerce.number().int().min(1).max(50).default(20),
-        cursor: z.coerce.number().int().min(0).default(0).openapi({ description: "Opaque cursor from the previous page" }),
+        cursor: z.coerce.number().int().min(0).max(10000).default(0).openapi({ description: "Opaque cursor from the previous page" }),
       }),
     },
     responses: {
@@ -172,17 +200,8 @@ catalogRoutes.openapi(
   }),
   async (c) => {
     const { query, limit, cursor } = c.req.valid("query");
-    const words = query.toLowerCase().split(/\s+/).filter(Boolean).slice(0, 8);
-    const terms = words.map((t) => `%${t.replace(/[%_\\]/g, "\\$&")}%`);
-    const { rows } = await pool.query<FoodRow>(
-      `select f.* from food_items f join catalog_versions v on v.version = f.catalog_version and v.is_current
-       where lower(f.description) like all($1::text[])
-       order by (lower(f.description) like $2) desc, length(f.description), f.description
-       limit $3 offset $4`,
-      [terms.length ? terms : ["%"], `${(words[0] ?? "").replace(/[%_\\]/g, "\\$&")}%`, limit + 1, cursor],
-    );
-    const more = rows.length > limit;
-    return c.json({ foods: rows.slice(0, limit).map(toFood), nextCursor: more ? String(cursor + limit) : null }, 200);
+    const { foods, more } = await searchFoods(query, limit, cursor);
+    return c.json({ foods, nextCursor: more ? String(cursor + limit) : null }, 200);
   },
 );
 

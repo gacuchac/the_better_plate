@@ -78,7 +78,7 @@ async function loadCatalog(): Promise<CatalogState> {
     return ready(bundle, false);
   } catch (err) {
     if (cached) return ready(cached, err instanceof NetworkError);
-    return { status: "unavailable", message: "Connect to the internet once to download the starter foods." };
+    return { status: "unavailable", message: "Connect to the internet once to download the USDA foods." };
   }
 }
 

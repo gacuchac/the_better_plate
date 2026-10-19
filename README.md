@@ -13,7 +13,7 @@ git clone https://github.com/gacuchac/the_better_plate && cd the_better_plate
 pnpm dev        # or: bash scripts/dev.sh   (works before pnpm is installed too)
 ```
 
-That installs dependencies, writes a throwaway local `.env` with a generated secret, starts PostgreSQL, creates the role and databases, migrates, loads the USDA starter catalog, and serves:
+That installs dependencies, writes a throwaway local `.env` with a generated secret, starts PostgreSQL, creates the role and databases, migrates, loads the USDA food catalog, and serves:
 
 - Web app: http://localhost:3000
 - API: http://localhost:4000 (OpenAPI at `/v1/openapi.json`)
@@ -40,7 +40,7 @@ No manual `.env` editing. Set `USDA_API_KEY` in your environment if you have one
 | `apps/web` | React PWA: IndexedDB per account, outbox sync, live nutrition |
 | `packages/nutrition` | Pure deterministic nutrition engine shared by browser and server |
 | `packages/contracts` | Shared zod wire contracts |
-| `scripts/usda` | Python USDA importer (`starter_foods.txt` → `data/catalog/starter-catalog.json`) |
+| `scripts/usda` | Python USDA importer (all of SR Legacy → `data/catalog/starter-catalog.json`) |
 | `e2e` | Playwright journeys |
 | `docs` | ADRs, requirements ledger, evidence, milestone reports |
 

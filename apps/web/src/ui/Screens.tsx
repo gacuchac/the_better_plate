@@ -28,9 +28,9 @@ export function Kitchen() {
       </header>
       <p className="catalog-status" data-testid="catalog-status">
         {catalog.status === "ready"
-          ? `${catalog.bundle.foodCount} USDA starter foods saved on this device${catalog.offline ? " (offline copy)" : ""}.`
+          ? `${catalog.bundle.foodCount.toLocaleString()} USDA foods saved on this device${catalog.offline ? " (offline copy)" : ""}.`
           : catalog.status === "loading"
-            ? "Getting the starter foods ready…"
+            ? "Getting the USDA foods ready…"
             : catalog.message}
       </p>
       {recipes.length === 0 ? (
@@ -70,11 +70,11 @@ function RecipeCard({ recipe }: { recipe: LocalRecipe }) {
 }
 
 export function Explore() {
-  const { catalog, online } = useApp();
+  const { catalog } = useApp();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<FoodRecord | null>(null);
   if (catalog.status !== "ready") return <EmptyState title="Food list not ready">{catalog.status === "unavailable" ? catalog.message : "Loading…"}</EmptyState>;
-  const results = searchFoods(catalog.foods.values(), query, 50);
+  const results = searchFoods(catalog.foods, query, 50);
   const defs = catalog.bundle.nutrients;
   return (
     <div className="screen">
@@ -87,10 +87,10 @@ export function Explore() {
       <label htmlFor="explore-search" className="sr-only">
         Search foods
       </label>
-      <input id="explore-search" type="search" placeholder="Search the starter foods" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <input id="explore-search" type="search" placeholder="Search foods, e.g. sirloin steak" value={query} onChange={(e) => setQuery(e.target.value)} />
       <p className="hint">
-        {catalog.bundle.foodCount} foods from USDA FoodData Central are saved on this device.
-        {!online && " You're offline, so search covers only these foods."} Searching USDA's full database online comes in a later release.
+        {catalog.bundle.foodCount.toLocaleString()} foods from USDA FoodData Central are saved on this device, so search works offline too.
+        Packaged and branded products aren't included yet.
       </p>
       <ul className="food-results">
         {results.map((f) => (

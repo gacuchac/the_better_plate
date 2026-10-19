@@ -15,7 +15,7 @@ Read these before any work; they are binding:
 - **Where things are:** current state in `docs/BUILD_STATUS.md`; requirement status in `docs/requirements-ledger.md`; decisions in `docs/adr/`.
 - **Stack:** TypeScript end to end (API, PWA, shared nutrition engine). Python only for data scripts (`scripts/usda`).
 - **Database:** native PostgreSQL 16 (`scripts/db-up.sh`); no Docker daemon in cloud sessions. Migrations are plain SQL in `apps/api/src/db/migrations`; never edit an applied one, add a new file.
-- **USDA data:** cloud sessions may not reach USDA hosts. Refresh the catalog by editing `scripts/usda/starter_foods.txt` and pushing a work branch: the `USDA starter catalog import` workflow fetches with the `USDA_API_KEY` secret and commits `data/catalog/`.
+- **USDA data:** cloud sessions may not reach USDA hosts. Refresh the catalog (all of SR Legacy) by changing `scripts/usda/` on a work branch or running the `USDA catalog import` workflow by hand: it fetches with the `USDA_API_KEY` secret and commits `data/catalog/`.
 - **API contract:** after changing routes, run `pnpm openapi` and commit `apps/api/openapi.json`.
 - **Branches:** branch from `dev`, PR into `dev`. Never push to `main`.
 - **Never:** commit `.env` or secrets, commit `artifacts/`, invent nutrient values outside labeled test fixtures, enable chef features.

@@ -69,11 +69,20 @@ describe("catalog (USDA FoodData Central SR Legacy)", () => {
     }
     const etag = res.headers.get("etag")!;
     expect((await call(manifest.bundleUrl, { headers: { "if-none-match": etag } })).status).toBe(304);
+    const gz = await call(manifest.bundleUrl, { headers: { "accept-encoding": "gzip" } });
+    expect(gz.headers.get("content-encoding")).toBe("gzip");
   });
 
   it("searches, looks up and batch-looks-up foods", async () => {
     const search = await (await call("/v1/foods?query=broccoli")).json();
     expect(search.foods.map((f: { description: string }) => f.description)).toContain("Broccoli, raw");
+    // Words in any order, plurals and partial words; same ranking as the offline search.
+    const raw = await (await call("/v1/foods?query=raw%20brocc")).json();
+    expect(raw.foods[0].description).toBe("Broccoli, raw");
+    const page1 = await (await call("/v1/foods?query=raw&limit=2")).json();
+    const page2 = await (await call(`/v1/foods?query=raw&limit=2&cursor=${page1.nextCursor}`)).json();
+    expect(page1.foods).toHaveLength(2);
+    expect(page2.foods[0].id).not.toBe(page1.foods[0].id);
     expect((await call("/v1/foods/fdc:1")).status).toBe(404);
     const batch = await (await call("/v1/foods/batch", { method: "POST", json: { ids: [oil, "fdc:1"] } })).json();
     expect(batch.foods).toHaveLength(1);
