@@ -3,6 +3,7 @@ import { z } from "zod";
 /** Shared wire contracts for the API and its clients. The API's OpenAPI document is generated from these. */
 
 export { PRIVACY_NOTICE } from "./privacy.ts";
+export * from "./ai.ts";
 
 export const MAX_INGREDIENTS = 100;
 export const MAX_SYNC_OPS = 100;

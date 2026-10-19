@@ -9,6 +9,7 @@ const testEnv = {
   SESSION_SECRET: process.env.TEST_SESSION_SECRET ?? "test-only-secret-not-used-anywhere-else-0123456789",
   BETTERPLATE_SKIP_ENV_FILE: "1",
   RATE_LIMIT_MULTIPLIER: "50",
+  FEATURE_AI_COMPANION_ENABLED: "true",
   // Fake OAuth client: tests check the redirect to Google, never call Google.
   GOOGLE_CLIENT_ID: "test-client.apps.googleusercontent.com",
   GOOGLE_CLIENT_SECRET: "test-only-google-secret",

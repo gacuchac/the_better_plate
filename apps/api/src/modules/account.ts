@@ -86,7 +86,7 @@ export const EXPORT_FORMAT = "betterplate.export/1" as const;
 /** Everything stored about one account, as data the person can keep or take elsewhere. */
 export async function exportAccount(userId: string) {
   const q = <T extends object>(sql: string) => pool.query<T & Record<string, never>>(sql, [userId]).then((r) => r.rows as T[]);
-  const [users, logins, sessions, recipes, revisions, plans, logs, shares, reports, consents] = await Promise.all([
+  const [users, logins, sessions, recipes, revisions, plans, logs, shares, reports, consents, aiKeys, aiSettings, aiUsage] = await Promise.all([
     q<{ id: string; email: string; name: string; emailVerified: boolean; createdAt: Date }>(`select id, email, name, "emailVerified", "createdAt" from "users" where id = $1`),
     q<{ providerId: string; createdAt: Date }>(`select "providerId", "createdAt" from "accounts" where "userId" = $1 order by "createdAt"`),
     q<{ createdAt: Date; expiresAt: Date; ipAddress: string | null; userAgent: string | null }>(`select "createdAt", "expiresAt", "ipAddress", "userAgent" from "sessions" where "userId" = $1 order by "createdAt"`),
@@ -105,6 +105,9 @@ export async function exportAccount(userId: string) {
     q<{ notice_version: string; action: string; adult_confirmed: boolean; created_at: Date }>(
       "select notice_version, action, adult_confirmed, created_at from consent_events where user_id = $1 order by created_at",
     ),
+    q<{ provider: string; key_hint: string; model: string; created_at: Date }>("select provider, key_hint, model, created_at from ai_credentials where user_id = $1 order by created_at"),
+    q<{ active_provider: string | null; daily_request_limit: number }>("select active_provider, daily_request_limit from ai_settings where user_id = $1"),
+    q<{ day: Date; requests: number; input_tokens: string; output_tokens: string }>("select day, requests, input_tokens, output_tokens from ai_usage where user_id = $1 order by day"),
   ]);
   const user = users[0]!;
   return {
@@ -115,6 +118,12 @@ export async function exportAccount(userId: string) {
     linkedSignIns: logins.map((l) => ({ provider: l.providerId, linkedAt: l.createdAt.toISOString() })),
     privacyConsents: consents.map((e) => ({ noticeVersion: e.notice_version, action: e.action, adultConfirmed: e.adult_confirmed, at: e.created_at.toISOString() })),
     sessions: sessions.map((s) => ({ createdAt: s.createdAt.toISOString(), expiresAt: s.expiresAt.toISOString(), ipAddress: s.ipAddress, userAgent: s.userAgent })),
+    // Provider keys stay encrypted on the server and are never exported; only their last four characters.
+    aiCompanion: {
+      connections: aiKeys.map((k) => ({ provider: k.provider, keyHint: k.key_hint, model: k.model, connectedAt: k.created_at.toISOString() })),
+      settings: aiSettings[0] ? { activeProvider: aiSettings[0].active_provider, dailyRequestLimit: aiSettings[0].daily_request_limit } : null,
+      dailyUsage: aiUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens) })),
+    },
     recipes: recipes.map(toRecipe),
     recipeRevisions: revisions.map((r) => ({ recipeId: r.recipe_id, version: r.version, deleted: r.deleted, body: r.body, nutrition: r.nutrition, catalogVersion: r.catalog_version, createdAt: r.created_at.toISOString() })),
     plannedMeals: plans.map(toPlan),

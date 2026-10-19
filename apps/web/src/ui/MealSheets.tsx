@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { MealSlot, RecipeBody } from "@betterplate/contracts";
-import { localDate, SLOTS, slotForNow, slotLabel } from "../meals.ts";
+import { eatenAtFor, localDate, SLOTS, slotForNow, slotLabel } from "../meals.ts";
 import { useT } from "../i18n.ts";
 import { useApp } from "../store.tsx";
 import { Sheet } from "./common.tsx";
@@ -97,12 +97,7 @@ export function LogSheet({
 
   async function save() {
     // eatenAt keeps the real moment with its offset; localDate keeps the person's own calendar day.
-    const now = new Date();
-    const eatenAt = date === today ? now : new Date(`${date}T12:00:00`);
-    const off = -eatenAt.getTimezoneOffset();
-    const sign = off >= 0 ? "+" : "-";
-    const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, "0");
-    const iso = `${localDate(eatenAt)}T${pad(eatenAt.getHours())}:${pad(eatenAt.getMinutes())}:${pad(eatenAt.getSeconds())}${sign}${pad(off / 60)}:${pad(off % 60)}`;
+    const iso = eatenAtFor(date);
     await engine!.logMeal({
       plannedMealId,
       recipeId,
