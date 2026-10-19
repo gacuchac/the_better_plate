@@ -101,7 +101,8 @@ export function Companion() {
 
   if (!account || !session || settings === false) return null;
 
-  const provider = settings ? settings.activeProvider : null;
+  // Own key first; otherwise the included companion when this account may use it.
+  const provider = settings ? (settings.activeProvider ?? (settings.house.status === "available" ? ("house" as const) : null)) : null;
   const ready = !!provider && catalog.status === "ready" && !!engine;
 
   function send() {
@@ -135,6 +136,11 @@ export function Companion() {
         {snap.items.length === 0 && (
           <li className="companion-hint">
             <p>{t("agent.intro")}</p>
+            {provider === "house" && settings && (
+              <p className="fine" data-testid="companion-included">
+                {t("agent.included", { n: settings.house.requestsToday, limit: settings.house.dailyLimit })}
+              </p>
+            )}
             <p className="fine">{t("agent.disclaimer")}</p>
           </li>
         )}
@@ -148,7 +154,7 @@ export function Companion() {
 
       {settings === null ? null : !provider ? (
         <div className="companion-foot">
-          <p className="hint">{t("agent.notConnected")}</p>
+          <p className="hint">{t(settings.house.status === "budget_reached" ? "agent.houseUsedUp" : "agent.notConnected")}</p>
           <button type="button" className="btn-secondary" onClick={() => navigate("/ai")}>
             {t("agent.connect")}
           </button>

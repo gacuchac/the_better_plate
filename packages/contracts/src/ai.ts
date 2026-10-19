@@ -13,6 +13,9 @@ const MealSlotSchema = z.enum(["breakfast", "lunch", "dinner", "snack"]);
 
 export const AiProviderSchema = z.enum(["anthropic", "openai"]);
 export type AiProvider = z.infer<typeof AiProviderSchema>;
+/** Who pays for a companion turn: the person's own key, or the included (owner-provided) one. */
+export const AiTurnProviderSchema = z.enum(["anthropic", "openai", "house"]);
+export type AiTurnProvider = z.infer<typeof AiTurnProviderSchema>;
 
 const uuid = z.uuid();
 const IngredientInput = z.object({
@@ -133,7 +136,7 @@ export const AiContextSchema = z.object({
 });
 
 export const AiTurnRequestSchema = z.object({
-  provider: AiProviderSchema,
+  provider: AiTurnProviderSchema,
   /** Provider-native transcript returned by the previous turn, passed back unchanged. */
   conversation: z.array(z.record(z.string(), z.unknown())).max(MAX_AI_CONVERSATION),
   input: z.discriminatedUnion("type", [
@@ -173,6 +176,13 @@ export const AiSettingsSchema = z.object({
   activeProvider: AiProviderSchema.nullable(),
   dailyRequestLimit: z.number().int(),
   requestsToday: z.number().int(),
+  /** The included companion, used when no own key is in use. */
+  house: z.object({
+    status: z.enum(["available", "not_invited", "budget_reached", "off"]),
+    model: z.string().nullable(),
+    dailyLimit: z.number().int(),
+    requestsToday: z.number().int(),
+  }),
   providers: z.array(
     z.object({
       provider: AiProviderSchema,

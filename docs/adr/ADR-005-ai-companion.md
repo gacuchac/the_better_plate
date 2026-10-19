@@ -28,3 +28,14 @@ Signing in with a ChatGPT or Claude subscription instead of a key was considered
 - Off unless `FEATURE_AI_COMPANION_ENABLED=true`; every `/v1/ai/*` route returns 404 when off.
 - Not verified against real providers in automated tests (no shared keys); a real-key smoke test needs an owner-provided key in CI (`E2E_AI_API_KEY`, optional).
 - Image search and generation, and the external connector, are separate follow-ups.
+
+## Addendum (2026-10-19): included companion on the owner's key
+
+Owner decision: "we can have our own key set up for luna and limit usage at first to evaluate and control cost."
+
+- `OPENAI_HOUSE_API_KEY` (owner-provided, Railway only) powers turns with `provider: "house"`, on `AI_HOUSE_MODEL` (default `gpt-6-luna`), through the same OpenAI adapter, tool validation and system prompt as BYOK.
+- Who: `AI_HOUSE_ALLOWED_EMAILS` (invite list; `*` = everyone). A person's own key, when connected and active, always takes priority.
+- Limits: `AI_HOUSE_DAILY_REQUESTS` per person per day, and `AI_HOUSE_MONTHLY_BUDGET_USD` across all accounts, estimated from reported token counts × configured prices. Checked before each turn, so concurrent turns can overshoot slightly; the OpenAI project's own budget limit is the hard stop.
+- Counters live in `ai_house_usage`; they survive account deletion without the account link so deleting and re-creating accounts can't reset the monthly total.
+- Photo generation stays on people's own keys (about $0.04 per image).
+- Privacy: messages and the recipe and meal details the companion reads go to OpenAI under The Better Plate's account; AI settings says so.

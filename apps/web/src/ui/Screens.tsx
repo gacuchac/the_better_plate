@@ -266,7 +266,11 @@ export function You() {
           <>
             <dt>{t("ai.status")}</dt>
             <dd data-testid="ai-summary">
-              {ai?.activeProvider ? t("ai.statusOn", { provider: ai.activeProvider === "anthropic" ? "Anthropic" : "OpenAI" }) : t("ai.statusOff")} <a href="#/ai">{t("ai.manage")}</a>
+              {ai?.activeProvider
+                ? t("ai.statusOn", { provider: ai.activeProvider === "anthropic" ? "Anthropic" : "OpenAI" })
+                : ai?.house.status === "available"
+                  ? t("ai.statusIncluded")
+                  : t("ai.statusOff")} <a href="#/ai">{t("ai.manage")}</a>
             </dd>
           </>
         )}

@@ -77,6 +77,27 @@ export function AiSettings() {
       <p className="hint">{t("ai.intro")}</p>
       <p className="hint">{t("ai.privacy")}</p>
 
+      {settings.house.status !== "off" && (
+        <section className="ai-provider" data-testid="ai-included">
+          <div className="ai-provider-head">
+            <h2>{t("ai.includedTitle")}</h2>
+            {settings.house.status === "available" && !settings.activeProvider ? <span className="tag tag-sage">{t("ai.inUse")}</span> : null}
+          </div>
+          <p className="hint">
+            {settings.house.status === "not_invited"
+              ? t("ai.includedNotInvited")
+              : settings.house.status === "budget_reached"
+                ? t("ai.includedUsedUp")
+                : t("ai.includedHint", { model: settings.house.model ?? "" })}
+          </p>
+          {settings.house.status !== "not_invited" && (
+            <p className="hint" data-testid="ai-included-usage">
+              {t("ai.usage", { n: settings.house.requestsToday, limit: settings.house.dailyLimit })}
+            </p>
+          )}
+        </section>
+      )}
+
       {settings.providers.map((p) => (
         <section key={p.provider} className="ai-provider" data-testid={`ai-provider-${p.provider}`}>
           <div className="ai-provider-head">
