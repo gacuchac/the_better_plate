@@ -3,7 +3,7 @@
 # Playwright journeys on desktop and mobile. Evidence: artifacts/qa/<milestone>/<run-id>/local/
 source "$(dirname "$0")/lib.sh"
 bash scripts/bootstrap.sh
-export E2E_MILESTONE="${E2E_MILESTONE:-m1-thin-proof}"
+export E2E_MILESTONE="${E2E_MILESTONE:-m2-pilot}"
 export E2E_RUN_ID="${E2E_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)-$(git rev-parse --short HEAD 2>/dev/null || echo nogit)}"
 export E2E_OUT="$ROOT/artifacts/qa/$E2E_MILESTONE/$E2E_RUN_ID/local"
 mkdir -p "$E2E_OUT"

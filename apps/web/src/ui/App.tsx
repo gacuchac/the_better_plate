@@ -1,9 +1,11 @@
 import { useEffect } from "react";
+import { trackRoute } from "../activity.ts";
 import { useApp } from "../store.tsx";
 import { navigate, SyncChip, useRoute } from "./common.tsx";
 import { Cook } from "./Cook.tsx";
 import { Icon, type IconName } from "./icons.tsx";
 import { Meals } from "./Meals.tsx";
+import { ReportIssue } from "./ReportIssue.tsx";
 import { RecipeEditor } from "./RecipeEditor.tsx";
 import { Explore, Kitchen, You } from "./Screens.tsx";
 import { SignIn } from "./SignIn.tsx";
@@ -19,17 +21,24 @@ export function App() {
   const { account, accountChecked } = useApp();
   const route = useRoute();
 
+  useEffect(() => trackRoute(route), [route]);
+
   useEffect(() => {
     if (route === "/create") navigate(`/recipe/${crypto.randomUUID()}`);
   }, [route]);
 
   if (!account) {
     if (!accountChecked) return <p className="hint pad">Opening your kitchen…</p>;
-    return <SignIn />;
+    return (
+      <>
+        <SignIn />
+        <ReportIssue route="/sign-in" />
+      </>
+    );
   }
 
   const cookMatch = /^\/cook\/([0-9a-f-]{36})$/.exec(route);
-  if (cookMatch) return <Cook key={cookMatch[1]} id={cookMatch[1]!} />;
+  if (cookMatch) return <Cook key={cookMatch[1]} id={cookMatch[1]!} report={<ReportIssue route={route} className="report-btn icon-btn" />} />;
 
   const recipeMatch = /^\/recipe\/([0-9a-f-]{36})$/.exec(route);
   const mealsMatch = /^\/meals(?:\/(\d{4}-\d{2}-\d{2}))?$/.exec(route);
@@ -72,6 +81,7 @@ export function App() {
         </div>
         <main id="main">{screen}</main>
       </div>
+      <ReportIssue route={route} />
     </div>
   );
 }

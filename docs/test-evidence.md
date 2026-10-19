@@ -2,6 +2,19 @@
 
 Evidence folders are git-ignored (public repo, see preflight N2). Rerun `pnpm verify` to regenerate them; CI uploads the same folder as a 7-day artifact.
 
+## M2 pilot features, local pass: 2026-10-19, `dev` 2556ce9 plus the report-issue change
+Command: `pnpm verify`.
+
+| Suite | Result |
+|---|---|
+| Typecheck (5 workspace packages) | pass |
+| Nutrition, meals, % DV, safe-temperature and search unit tests | 30 / 30 pass |
+| Web sync engine unit tests (recipes, plans, logs) | 10 / 10 pass |
+| API integration tests (real PostgreSQL 16) incl. meals, issue reports, rate limit | 46 / 46 pass |
+| Playwright journeys, desktop 1366×900 + Pixel 7 | 20 / 20 pass |
+
+Screenshots inspected: home with today's meals, recipe action bar, plan and log sheets, meals day view and day nutrients with % DV, 7-day view, cook mode safe temperatures and timer step, report sheet with screenshot preview, offline queued report, sign-in redesign. Issues found and fixed in review: the recipe action bar covered the bottom navigation on phones, the Cook button text vanished on hover, the pan icon was clipped, the summary card rounded fat differently from the panel.
+
 ## M1 thin proof, local pass: 2026-10-19, commit 781e2e5 plus docs
 Command: `pnpm verify` (= `scripts/test.sh` + `scripts/e2e.sh`).
 

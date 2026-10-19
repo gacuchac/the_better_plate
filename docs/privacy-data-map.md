@@ -1,4 +1,4 @@
-# Privacy data map (M1)
+# Privacy data map
 
 | Data | Where | Why | Retention / deletion |
 |---|---|---|---|
@@ -7,9 +7,14 @@
 | Google account id and encrypted Google tokens (only for Google sign-in); name from the Google profile | `accounts`, `users.name` | Sign-in with Google | Until account deletion; profile photo is not stored |
 | Hashed sign-in code | `verifications` | Email verification | Expires after 10 minutes |
 | Recipes and immutable revisions | `recipes`, `recipe_revisions` | The product | Until the user deletes the recipe (content cleared to a tombstone) or the account |
+| Planned meals (day, meal slot, recipe id and title, servings) | `planned_meals` | Meal planning | Until the user removes the plan (content cleared to a tombstone) or the account |
+| Eaten meals (recipe snapshot, servings, meal slot, local day, time eaten with offset, nutrition snapshot) | `consumption_events` | Explicitly logged meals | Until the user removes the log (content cleared to a tombstone) or the account |
+| Issue reports: message, chosen recent steps, route, app version, device class, request ids, sanitized error, optional screenshot the person previewed | `feedback_reports` | Fixing problems | Deleted with the account; retention policy for anonymous reports not set yet |
 | Sync operation ledger | `sync_operations` | Idempotency | Until account deletion (pruning job not-started) |
-| Recipes, outbox, sync cursor | Browser IndexedDB `betterplate-user-<id>` | Offline use | Deleted on sign-out or when another account signs in |
+| Recipes, plans, eaten logs, outbox, sync cursor | Browser IndexedDB `betterplate-user-<id>` | Offline use | Deleted on sign-out or when another account signs in |
 | Last account id and email | Browser `localStorage` `bp.account` | Open offline | Removed on sign-out |
+| Issue reports waiting to send (at most 5) | Browser `localStorage` `bp.feedback.queue` | Offline report queue | Removed once sent |
+| Recent readable steps and last error message | Browser memory only | Prefill issue reports | Gone when the tab closes |
 | USDA catalog | Browser IndexedDB `betterplate-catalog` | Offline foods | Public data; kept |
 | Access logs | API stdout | Operations | Method, route pattern, status, duration, request id only; no bodies, cookies or query values |
 

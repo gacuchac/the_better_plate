@@ -388,6 +388,52 @@ describe("planned and eaten meals", () => {
   });
 });
 
+describe("issue reports", () => {
+  const report = (extra: Record<string, unknown> = {}) => ({
+    id: uuid(),
+    kind: "bug",
+    message: "Save failed after swapping broccoli",
+    activity: [{ at: new Date().toISOString(), event: "Opened a recipe" }, { at: new Date().toISOString(), event: "Save failed" }],
+    context: { route: "/recipe/x", appVersion: "test", deviceClass: "phone", online: true, requestIds: ["req-1"], error: { message: "boom token sk-abcdefghijklmnopqrstuv", stack: "at save (app.js:1:1)" } },
+    screenshot: null,
+    ...extra,
+  });
+  // 1×1 PNG test fixture.
+  const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+  it("accepts a report from a signed-in person, idempotently, and redacts secrets", async () => {
+    const body = report({ screenshot: PNG });
+    const first = await alice.request("/v1/feedback", { method: "POST", json: body });
+    expect(first.status).toBe(201);
+    const again = await alice.request("/v1/feedback", { method: "POST", json: body });
+    expect(again.status).toBe(200);
+    expect((await again.json()).duplicate).toBe(true);
+    const { rows } = await pool.query("select user_id, context, screenshot_type, length(screenshot) as n, status from feedback_reports where id = $1", [body.id]);
+    expect(rows[0]).toMatchObject({ screenshot_type: "image/png", status: "new" });
+    expect(rows[0].n).toBeGreaterThan(0);
+    expect(rows[0].context.error.message).toBe("boom token [removed]");
+  });
+
+  it("accepts a report from the sign-in screen without an account", async () => {
+    const res = await call("/v1/feedback", { method: "POST", json: report() });
+    expect(res.status).toBe(201);
+  });
+
+  it("rejects spoofed or oversized screenshots and empty messages", async () => {
+    const fake = await call("/v1/feedback", { method: "POST", json: report({ screenshot: "data:image/png;base64,PHN2Zz48L3N2Zz4=" }) });
+    expect(fake.status).toBe(400);
+    const svg = await call("/v1/feedback", { method: "POST", json: report({ screenshot: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" }) });
+    expect(svg.status).toBe(400);
+    expect((await call("/v1/feedback", { method: "POST", json: report({ message: " " }) })).status).toBe(400);
+  });
+
+  it("does not let someone else reuse a report id", async () => {
+    const body = report();
+    await alice.request("/v1/feedback", { method: "POST", json: body });
+    expect((await bob.request("/v1/feedback", { method: "POST", json: body })).status).toBe(409);
+  });
+});
+
 describe("request safety", () => {
   it("rejects cross-site origins and non-JSON bodies on mutations", async () => {
     const evil = await alice.request("/v1/recipes", { method: "POST", json: { title: "x", servings: 1, ingredients: [] }, headers: { origin: "https://evil.example" } });
@@ -405,6 +451,27 @@ describe("request safety", () => {
   it("does not expose the dev mailbox outside local/test", async () => {
     // Guarded by config.isLocal; this run is APP_ENV=test so it is reachable here.
     expect((await call("/v1/dev/mailbox")).status).toBe(200);
+  });
+});
+
+describe("rate limiting", () => {
+  it("answers 429 with Retry-After once a client exceeds its budget", async () => {
+    const { Hono } = await import("hono");
+    const { rateLimit } = await import("../src/lib/http.ts");
+    const { config } = await import("../src/config.ts");
+    const mini = new Hono();
+    mini.use("*", async (c, next) => { c.set("user" as never, null as never); await next(); });
+    mini.use("*", rateLimit("test", 1, 60));
+    mini.get("/x", (c) => c.text("ok"));
+    mini.onError((err, c) => c.json({ code: (err as { code?: string }).code }, (err as { status?: number }).status as 429));
+    const max = Math.round(1 * config.rateLimitMultiplier);
+    const hit = () => mini.request("/x", { headers: { "x-forwarded-for": "203.0.113.9" } });
+    for (let i = 0; i < max; i++) expect((await hit()).status).toBe(200);
+    const limited = await hit();
+    expect(limited.status).toBe(429);
+    expect(Number(limited.headers.get("retry-after"))).toBeGreaterThan(0);
+    // Another client is unaffected.
+    expect((await mini.request("/x", { headers: { "x-forwarded-for": "203.0.113.10" } })).status).toBe(200);
   });
 });
 
