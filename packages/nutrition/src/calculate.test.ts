@@ -88,5 +88,6 @@ describe("formatAmount", () => {
     expect(formatAmount(null, "mg")).toBe("Not reported");
     expect(formatAmount(0.123, "mg")).toBe("0.12 mg");
     expect(formatAmount(254.6, "kcal")).toBe("255 kcal");
+    expect(formatAmount(0, "µg")).toBe("0 µg");
   });
 });

@@ -28,6 +28,7 @@ export function RecipeEditor({ id }: { id: string }) {
       void engine.getRecipe(id).then((r) => {
         setLoaded(r ?? null);
         if (r && !dirty) setDraft(r.body);
+        if (r && r.state !== "pending") setMessage(null);
       });
     load();
     return engine.subscribe(load);
@@ -51,7 +52,9 @@ export function RecipeEditor({ id }: { id: string }) {
 
   const addFood = (food: FoodRecord) => {
     const isOil = /^oil,/i.test(food.description) || food.category === "Fats and Oils";
-    const portion = food.portions.length ? 0 : null;
+    // Grams by default: neutral and transparent. Oils start at one tablespoon when USDA lists it.
+    const tbsp = isOil ? food.portions.findIndex((p) => /tablespoon|tbsp/i.test(p.label)) : -1;
+    const portion = tbsp >= 0 ? tbsp : null;
     update({
       ingredients: [
         ...draft.ingredients,
@@ -206,6 +209,7 @@ export function RecipeEditor({ id }: { id: string }) {
             <button type="button" className="btn-primary" onClick={() => void save()} disabled={!dirty && loaded !== null}>
               Save recipe
             </button>
+            {dirty && <span className="hint">Unsaved changes</span>}
             {loaded && (
               <button type="button" className="btn-link danger" onClick={() => void remove()}>
                 Delete

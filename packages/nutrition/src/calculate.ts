@@ -83,6 +83,7 @@ export function calculateRecipe(
 /** Display rounding only; never round before summing. */
 export function formatAmount(amount: number | null, unit: string): string {
   if (amount === null) return "Not reported";
+  if (amount === 0) return `0 ${unit}`;
   const abs = Math.abs(amount);
   const digits = abs >= 100 ? 0 : abs >= 10 ? 1 : abs >= 1 ? 1 : 2;
   return `${amount.toFixed(digits)} ${unit}`;

@@ -9,6 +9,14 @@ export default defineConfig({
   envPrefix: "PUBLIC_",
   server: { port: Number(process.env.WEB_PORT ?? 3000), strictPort: true },
   preview: { port: Number(process.env.WEB_PORT ?? 3000), strictPort: true },
+  build: {
+    rollupOptions: {
+      // zod ships comments Rollup reports as misplaced annotations; harmless noise.
+      onwarn(warning, warn) {
+        if (warning.code !== "INVALID_ANNOTATION") warn(warning);
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

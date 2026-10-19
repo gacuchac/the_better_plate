@@ -4,13 +4,17 @@ import { devOutbox } from "../src/lib/mailer.ts";
 export const app = createApp();
 export const ORIGIN = "http://localhost:3000";
 
+/** Response whose JSON body is loosely typed; tests assert on its shape explicitly. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type TestResponse = Omit<Response, "json"> & { json(): Promise<any> };
+
 export interface Client {
   email: string;
   cookie: string;
-  request: (path: string, init?: RequestInit & { json?: unknown }) => Promise<Response>;
+  request: (path: string, init?: RequestInit & { json?: unknown }) => Promise<TestResponse>;
 }
 
-export function call(path: string, init: RequestInit & { json?: unknown; cookie?: string } = {}) {
+export async function call(path: string, init: RequestInit & { json?: unknown; cookie?: string } = {}): Promise<TestResponse> {
   const headers = new Headers(init.headers);
   if (!headers.has("origin")) headers.set("origin", ORIGIN);
   if (init.cookie) headers.set("cookie", init.cookie);
@@ -19,7 +23,7 @@ export function call(path: string, init: RequestInit & { json?: unknown; cookie?
     headers.set("content-type", "application/json");
     body = JSON.stringify(init.json);
   }
-  return app.request(`http://localhost:4000${path}`, { ...init, headers, body });
+  return (await app.request(`http://localhost:4000${path}`, { ...init, headers, body })) as TestResponse;
 }
 
 /** Signs in through the real Better Auth email-OTP flow, reading the code from the local test mailbox. */
