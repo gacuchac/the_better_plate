@@ -18,6 +18,9 @@ test("core screens have no automatically detectable WCAG 2.2 AA violations", asy
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Cook what you love, know what's in it" })).toBeVisible();
   await audit(page, "sign-in");
+  await page.goto("/#/privacy");
+  await expect(page.getByRole("heading", { name: "How The Better Plate handles your data" })).toBeVisible();
+  await audit(page, "privacy-notice");
 
   await signIn(page, newEmail("a11y"));
   await audit(page, "kitchen-empty");

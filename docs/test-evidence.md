@@ -2,6 +2,19 @@
 
 Evidence folders are git-ignored (public repo, see preflight N2). Rerun `pnpm verify` to regenerate them; CI uploads the same folder as a 7-day artifact.
 
+## M3 pilot hardening, local pass: 2026-10-19, `dev` 5d384ff plus the privacy-consent change
+Command: `pnpm test` then `pnpm e2e`.
+
+| Suite | Result |
+|---|---|
+| Typecheck (5 workspace packages) | pass |
+| Nutrition unit tests incl. everyday-word search and catalog check | 34 / 34 pass |
+| Web sync engine unit tests | 10 / 10 pass |
+| API integration tests incl. share links, data export, consent, maintenance | 56 / 56 pass |
+| Playwright, desktop 1366×900 + Pixel 7, incl. axe-core WCAG 2.2 AA audit, share links, eviction/out-of-space | 26 / 26 pass |
+
+Hosted check (Railway dev) green after PRs #9 (run 39296284845), #10 and #11.
+
 ## M2 pilot features, local pass: 2026-10-19, `dev` 2556ce9 plus the report-issue change
 Command: `pnpm verify`.
 

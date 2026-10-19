@@ -51,10 +51,17 @@ export interface FeedbackReport {
   screenshot: string | null;
 }
 
+export interface PrivacyStatus {
+  currentVersion: string;
+  acceptedVersion: string | null;
+}
+
 export interface Me {
   id: string;
   email: string;
   displayName: string | null;
+  /** Missing on accounts remembered by older app versions until the next online check. */
+  privacy?: PrivacyStatus;
 }
 
 export interface CatalogBundle {
@@ -78,6 +85,7 @@ export const api = {
   sendCode: (email: string) => request<{ success: boolean }>("/v1/auth/email-otp/send-verification-otp", { method: "POST", json: { email, type: "sign-in" } }),
   signIn: (email: string, otp: string) => request<unknown>("/v1/auth/sign-in/email-otp", { method: "POST", json: { email, otp } }),
   signOut: () => request<unknown>("/v1/auth/sign-out", { method: "POST", json: {} }),
+  consent: (noticeVersion: string) => request<PrivacyStatus>("/v1/me/consent", { method: "POST", json: { noticeVersion, adultConfirmed: true } }),
   exportData: () => request<{ format: string; exportedAt: string }>("/v1/me/export", { cache: "no-store" }),
   deleteAccount: () => request<void>("/v1/me", { method: "DELETE" }),
   manifest: () => request<Omit<CatalogBundle, "foods"> & { bundleUrl: string }>("/v1/catalog/manifest"),

@@ -8,6 +8,8 @@ import { Meals } from "./Meals.tsx";
 import { ReportIssue } from "./ReportIssue.tsx";
 import { RecipeEditor } from "./RecipeEditor.tsx";
 import { Explore, Kitchen, You } from "./Screens.tsx";
+import { PRIVACY_NOTICE } from "@betterplate/contracts";
+import { ConsentScreen, PrivacyPage } from "./Privacy.tsx";
 import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
 
@@ -39,12 +41,31 @@ export function App() {
     );
   }
 
+  if (route === "/privacy") {
+    return (
+      <>
+        <PrivacyPage />
+        <ReportIssue route="/privacy" />
+      </>
+    );
+  }
+
   if (!account) {
     if (!accountChecked) return <p className="hint pad">Opening your kitchen…</p>;
     return (
       <>
         <SignIn />
         <ReportIssue route="/sign-in" />
+      </>
+    );
+  }
+
+  // Known to be behind the current notice (an account remembered offline without this info is not blocked).
+  if (account.privacy && account.privacy.acceptedVersion !== PRIVACY_NOTICE.version) {
+    return (
+      <>
+        <ConsentScreen />
+        <ReportIssue route="/consent" />
       </>
     );
   }

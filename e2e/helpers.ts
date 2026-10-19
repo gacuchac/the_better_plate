@@ -40,6 +40,7 @@ export async function signIn(page: Page, email: string, info?: TestInfo) {
   await expect(page.getByLabel("Code")).toBeVisible();
   await page.getByLabel("Code").fill(await readCode(page.request, email));
   await page.getByRole("button", { name: "Sign in" }).click();
+  await acceptPrivacyNotice(page, info);
   await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
   await expect(page.getByTestId("catalog-status")).toContainText("USDA foods saved on this device");
 }
@@ -74,4 +75,16 @@ export async function waitForServiceWorker(page: Page) {
     await page.reload();
     await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 15_000 });
   });
+}
+
+/** New accounts agree to the current privacy notice once, confirming they are adults. */
+export async function acceptPrivacyNotice(page: Page, info?: TestInfo) {
+  const consent = page.getByTestId("consent-screen");
+  // An account that already agreed (for example on another device) goes straight to the kitchen.
+  await expect(consent.or(page.getByRole("heading", { name: "Recipes", exact: true }))).toBeVisible();
+  if (!(await consent.isVisible())) return;
+  await expect(consent.getByRole("button", { name: "Agree and continue" })).toBeDisabled();
+  await consent.getByLabel("I'm 18 or older").check();
+  if (info) await shot(page, info, "privacy-consent", "First sign-in: plain-language privacy notice, adult confirmation");
+  await consent.getByRole("button", { name: "Agree and continue" }).click();
 }

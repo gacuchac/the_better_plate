@@ -2,10 +2,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getMigrations } from "better-auth/db/migration";
-import { RecipeSchema, SharedRecipeSchema, ShareSchema, SyncBatchResponseSchema, SyncChangesResponseSchema } from "@betterplate/contracts";
+import { PRIVACY_NOTICE, RecipeSchema, SharedRecipeSchema, ShareSchema, SyncBatchResponseSchema, SyncChangesResponseSchema } from "@betterplate/contracts";
 import { authOptions } from "../src/auth.ts";
 import { pool } from "../src/db/pool.ts";
 import { generateOpenApi } from "../src/openapi-cli.ts";
+import { runMaintenance } from "../src/jobs.ts";
 import { REPO_ROOT } from "../src/config.ts";
 import { call, type Client, findFood, food, signIn } from "./helpers.ts";
 
@@ -566,6 +567,50 @@ describe("recipe share links", () => {
     expect(html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; co");
     expect(html).toContain(`/#/shared/${share.shareId}`);
     expect(html).not.toContain(alice.email);
+  });
+});
+
+describe("privacy notice consent", () => {
+  it("records agreement to the current notice version, append-only", async () => {
+    const hal = await signIn();
+    const me = await (await hal.request("/v1/me")).json();
+    expect(me.privacy).toEqual({ currentVersion: PRIVACY_NOTICE.version, acceptedVersion: null });
+
+    expect((await hal.request("/v1/me/consent", { method: "POST", json: { noticeVersion: "1999-01-01", adultConfirmed: true } })).status).toBe(409);
+    expect((await hal.request("/v1/me/consent", { method: "POST", json: { noticeVersion: PRIVACY_NOTICE.version, adultConfirmed: false } })).status).toBe(400);
+    expect((await call("/v1/me/consent", { method: "POST", json: { noticeVersion: PRIVACY_NOTICE.version, adultConfirmed: true } })).status).toBe(401);
+
+    const ok = await hal.request("/v1/me/consent", { method: "POST", json: { noticeVersion: PRIVACY_NOTICE.version, adultConfirmed: true } });
+    expect(ok.status).toBe(201);
+    expect((await ok.json()).acceptedVersion).toBe(PRIVACY_NOTICE.version);
+    expect((await (await hal.request("/v1/me")).json()).privacy.acceptedVersion).toBe(PRIVACY_NOTICE.version);
+
+    const { rows } = await pool.query("select n.content_sha256, n.review_status from privacy_notices n where version = $1", [PRIVACY_NOTICE.version]);
+    expect(rows[0].content_sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(rows[0].review_status).toBe("draft");
+    const exported = await (await hal.request("/v1/me/export")).json();
+    expect(exported.privacyConsents).toEqual([expect.objectContaining({ noticeVersion: PRIVACY_NOTICE.version, action: "accepted", adultConfirmed: true })]);
+  });
+});
+
+describe("maintenance", () => {
+  it("prunes idempotency records after the retention period and expired sessions, never live ones", async () => {
+    const ivy = await signIn();
+    const opId = uuid();
+    await ivy.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations: [{ opId, type: "recipe.put", entityId: uuid(), baseVersion: null, body: { title: "Old op", servings: 1, ingredients: [] } }] } });
+    const recent = uuid();
+    await ivy.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations: [{ opId: recent, type: "recipe.put", entityId: uuid(), baseVersion: null, body: { title: "New op", servings: 1, ingredients: [] } }] } });
+    await pool.query(`update sync_operations set created_at = now() - interval '31 days' where op_id = $1`, [opId]);
+    const expiredUser = await signIn();
+    await pool.query(`update "sessions" set "expiresAt" = now() - interval '1 minute' where "userId" = (select id from "users" where email = $1)`, [expiredUser.email]);
+
+    const result = await runMaintenance();
+    expect(result!.syncOperations).toBeGreaterThanOrEqual(1);
+    expect(result!.sessions).toBeGreaterThanOrEqual(1);
+    const left = await pool.query("select op_id from sync_operations where op_id = any($1)", [[opId, recent]]);
+    expect(left.rows.map((r) => r.op_id)).toEqual([recent]);
+    expect((await ivy.request("/v1/me")).status).toBe(200);
+    expect((await expiredUser.request("/v1/me")).status).toBe(401);
   });
 });
 
