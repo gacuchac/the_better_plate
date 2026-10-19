@@ -8,7 +8,7 @@ import { pool } from "./db/pool.ts";
 export const SYNC_LEDGER_DAYS = 30;
 
 /** Daily housekeeping; one instance at a time (advisory lock), safe to run repeatedly. */
-export async function runMaintenance(): Promise<{ syncOperations: number; sessions: number } | null> {
+export async function runMaintenance(): Promise<{ syncOperations: number; sessions: number; images: number } | null> {
   const client = await pool.connect();
   try {
     const { rows } = await client.query<{ locked: boolean }>("select pg_try_advisory_lock(hashtext('betterplate:maintenance')) as locked");
@@ -17,7 +17,12 @@ export async function runMaintenance(): Promise<{ syncOperations: number; sessio
       const ops = await client.query(`delete from sync_operations where created_at < now() - make_interval(days => $1)`, [SYNC_LEDGER_DAYS]);
       // Expired sign-in sessions hold an IP address and browser description; keep them no longer than needed.
       const sessions = await client.query(`delete from "sessions" where "expiresAt" < now()`);
-      return { syncOperations: ops.rowCount ?? 0, sessions: sessions.rowCount ?? 0 };
+      // Recipe images no live recipe uses, after a week (revisions keep only the reference).
+      const images = await client.query(
+        `delete from recipe_images i where created_at < now() - interval '7 days'
+           and not exists (select 1 from recipes r where r.user_id = i.user_id and r.deleted_at is null and r.body->'image'->>'id' = i.id::text)`,
+      );
+      return { syncOperations: ops.rowCount ?? 0, sessions: sessions.rowCount ?? 0, images: images.rowCount ?? 0 };
     } finally {
       await client.query("select pg_advisory_unlock(hashtext('betterplate:maintenance'))");
     }

@@ -9,6 +9,7 @@ import { Icon } from "./icons.tsx";
 import { LogSheet, PlanSheet } from "./MealSheets.tsx";
 import { NutritionPanel } from "./Nutrition.tsx";
 import { ShareSheet } from "./Share.tsx";
+import { describeRecipe, PhotoSheet, RecipePhoto } from "./Photos.tsx";
 import { formatQty, useT, type MessageKey } from "../i18n.ts";
 
 export const MACROS: { key: string; label: MessageKey }[] = [
@@ -33,7 +34,7 @@ export function RecipeEditor({ id }: { id: string }) {
   const [picking, setPicking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [sheet, setSheet] = useState<"plan" | "log" | "share" | null>(null);
+  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "photo" | null>(null);
 
   useEffect(() => {
     if (!engine) return;
@@ -118,6 +119,24 @@ export function RecipeEditor({ id }: { id: string }) {
             {t("editor.name")}
           </label>
           <input id="title" className="title-input" value={draft.title} placeholder={t("editor.namePlaceholder")} onChange={(e) => update({ title: e.target.value })} />
+
+          {draft.image ? (
+            <div className="photo-block">
+              <RecipePhoto image={draft.image} />
+              <div className="photo-actions">
+                <button type="button" className="btn-link" onClick={() => setSheet("photo")}>
+                  {t("photo.change")}
+                </button>
+                <button type="button" className="btn-link danger" onClick={() => update({ image: null })}>
+                  {t("photo.remove")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="btn-soft photo-add" onClick={() => setSheet("photo")}>
+              <Icon name="image" size={18} /> {t("photo.add")}
+            </button>
+          )}
 
           <div className="stepper-row">
             <label htmlFor="servings">{t("editor.servings")}</label>
@@ -288,6 +307,17 @@ export function RecipeEditor({ id }: { id: string }) {
           </>
         )}
       </div>
+      {sheet === "photo" && (
+        <PhotoSheet
+          initial={describeRecipe(draft, foods)}
+          title={draft.title.trim()}
+          onClose={() => setSheet(null)}
+          onPick={(image) => {
+            update({ image });
+            setSheet(null);
+          }}
+        />
+      )}
       {sheet === "plan" && loaded && <PlanSheet recipeId={id} title={loaded.body.title} onClose={() => setSheet(null)} />}
       {sheet === "share" && loaded && <ShareSheet recipe={loaded} onClose={() => setSheet(null)} />}
       {sheet === "log" && loaded && <LogSheet recipeId={id} recipe={loaded.body} onClose={() => setSheet(null)} />}

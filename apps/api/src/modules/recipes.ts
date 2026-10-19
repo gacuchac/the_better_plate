@@ -14,6 +14,7 @@ import { pool, withTransaction } from "../db/pool.ts";
 import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
 import { currentCatalog, foodsByIds } from "./catalog.ts";
 import { ErrorResponses, IdParam } from "./common.ts";
+import { resolveRecipeImage } from "./images.ts";
 
 // ---------- service ----------
 
@@ -22,7 +23,7 @@ type RecipeRow = {
   user_id: string;
   title: string;
   servings: string;
-  body: { ingredients?: RecipeBody["ingredients"]; method?: string };
+  body: { ingredients?: RecipeBody["ingredients"]; method?: string; image?: RecipeBody["image"] };
   nutrition: RecipeNutritionDto | null;
   version: number;
   server_seq: string;
@@ -38,6 +39,7 @@ export function toRecipe(r: RecipeRow): Recipe {
     servings: Number(r.servings),
     ingredients: r.body.ingredients ?? [],
     method: r.body.method ?? "",
+    image: r.body.image ?? null,
     version: r.version,
     createdAt: r.created_at.toISOString(),
     updatedAt: r.updated_at.toISOString(),
@@ -99,8 +101,11 @@ export async function putRecipe(
   const calc = await computeNutrition(body);
   if (!calc.ok) return { status: "rejected", code: "unknown_food", message: `Foods not in catalog: ${calc.unknown.join(", ")}` };
 
+  // An image that isn't this person's (or was cleaned up while a device was offline) is dropped, not the recipe.
+  const image = await resolveRecipeImage(client, userId, body.image);
+
   const version = row ? row.version + 1 : 1;
-  const stored = { ingredients: body.ingredients, method: body.method };
+  const stored = { ingredients: body.ingredients, method: body.method, image: image.ok ? image.image : null };
   const { rows } = await client.query<RecipeRow>(
     row
       ? `update recipes set title = $3, servings = $4, body = $5, nutrition = $6, version = $7, server_seq = nextval('change_seq'), updated_at = now()

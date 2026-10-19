@@ -1,4 +1,4 @@
-import type { AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse } from "@betterplate/contracts";
+import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
 import { API_URL } from "./env.ts";
@@ -73,6 +73,9 @@ export interface CatalogBundle {
   foods: (FoodRecord & { fdcId: number; dataType: string })[];
 }
 
+/** Stored recipe images are served to their owner only (session cookie). */
+export const imageUrl = (id: string) => `${API_URL}/v1/images/${id}`;
+
 export const api = {
   me: () => request<Me>("/v1/me"),
   signInMethods: () => request<{ methods: ("email_code" | "google")[] }>("/v1/sign-in-methods"),
@@ -102,5 +105,8 @@ export const api = {
   connectAi: (provider: AiProvider, apiKey: string) => request<AiSettings>(`/v1/ai/credentials/${provider}`, { method: "PUT", json: { apiKey } }),
   disconnectAi: (provider: AiProvider) => request<AiSettings>(`/v1/ai/credentials/${provider}`, { method: "DELETE" }),
   aiTurn: (body: AiTurnRequest) => request<AiTurnResponse>("/v1/ai/turn", { method: "POST", json: body }),
+  searchPhotos: (description: string) => request<{ results: PhotoSearchResult[] }>(`/v1/photos/search?q=${encodeURIComponent(description)}`, { cache: "no-store" }),
+  importPhoto: (sourceId: string, alt?: string) => request<RecipeImage>("/v1/images/import", { method: "POST", json: { source: "openverse", sourceId, alt } }),
+  generateImage: (prompt: string, alt: string) => request<RecipeImage>("/v1/images/generate", { method: "POST", json: { prompt, alt } }),
   feedback: (report: FeedbackReport) => request<{ id: string; receivedAt: string; duplicate: boolean }>("/v1/feedback", { method: "POST", json: report }),
 };

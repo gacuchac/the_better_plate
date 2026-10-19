@@ -18,6 +18,8 @@ const apiEnv = {
   RATE_LIMIT_MULTIPLIER: "50",
   // Companion on with a derived local key; journeys use the scripted fake provider.
   FEATURE_AI_COMPANION_ENABLED: "true",
+  // Photo search goes to a local stand-in with labeled test fixtures.
+  OPENVERSE_API_URL: "http://localhost:4197",
   // Fake OAuth client: the journey stops at Google's door (intercepted), never calls Google.
   GOOGLE_CLIENT_ID: "e2e-client.apps.googleusercontent.com",
   GOOGLE_CLIENT_SECRET: "e2e-only-google-secret",
@@ -48,6 +50,12 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
   webServer: [
+    {
+      command: "node scripts/mock-openverse.mjs 4197",
+      url: "http://localhost:4197/v1/images/?q=ping",
+      reuseExistingServer: false,
+      timeout: 15_000,
+    },
     {
       command: "node apps/api/dist/db/cli.mjs reset && node apps/api/dist/server.mjs",
       url: `${API}/v1/health/ready`,

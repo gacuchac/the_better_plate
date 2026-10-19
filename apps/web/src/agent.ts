@@ -1,6 +1,7 @@
 import { AI_TOOLS, RecipeBodySchema, type AiProvider, type AiToolCall, type AiToolInput, type AiToolName, type AiTurnRequest, type RecipeBody } from "@betterplate/contracts";
 import { calculateRecipe, type FoodRecord, type NutrientDefinition } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError } from "./api.ts";
+import type { RecipeImage } from "@betterplate/contracts";
 import { track } from "./activity.ts";
 import { getLang, nutrientName, t } from "./i18n.ts";
 import { eatenAtFor, localDate, summarizeDay } from "./meals.ts";
@@ -125,6 +126,8 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
       title: input.title,
       servings: input.servings,
       method: input.method,
+      // Replacing a recipe keeps its photo.
+      image: previous?.body.image ?? null,
       ingredients: input.ingredients.map((i) => ({
         id: uid(),
         foodId: i.foodId,
@@ -206,6 +209,24 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
     };
   },
 
+  async find_photos({ description }) {
+    const { results } = await api.searchPhotos(description);
+    return {
+      output: { photos: results.map((r) => ({ sourceId: r.sourceId, title: r.title, license: r.license, creator: r.creator })), note: results.length ? undefined : "Nothing found; try simpler words." },
+      detail: t("agent.found", { n: results.length }),
+    };
+  },
+
+  async set_recipe_photo({ recipeId, sourceId }, env) {
+    const r = await recipeOrThrow(env, recipeId);
+    return setImage(env, r.body, recipeId, await api.importPhoto(sourceId, r.body.title));
+  },
+
+  async generate_recipe_photo({ recipeId, prompt }, env) {
+    const r = await recipeOrThrow(env, recipeId);
+    return setImage(env, r.body, recipeId, await api.generateImage(prompt, r.body.title));
+  },
+
   async delete_recipe({ recipeId }, env) {
     const r = await recipeOrThrow(env, recipeId);
     await env.engine.deleteRecipe(recipeId);
@@ -220,6 +241,19 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
     return { output: { removed: true }, detail: log.body.recipe.title };
   },
 };
+
+async function setImage(env: ToolEnv, body: RecipeBody, recipeId: string, image: RecipeImage): Promise<ToolOutcome> {
+  await env.engine.saveRecipe(recipeId, { ...body, image });
+  track(image.kind === "generated" ? "Companion generated a recipe image" : "Companion chose a recipe photo");
+  return {
+    output: { saved: true, kind: image.kind, credit: image.credit ? { title: image.credit.title, creator: image.credit.creator, license: image.credit.license } : null },
+    detail: image.credit?.title ?? body.title,
+    undo: async () => {
+      const now = await env.engine.getRecipe(recipeId);
+      if (now && !now.deleted) await env.engine.saveRecipe(recipeId, { ...now.body, image: body.image ?? null });
+    },
+  };
+}
 
 function stepLabel(name: string, input: Record<string, unknown>): string {
   switch (name) {
@@ -247,6 +281,12 @@ function stepLabel(name: string, input: Record<string, unknown>): string {
       return t("agent.step.delete");
     case "remove_eaten_meal":
       return t("agent.step.removeLog");
+    case "find_photos":
+      return t("agent.step.findPhotos", { query: String(input.description ?? "") });
+    case "set_recipe_photo":
+      return t("agent.step.setPhoto");
+    case "generate_recipe_photo":
+      return t("agent.step.generatePhoto");
     default:
       return t("agent.step.unknown");
   }

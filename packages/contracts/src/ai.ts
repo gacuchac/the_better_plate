@@ -89,6 +89,23 @@ export const AI_TOOLS = {
     description: "Save daily targets the person stated themselves (nutrient key and amount in its unit). Never propose or calculate target values.",
     input: z.object({ targets: z.array(z.object({ key: z.string().min(1).max(40), amount: z.number().positive().max(1_000_000) })).max(30) }),
   },
+  find_photos: {
+    confirm: false,
+    description:
+      "Find openly licensed food photos (public domain, CC0, CC BY, CC BY-SA via Openverse) from a short visual description in English, e.g. 'lemon chicken with rice on a plate'. Returns photo ids with titles and licenses.",
+    input: z.object({ description: z.string().trim().min(2).max(200) }),
+  },
+  set_recipe_photo: {
+    confirm: false,
+    description: "Use a photo from find_photos on a recipe (its credit is stored and shown). Pick one whose title clearly shows the same dish. The person can undo.",
+    input: z.object({ recipeId: uuid, sourceId: uuid }),
+  },
+  generate_recipe_photo: {
+    confirm: false,
+    description:
+      "Generate a photorealistic image of the recipe with the person's OpenAI key (costs them money; needs OpenAI connected). Only when they ask for a generated image or no found photo fits. It is labelled AI-generated. The person can undo.",
+    input: z.object({ recipeId: uuid, prompt: z.string().trim().min(3).max(1000) }),
+  },
   delete_recipe: {
     confirm: true,
     description: "Delete a recipe. The person must confirm in the app.",

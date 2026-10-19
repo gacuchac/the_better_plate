@@ -98,6 +98,8 @@ function loadConfig() {
     sessionSecret,
     usdaApiKey: process.env.USDA_FDC_API_KEY?.trim() || process.env.USDA_API_KEY?.trim() || "DEMO_KEY",
     usdaBaseUrl: process.env.USDA_FDC_API_BASE_URL ?? "https://api.nal.usda.gov/fdc/v1",
+    /** Recipe photo search. Overridable only for local and test runs (a mock server). */
+    openverseApiUrl: (isLocal && process.env.OPENVERSE_API_URL?.replace(/\/$/, "")) || "https://api.openverse.org",
     emailFrom: process.env.AUTH_EMAIL_FROM ?? "The Better Plate <no-reply@localhost>",
     emailProviderKey: process.env.EMAIL_PROVIDER_API_KEY ?? "",
     serveWeb: process.env.SERVE_WEB === "true",

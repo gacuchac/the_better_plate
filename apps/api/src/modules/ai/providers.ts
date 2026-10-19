@@ -110,7 +110,7 @@ const anthropic: Adapter = {
 const OPENAI_URL = "https://api.openai.com/v1";
 const NOT_CHAT = /audio|realtime|transcribe|tts|image|search|embedding|moderation|dall-e|whisper|codex|instruct/;
 
-async function openaiFetch(apiKey: string, path: string, body?: unknown): Promise<Record<string, unknown>> {
+export async function openaiFetch(apiKey: string, path: string, body?: unknown): Promise<Record<string, unknown>> {
   let res: Response;
   try {
     res = await fetch(`${OPENAI_URL}${path}`, {
