@@ -10,6 +10,8 @@ const testEnv = {
   BETTERPLATE_SKIP_ENV_FILE: "1",
   RATE_LIMIT_MULTIPLIER: "50",
   FEATURE_AI_COMPANION_ENABLED: "true",
+  // Photo search goes to a local stand-in (scripts/mock-openverse.mjs), started by the tests.
+  OPENVERSE_API_URL: "http://localhost:4191",
   // Fake OAuth client: tests check the redirect to Google, never call Google.
   GOOGLE_CLIENT_ID: "test-client.apps.googleusercontent.com",
   GOOGLE_CLIENT_SECRET: "test-only-google-secret",

@@ -1528,6 +1528,137 @@
                             "maxLength": 10000,
                             "default": ""
                           },
+                          "image": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "alt": {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "photo",
+                                  "generated"
+                                ]
+                              },
+                              "credit": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "source": {
+                                    "type": "string",
+                                    "enum": [
+                                      "openverse"
+                                    ]
+                                  },
+                                  "sourceId": {
+                                    "type": "string",
+                                    "maxLength": 100
+                                  },
+                                  "title": {
+                                    "type": "string",
+                                    "maxLength": 300
+                                  },
+                                  "creator": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "maxLength": 200
+                                  },
+                                  "license": {
+                                    "type": "string",
+                                    "enum": [
+                                      "cc0",
+                                      "pdm",
+                                      "by",
+                                      "by-sa"
+                                    ]
+                                  },
+                                  "licenseVersion": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "maxLength": 20
+                                  },
+                                  "licenseUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "maxLength": 500,
+                                    "format": "uri"
+                                  },
+                                  "sourceUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "maxLength": 1000,
+                                    "format": "uri"
+                                  },
+                                  "provider": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "maxLength": 100
+                                  }
+                                },
+                                "required": [
+                                  "source",
+                                  "sourceId",
+                                  "title",
+                                  "creator",
+                                  "license",
+                                  "licenseVersion",
+                                  "licenseUrl",
+                                  "sourceUrl",
+                                  "provider"
+                                ]
+                              },
+                              "generator": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "provider": {
+                                    "type": "string",
+                                    "enum": [
+                                      "openai"
+                                    ]
+                                  },
+                                  "model": {
+                                    "type": "string",
+                                    "maxLength": 100
+                                  }
+                                },
+                                "required": [
+                                  "provider",
+                                  "model"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "alt",
+                              "kind",
+                              "credit",
+                              "generator"
+                            ]
+                          },
                           "id": {
                             "type": "string",
                             "format": "uuid"
@@ -1919,6 +2050,137 @@
                     "maxLength": 10000,
                     "default": ""
                   },
+                  "image": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "alt": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "photo",
+                          "generated"
+                        ]
+                      },
+                      "credit": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "openverse"
+                            ]
+                          },
+                          "sourceId": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "title": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "creator": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 200
+                          },
+                          "license": {
+                            "type": "string",
+                            "enum": [
+                              "cc0",
+                              "pdm",
+                              "by",
+                              "by-sa"
+                            ]
+                          },
+                          "licenseVersion": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 20
+                          },
+                          "licenseUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 500,
+                            "format": "uri"
+                          },
+                          "sourceUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 1000,
+                            "format": "uri"
+                          },
+                          "provider": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 100
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "sourceId",
+                          "title",
+                          "creator",
+                          "license",
+                          "licenseVersion",
+                          "licenseUrl",
+                          "sourceUrl",
+                          "provider"
+                        ]
+                      },
+                      "generator": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "openai"
+                            ]
+                          },
+                          "model": {
+                            "type": "string",
+                            "maxLength": 100
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "model"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "alt",
+                      "kind",
+                      "credit",
+                      "generator"
+                    ]
+                  },
                   "id": {
                     "type": "string",
                     "format": "uuid"
@@ -2025,6 +2287,137 @@
                       "type": "string",
                       "maxLength": 10000,
                       "default": ""
+                    },
+                    "image": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "alt": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo",
+                            "generated"
+                          ]
+                        },
+                        "credit": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "openverse"
+                              ]
+                            },
+                            "sourceId": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "title": {
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            "creator": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 200
+                            },
+                            "license": {
+                              "type": "string",
+                              "enum": [
+                                "cc0",
+                                "pdm",
+                                "by",
+                                "by-sa"
+                              ]
+                            },
+                            "licenseVersion": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 20
+                            },
+                            "licenseUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 500,
+                              "format": "uri"
+                            },
+                            "sourceUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 1000,
+                              "format": "uri"
+                            },
+                            "provider": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "sourceId",
+                            "title",
+                            "creator",
+                            "license",
+                            "licenseVersion",
+                            "licenseUrl",
+                            "sourceUrl",
+                            "provider"
+                          ]
+                        },
+                        "generator": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "openai"
+                              ]
+                            },
+                            "model": {
+                              "type": "string",
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "model"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "alt",
+                        "kind",
+                        "credit",
+                        "generator"
+                      ]
                     },
                     "id": {
                       "type": "string",
@@ -2834,6 +3227,137 @@
                       "maxLength": 10000,
                       "default": ""
                     },
+                    "image": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "alt": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo",
+                            "generated"
+                          ]
+                        },
+                        "credit": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "openverse"
+                              ]
+                            },
+                            "sourceId": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "title": {
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            "creator": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 200
+                            },
+                            "license": {
+                              "type": "string",
+                              "enum": [
+                                "cc0",
+                                "pdm",
+                                "by",
+                                "by-sa"
+                              ]
+                            },
+                            "licenseVersion": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 20
+                            },
+                            "licenseUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 500,
+                              "format": "uri"
+                            },
+                            "sourceUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 1000,
+                              "format": "uri"
+                            },
+                            "provider": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "sourceId",
+                            "title",
+                            "creator",
+                            "license",
+                            "licenseVersion",
+                            "licenseUrl",
+                            "sourceUrl",
+                            "provider"
+                          ]
+                        },
+                        "generator": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "openai"
+                              ]
+                            },
+                            "model": {
+                              "type": "string",
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "model"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "alt",
+                        "kind",
+                        "credit",
+                        "generator"
+                      ]
+                    },
                     "id": {
                       "type": "string",
                       "format": "uuid"
@@ -3237,6 +3761,137 @@
                     "type": "string",
                     "maxLength": 10000,
                     "default": ""
+                  },
+                  "image": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "alt": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "photo",
+                          "generated"
+                        ]
+                      },
+                      "credit": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "openverse"
+                            ]
+                          },
+                          "sourceId": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "title": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "creator": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 200
+                          },
+                          "license": {
+                            "type": "string",
+                            "enum": [
+                              "cc0",
+                              "pdm",
+                              "by",
+                              "by-sa"
+                            ]
+                          },
+                          "licenseVersion": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 20
+                          },
+                          "licenseUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 500,
+                            "format": "uri"
+                          },
+                          "sourceUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 1000,
+                            "format": "uri"
+                          },
+                          "provider": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 100
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "sourceId",
+                          "title",
+                          "creator",
+                          "license",
+                          "licenseVersion",
+                          "licenseUrl",
+                          "sourceUrl",
+                          "provider"
+                        ]
+                      },
+                      "generator": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "openai"
+                            ]
+                          },
+                          "model": {
+                            "type": "string",
+                            "maxLength": 100
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "model"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "alt",
+                      "kind",
+                      "credit",
+                      "generator"
+                    ]
                   }
                 },
                 "required": [
@@ -3340,6 +3995,137 @@
                       "type": "string",
                       "maxLength": 10000,
                       "default": ""
+                    },
+                    "image": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "alt": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo",
+                            "generated"
+                          ]
+                        },
+                        "credit": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "openverse"
+                              ]
+                            },
+                            "sourceId": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "title": {
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            "creator": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 200
+                            },
+                            "license": {
+                              "type": "string",
+                              "enum": [
+                                "cc0",
+                                "pdm",
+                                "by",
+                                "by-sa"
+                              ]
+                            },
+                            "licenseVersion": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 20
+                            },
+                            "licenseUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 500,
+                              "format": "uri"
+                            },
+                            "sourceUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 1000,
+                              "format": "uri"
+                            },
+                            "provider": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "sourceId",
+                            "title",
+                            "creator",
+                            "license",
+                            "licenseVersion",
+                            "licenseUrl",
+                            "sourceUrl",
+                            "provider"
+                          ]
+                        },
+                        "generator": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "openai"
+                              ]
+                            },
+                            "model": {
+                              "type": "string",
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "model"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "alt",
+                        "kind",
+                        "credit",
+                        "generator"
+                      ]
                     },
                     "id": {
                       "type": "string",
@@ -5815,6 +6601,137 @@
                                   "type": "string",
                                   "maxLength": 10000,
                                   "default": ""
+                                },
+                                "image": {
+                                  "type": [
+                                    "object",
+                                    "null"
+                                  ],
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "format": "uuid"
+                                    },
+                                    "alt": {
+                                      "type": "string",
+                                      "maxLength": 200
+                                    },
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "photo",
+                                        "generated"
+                                      ]
+                                    },
+                                    "credit": {
+                                      "type": [
+                                        "object",
+                                        "null"
+                                      ],
+                                      "properties": {
+                                        "source": {
+                                          "type": "string",
+                                          "enum": [
+                                            "openverse"
+                                          ]
+                                        },
+                                        "sourceId": {
+                                          "type": "string",
+                                          "maxLength": 100
+                                        },
+                                        "title": {
+                                          "type": "string",
+                                          "maxLength": 300
+                                        },
+                                        "creator": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "maxLength": 200
+                                        },
+                                        "license": {
+                                          "type": "string",
+                                          "enum": [
+                                            "cc0",
+                                            "pdm",
+                                            "by",
+                                            "by-sa"
+                                          ]
+                                        },
+                                        "licenseVersion": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "maxLength": 20
+                                        },
+                                        "licenseUrl": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "maxLength": 500,
+                                          "format": "uri"
+                                        },
+                                        "sourceUrl": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "maxLength": 1000,
+                                          "format": "uri"
+                                        },
+                                        "provider": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "maxLength": 100
+                                        }
+                                      },
+                                      "required": [
+                                        "source",
+                                        "sourceId",
+                                        "title",
+                                        "creator",
+                                        "license",
+                                        "licenseVersion",
+                                        "licenseUrl",
+                                        "sourceUrl",
+                                        "provider"
+                                      ]
+                                    },
+                                    "generator": {
+                                      "type": [
+                                        "object",
+                                        "null"
+                                      ],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": [
+                                            "openai"
+                                          ]
+                                        },
+                                        "model": {
+                                          "type": "string",
+                                          "maxLength": 100
+                                        }
+                                      },
+                                      "required": [
+                                        "provider",
+                                        "model"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "alt",
+                                    "kind",
+                                    "credit",
+                                    "generator"
+                                  ]
                                 }
                               },
                               "required": [
@@ -6290,6 +7207,137 @@
                                 "type": "string",
                                 "maxLength": 10000,
                                 "default": ""
+                              },
+                              "image": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  "alt": {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "photo",
+                                      "generated"
+                                    ]
+                                  },
+                                  "credit": {
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
+                                    "properties": {
+                                      "source": {
+                                        "type": "string",
+                                        "enum": [
+                                          "openverse"
+                                        ]
+                                      },
+                                      "sourceId": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                      },
+                                      "title": {
+                                        "type": "string",
+                                        "maxLength": 300
+                                      },
+                                      "creator": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 200
+                                      },
+                                      "license": {
+                                        "type": "string",
+                                        "enum": [
+                                          "cc0",
+                                          "pdm",
+                                          "by",
+                                          "by-sa"
+                                        ]
+                                      },
+                                      "licenseVersion": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 20
+                                      },
+                                      "licenseUrl": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 500,
+                                        "format": "uri"
+                                      },
+                                      "sourceUrl": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 1000,
+                                        "format": "uri"
+                                      },
+                                      "provider": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 100
+                                      }
+                                    },
+                                    "required": [
+                                      "source",
+                                      "sourceId",
+                                      "title",
+                                      "creator",
+                                      "license",
+                                      "licenseVersion",
+                                      "licenseUrl",
+                                      "sourceUrl",
+                                      "provider"
+                                    ]
+                                  },
+                                  "generator": {
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
+                                    "properties": {
+                                      "provider": {
+                                        "type": "string",
+                                        "enum": [
+                                          "openai"
+                                        ]
+                                      },
+                                      "model": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                      }
+                                    },
+                                    "required": [
+                                      "provider",
+                                      "model"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "alt",
+                                  "kind",
+                                  "credit",
+                                  "generator"
+                                ]
                               },
                               "id": {
                                 "type": "string",
@@ -6821,6 +7869,137 @@
                                 "type": "string",
                                 "maxLength": 10000,
                                 "default": ""
+                              },
+                              "image": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  "alt": {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "photo",
+                                      "generated"
+                                    ]
+                                  },
+                                  "credit": {
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
+                                    "properties": {
+                                      "source": {
+                                        "type": "string",
+                                        "enum": [
+                                          "openverse"
+                                        ]
+                                      },
+                                      "sourceId": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                      },
+                                      "title": {
+                                        "type": "string",
+                                        "maxLength": 300
+                                      },
+                                      "creator": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 200
+                                      },
+                                      "license": {
+                                        "type": "string",
+                                        "enum": [
+                                          "cc0",
+                                          "pdm",
+                                          "by",
+                                          "by-sa"
+                                        ]
+                                      },
+                                      "licenseVersion": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 20
+                                      },
+                                      "licenseUrl": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 500,
+                                        "format": "uri"
+                                      },
+                                      "sourceUrl": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 1000,
+                                        "format": "uri"
+                                      },
+                                      "provider": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "maxLength": 100
+                                      }
+                                    },
+                                    "required": [
+                                      "source",
+                                      "sourceId",
+                                      "title",
+                                      "creator",
+                                      "license",
+                                      "licenseVersion",
+                                      "licenseUrl",
+                                      "sourceUrl",
+                                      "provider"
+                                    ]
+                                  },
+                                  "generator": {
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
+                                    "properties": {
+                                      "provider": {
+                                        "type": "string",
+                                        "enum": [
+                                          "openai"
+                                        ]
+                                      },
+                                      "model": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                      }
+                                    },
+                                    "required": [
+                                      "provider",
+                                      "model"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "alt",
+                                  "kind",
+                                  "credit",
+                                  "generator"
+                                ]
                               },
                               "id": {
                                 "type": "string",
@@ -8757,6 +9936,1085 @@
                     "usage"
                   ]
                 }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/photos/search": {
+      "get": {
+        "tags": [
+          "images"
+        ],
+        "summary": "Find openly licensed food photos from a description (Openverse)",
+        "description": "q is a plain description (\"grilled lemon chicken with rice\"), matched against photo titles, descriptions and tags. If the full description finds too little, its main words are tried. Results are ordered by how many of the description's words they mention. Only public domain, CC0, CC BY and CC BY-SA photos are returned. Online only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 200
+            },
+            "required": true,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Photos with license and attribution",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "openverse"
+                            ]
+                          },
+                          "sourceId": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "title": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "creator": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 200
+                          },
+                          "license": {
+                            "type": "string",
+                            "enum": [
+                              "cc0",
+                              "pdm",
+                              "by",
+                              "by-sa"
+                            ]
+                          },
+                          "licenseVersion": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 20
+                          },
+                          "licenseUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 500,
+                            "format": "uri"
+                          },
+                          "sourceUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 1000,
+                            "format": "uri"
+                          },
+                          "provider": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 100
+                          },
+                          "thumbnailUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "width": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "height": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "sourceId",
+                          "title",
+                          "creator",
+                          "license",
+                          "licenseVersion",
+                          "licenseUrl",
+                          "sourceUrl",
+                          "provider",
+                          "thumbnailUrl",
+                          "width",
+                          "height"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "results"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/images/import": {
+      "post": {
+        "tags": [
+          "images"
+        ],
+        "summary": "Copy an Openverse photo into your kitchen",
+        "description": "The server looks the photo up by its Openverse id (it never fetches a URL a client supplies), checks the license again, and downloads Openverse's resized copy. Credit and license are stored with it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "enum": [
+                      "openverse"
+                    ]
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "alt": {
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "source",
+                  "sourceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stored; attach it to a recipe by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "alt": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "photo",
+                        "generated"
+                      ]
+                    },
+                    "credit": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "openverse"
+                          ]
+                        },
+                        "sourceId": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "title": {
+                          "type": "string",
+                          "maxLength": 300
+                        },
+                        "creator": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 200
+                        },
+                        "license": {
+                          "type": "string",
+                          "enum": [
+                            "cc0",
+                            "pdm",
+                            "by",
+                            "by-sa"
+                          ]
+                        },
+                        "licenseVersion": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 20
+                        },
+                        "licenseUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 500,
+                          "format": "uri"
+                        },
+                        "sourceUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 1000,
+                          "format": "uri"
+                        },
+                        "provider": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceId",
+                        "title",
+                        "creator",
+                        "license",
+                        "licenseVersion",
+                        "licenseUrl",
+                        "sourceUrl",
+                        "provider"
+                      ]
+                    },
+                    "generator": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "openai"
+                          ]
+                        },
+                        "model": {
+                          "type": "string",
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "provider",
+                        "model"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "alt",
+                    "kind",
+                    "credit",
+                    "generator"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/images/generate": {
+      "post": {
+        "tags": [
+          "images"
+        ],
+        "summary": "Generate a photorealistic recipe image with your own OpenAI key",
+        "description": "Needs the AI companion with OpenAI connected. The image is labelled AI-generated wherever it is shown and is not an exact depiction.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 1000
+                  },
+                  "alt": {
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "prompt",
+                  "alt"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stored; attach it to a recipe by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "alt": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "photo",
+                        "generated"
+                      ]
+                    },
+                    "credit": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "openverse"
+                          ]
+                        },
+                        "sourceId": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "title": {
+                          "type": "string",
+                          "maxLength": 300
+                        },
+                        "creator": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 200
+                        },
+                        "license": {
+                          "type": "string",
+                          "enum": [
+                            "cc0",
+                            "pdm",
+                            "by",
+                            "by-sa"
+                          ]
+                        },
+                        "licenseVersion": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 20
+                        },
+                        "licenseUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 500,
+                          "format": "uri"
+                        },
+                        "sourceUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 1000,
+                          "format": "uri"
+                        },
+                        "provider": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceId",
+                        "title",
+                        "creator",
+                        "license",
+                        "licenseVersion",
+                        "licenseUrl",
+                        "sourceUrl",
+                        "provider"
+                      ]
+                    },
+                    "generator": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "openai"
+                          ]
+                        },
+                        "model": {
+                          "type": "string",
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "provider",
+                        "model"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "alt",
+                    "kind",
+                    "credit",
+                    "generator"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/images/{id}": {
+      "get": {
+        "tags": [
+          "images"
+        ],
+        "summary": "An image you stored (owner only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image bytes",
+            "content": {
+              "image/webp": {
+                "schema": {}
+              },
+              "image/jpeg": {
+                "schema": {}
+              },
+              "image/png": {
+                "schema": {}
               }
             }
           },

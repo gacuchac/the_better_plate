@@ -20,11 +20,55 @@ export const RecipeIngredientSchema = z.object({
   oilDiscardedGrams: z.number().min(0).max(100_000).nullable().optional(),
 });
 
+// ---------- recipe photos: openly licensed photos or images generated on the person's key ----------
+
+/** Licenses a photo may carry: public domain, CC0, CC BY, CC BY-SA. Anything else is never offered. */
+export const PhotoLicenseSchema = z.enum(["cc0", "pdm", "by", "by-sa"]);
+
+export const PhotoCreditSchema = z.object({
+  source: z.literal("openverse"),
+  sourceId: z.string().max(100),
+  title: trimmed(300),
+  creator: trimmed(200).nullable(),
+  license: PhotoLicenseSchema,
+  licenseVersion: trimmed(20).nullable(),
+  licenseUrl: z.url().max(500).nullable(),
+  sourceUrl: z.url().max(1000).nullable(),
+  provider: trimmed(100).nullable(),
+});
+
+/**
+ * Attached to a recipe. Credit and generator come from the server's own record of the image
+ * (the server overwrites whatever a client sends), so attribution can't be forged.
+ */
+export const RecipeImageSchema = z.object({
+  id: z.uuid(),
+  alt: trimmed(200),
+  kind: z.enum(["photo", "generated"]),
+  credit: PhotoCreditSchema.nullable(),
+  generator: z.object({ provider: z.literal("openai"), model: z.string().max(100) }).nullable(),
+});
+
 export const RecipeBodySchema = z.object({
   title: trimmed(120).min(1, "Give the recipe a name"),
   servings: z.number().positive().max(100),
   ingredients: z.array(RecipeIngredientSchema).max(MAX_INGREDIENTS),
   method: trimmed(10_000).default(""),
+  image: RecipeImageSchema.nullable().optional(),
+});
+
+export const PhotoSearchResultSchema = PhotoCreditSchema.extend({
+  /** Preview served by Openverse; the app loads it with no referrer. */
+  thumbnailUrl: z.url(),
+  width: z.number().nullable(),
+  height: z.number().nullable(),
+});
+export const PhotoSearchResponseSchema = z.object({ results: z.array(PhotoSearchResultSchema) });
+export const PhotoImportSchema = z.object({ source: z.literal("openverse"), sourceId: z.string().min(1).max(100), alt: trimmed(200).optional() });
+export const ImageGenerateSchema = z.object({
+  /** What to draw; the app builds it from the recipe, the person can edit it. */
+  prompt: trimmed(1000).min(3),
+  alt: trimmed(200),
 });
 
 export const NutrientTotalSchema = z.object({
@@ -231,6 +275,8 @@ export const ErrorSchema = z.object({
 
 export type RecipeIngredientInput = z.infer<typeof RecipeIngredientSchema>;
 export type RecipeBody = z.infer<typeof RecipeBodySchema>;
+export type RecipeImage = z.infer<typeof RecipeImageSchema>;
+export type PhotoSearchResult = z.infer<typeof PhotoSearchResultSchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type RecipeNutritionDto = z.infer<typeof RecipeNutritionSchema>;
 export type MealSlot = z.infer<typeof MealSlotSchema>;

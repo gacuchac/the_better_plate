@@ -127,6 +127,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (prev && prev.id !== me.id) {
           void deleteUserDb(prev.id);
           clearTargets(prev.id);
+      if (typeof caches !== "undefined") void caches.delete("recipe-images").catch(() => false);
+          if (typeof caches !== "undefined") void caches.delete("recipe-images").catch(() => false);
         }
         localStorage.setItem(ACCOUNT_KEY, JSON.stringify(me));
         setAccountState(me);
@@ -192,6 +194,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (prev && prev.id !== me.id) {
       void deleteUserDb(prev.id);
       clearTargets(prev.id);
+      if (typeof caches !== "undefined") void caches.delete("recipe-images").catch(() => false);
     }
     localStorage.setItem(ACCOUNT_KEY, JSON.stringify(me));
     setAccountState(me);
@@ -205,6 +208,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAccountState(null);
     setEngine(null);
     endSession();
+    // Recipe images cached for offline use go with the account.
+    if (typeof caches !== "undefined") await caches.delete("recipe-images").catch(() => false);
     // Personal records leave the device with the account; the shared catalog stays.
     if (id) {
       clearTargets(id);

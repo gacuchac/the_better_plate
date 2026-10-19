@@ -497,3 +497,25 @@ body.companion-open .report-btn { display: none; }
 .ai-provider form { display: grid; gap: 8px; }
 .ai-limit { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .ai-limit input { width: 120px; }
+
+/* ---------- recipe photos ---------- */
+.recipe-thumb { object-fit: cover; padding: 0; }
+.photo-add { margin: 12px 0 4px; display: inline-flex; align-items: center; gap: 8px; }
+.photo-block { margin: 12px 0 4px; }
+.recipe-photo { margin: 0; }
+.recipe-photo img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
+.recipe-photo.compact img { aspect-ratio: 16 / 9; }
+.photo-credit { color: var(--ink-3); font-size: 0.75rem; margin-top: 6px; line-height: 1.4; }
+.photo-credit .tag { margin-left: 0; }
+.photo-actions { display: flex; gap: 12px; }
+.photo-search { display: grid; gap: 6px; }
+.photo-search-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.photo-search .fine { margin-top: 2px; }
+.photo-grid { list-style: none; padding: 0; margin: 12px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.photo-grid button { display: grid; gap: 4px; width: 100%; padding: 0 0 8px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: pointer; font: inherit; }
+.photo-grid button:hover { border-color: var(--sage); }
+.photo-grid img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--surface-2); }
+.photo-grid .photo-title, .photo-grid small { padding: 0 8px; }
+.photo-grid .photo-title { font-size: 0.8125rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.photo-grid small { color: var(--ink-3); font-size: 0.75rem; }
+.photo-generate { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; }

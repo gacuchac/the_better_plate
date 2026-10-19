@@ -33,11 +33,18 @@ export default defineConfig({
         icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" }],
       },
       workbox: {
-        // App shell only. Personal data lives in IndexedDB, never in the service worker cache.
+        // App shell, plus the person's recipe images so they show offline. Other personal data lives in
+        // IndexedDB; the image cache is deleted on sign-out with it.
         globPatterns: ["**/*.{js,css,html,svg,webmanifest,woff2}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/v1\//, /^\/s\//],
-        runtimeCaching: [],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url, request }) => request.method === "GET" && /^\/v1\/images\/[0-9a-f-]{36}$/.test(url.pathname),
+            handler: "CacheFirst",
+            options: { cacheName: "recipe-images", expiration: { maxEntries: 200 }, cacheableResponse: { statuses: [200] } },
+          },
+        ],
       },
     }),
   ],

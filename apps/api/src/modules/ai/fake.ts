@@ -50,6 +50,20 @@ function plan(message: string, done: { name: string; output: unknown }[]): Block
   // The device's date from the app context, so "today" matches the person's time zone.
   const today = /"today":"(\d{4}-\d{2}-\d{2})"/.exec(message)?.[1] ?? new Date().toISOString().slice(0, 10);
 
+  if (/photo|foto/i.test(text)) {
+    if (step === 0) return [call("list_recipes", {})];
+    const recipe = (done[0]!.output as { recipes?: { id: string; title: string }[] }).recipes?.[0];
+    if (!recipe) return [{ type: "text", text: "You have no recipes yet." }];
+    if (step === 1) return [call("find_photos", { description: "grilled chicken" })];
+    if (step === 2) {
+      const photo = (last?.photos as { sourceId: string }[] | undefined)?.[0];
+      if (!photo) return [{ type: "text", text: "I found no openly licensed photo." }];
+      return [call("set_recipe_photo", { recipeId: recipe.id, sourceId: photo.sourceId })];
+    }
+    if (step === 3) return [call("navigate", { screen: "recipe", recipeId: recipe.id })];
+    return [{ type: "text", text: "I added an openly licensed photo with its credit." }];
+  }
+
   if (/recipe|receta/i.test(text)) {
     if (step === 0) return [{ type: "text", text: "Let me find chicken in your foods." }, call("search_foods", { query: "chicken breast raw" })];
     if (step === 1) {

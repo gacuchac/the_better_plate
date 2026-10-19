@@ -1,4 +1,5 @@
 import { useAiSettings } from "./Companion.tsx";
+import { imageUrl } from "../api.ts";
 import { useEffect, useMemo, useState } from "react";
 import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
 import { ApiRequestError, api } from "../api.ts";
@@ -112,9 +113,13 @@ function RecipeCard({ recipe }: { recipe: LocalRecipe }) {
   return (
     <li>
       <a className="recipe-card" href={`#/recipe/${recipe.id}`} data-testid="recipe-card">
-        <span className="monogram" aria-hidden="true">
-          {recipe.body.title.trim().charAt(0).toUpperCase() || "?"}
-        </span>
+        {recipe.body.image ? (
+          <img className="monogram recipe-thumb" src={imageUrl(recipe.body.image.id)} alt="" loading="lazy" crossOrigin="use-credentials" />
+        ) : (
+          <span className="monogram" aria-hidden="true">
+            {recipe.body.title.trim().charAt(0).toUpperCase() || "?"}
+          </span>
+        )}
         <span className="recipe-title">{recipe.body.title}</span>
         <span className="recipe-meta">
           {servings}

@@ -408,7 +408,7 @@ export class SyncEngine {
 export function fromServer(r: Recipe): LocalRecipe {
   return {
     id: r.id,
-    body: { title: r.title, servings: r.servings, ingredients: r.ingredients, method: r.method },
+    body: { title: r.title, servings: r.servings, ingredients: r.ingredients, method: r.method, image: r.image ?? null },
     serverVersion: r.version,
     state: "synced",
     updatedAt: r.updatedAt,

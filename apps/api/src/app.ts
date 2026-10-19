@@ -18,6 +18,7 @@ import { mealRoutes } from "./modules/meals.ts";
 import { sharePageRoutes, shareRoutes } from "./modules/shares.ts";
 import { syncRoutes } from "./modules/sync.ts";
 import { aiRoutes, MAX_TURN_BYTES } from "./modules/ai/routes.ts";
+import { imageRoutes } from "./modules/images.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -90,6 +91,7 @@ export function createApp() {
   app.route("/", shareRoutes);
   app.route("/", syncRoutes);
   app.route("/", aiRoutes);
+  app.route("/", imageRoutes);
   app.route("/", accountRoutes);
   app.route("/", devRoutes);
 

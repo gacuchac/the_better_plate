@@ -14,6 +14,9 @@
 | AI provider keys (encrypted with AES-256-GCM, last four characters in clear), chosen model, active provider, daily limit | `ai_credentials`, `ai_settings` | Optional AI companion on the person's own key | Until the person disconnects the provider or deletes the account; keys are never exported, logged or sent to the browser |
 | AI usage: requests and tokens per day | `ai_usage` | Daily limit and cost visibility | Until account deletion; included in the export |
 | Companion messages and what its tools read (recipes, foods, meals of a day) | Sent to the provider the person chose, under their own key and that provider's terms; kept only in the open tab's memory | Optional AI companion | Not stored by The Better Plate; gone when the tab closes, on New chat or sign-out |
+| Recipe images: image bytes, license credit (photos) or provider and model (generated) | `recipe_images` | Photos on the person's recipes | Until account deletion; images no live recipe uses are deleted after 7 days by the daily job; included in the export |
+| Recipe images cached for offline | Service worker cache `recipe-images` | Show photos offline | Deleted on sign-out or account switch |
+| Photo search descriptions and previews | Sent to Openverse (search text by our server; previews load from Openverse in the browser, no referrer) | Finding openly licensed photos | Not stored by The Better Plate |
 | Sync operation ledger | `sync_operations` | Idempotency | 30 days (daily maintenance job), or account deletion |
 | Privacy notice agreements (notice version, adult confirmation, time) | `consent_events` | Record of consent | Until account deletion; included in the data export |
 | Recipes, plans, eaten logs, outbox, sync cursor | Browser IndexedDB `betterplate-user-<id>` | Offline use | Deleted on sign-out or when another account signs in |
