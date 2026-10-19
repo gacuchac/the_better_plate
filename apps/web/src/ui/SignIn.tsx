@@ -3,6 +3,7 @@ import { api, ApiRequestError, NetworkError } from "../api.ts";
 import { useApp } from "../store.tsx";
 import { Icon } from "./icons.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
+import { rememberConnect } from "./Connect.tsx";
 import { t as translate, useT } from "../i18n.ts";
 
 export function SignIn() {
@@ -32,6 +33,7 @@ export function SignIn() {
     setError(null);
     try {
       const { url } = await api.googleSignIn(`${location.origin}/`);
+      rememberConnect();
       location.assign(url);
     } catch (err) {
       setError(describe(err, t("signin.googleUnavailable")));

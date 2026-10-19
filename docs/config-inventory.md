@@ -25,6 +25,7 @@ Living registry of every runtime and CI setting. **Last revised:** 2026-10-19 (M
 | `USDA_FDC_API_KEY` | api.data.gov key for online food search/lookup. Not needed for the bulk-download starter catalog. | api, jobs | secret | dev, production | owner (preflight S6) | `GET /foods/search?query=apple` returns 200 with the key. Public exposure gets the key deactivated, so server-only. |
 | `FEATURE_CHEF_ENABLED` | Server-enforced kill switch for chef commerce; database flags cannot override it to ON. | api | server | none (`false`) | default | Must be `false` in production until owner approval; flag-off penetration tests run in CI. |
 | `FEATURE_AI_COMPANION_ENABLED` | Enables the BYOK AI companion routes (ADR-005). | api | server | local, test, dev (`true`); production `false` | default / agent (dev) | When `true` outside local/test, startup requires `BYOK_ENCRYPTION_KEY`. |
+| `FEATURE_MCP_CONNECTOR_ENABLED` | Enables the Claude/ChatGPT connector: OAuth authorization server under `/v1/auth/oauth2/*`, discovery documents and the MCP endpoint `/mcp` (ADR-007). | api | server | local, test, dev (`true`); production `false` | default / agent (dev) | `GET /.well-known/oauth-protected-resource/mcp` returns 200 when on, 404 when off. Needs `PUBLIC_API_URL` and `PUBLIC_APP_URL` to be the real public origins (issuer, resource and consent page are built from them). |
 | `OPENAI_HOUSE_API_KEY` | Owner's OpenAI key for the included companion (people without their own key). | api | secret | dev now; production only after owner approval | **owner** (sets it in Railway; never in chat or files) | Empty = off. Use a dedicated OpenAI project with a monthly budget limit; that limit is the hard stop. |
 | `AI_HOUSE_MODEL` | Model on the included key. | api | server | any | default `gpt-6-luna` | Must be a chat model with tool calling on that key. |
 | `AI_HOUSE_ALLOWED_EMAILS` | Who may use the included companion. | api | server | any | owner | Comma-separated emails; `*` = every signed-in account; empty = nobody. |
@@ -67,6 +68,7 @@ Living registry of every runtime and CI setting. **Last revised:** 2026-10-19 (M
 | `USDA_FDC_API_KEY` | empty (DEMO_KEY) or owner key in local `.env` | empty; tests use labeled fixtures | owner key | owner key |
 | `FEATURE_CHEF_ENABLED` | `false` (may be `true` locally with fake providers) | both values tested | `false` (staged allowlist only) | `false` |
 | `FEATURE_AI_COMPANION_ENABLED` | `true` | `true` (both values tested) | `true` | `false` until released |
+| `FEATURE_MCP_CONNECTOR_ENABLED` | `true` | `true` (both values tested) | `true` | `false` until released |
 
 ## Deferred (no variable until an ADR decides)
 

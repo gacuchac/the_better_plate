@@ -101,6 +101,11 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     expect(tokens.access_token.split(".")).toHaveLength(3);
     expect(tokens.expires_in).toBeLessThanOrEqual(900);
     expect(tokens.refresh_token).toBeTruthy();
+
+    // The person's data export lists the connection, never the tokens.
+    const exported = await (await alice.request("/v1/me/export")).json();
+    expect(exported.connectedApps).toEqual([expect.objectContaining({ name: "Claude", redirectUris: [REDIRECT], scopes: expect.arrayContaining(["kitchen:write"]) })]);
+    expect(JSON.stringify(exported)).not.toContain(tokens.access_token.slice(-20));
   });
 
   it("lists the kitchen tools and builds, plans and logs a recipe that the app then syncs", async () => {

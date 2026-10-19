@@ -6,6 +6,7 @@ import { useT } from "../i18n.ts";
 import { useApp } from "../store.tsx";
 import { publishAiSettings } from "./Companion.tsx";
 import { EmptyState } from "./common.tsx";
+import { ConnectedApps } from "./Connect.tsx";
 
 const NAMES: Record<AiProvider, string> = { anthropic: "Anthropic (Claude)", openai: "OpenAI (ChatGPT)" };
 const KEY_PAGES: Record<AiProvider, string> = {
@@ -64,6 +65,7 @@ export function AiSettings() {
       <div className="screen">
         {head}
         {state === "loading" ? <p className="hint">{t("common.loading")}</p> : <EmptyState title={t(state === "unavailable" ? "ai.unavailable" : "ai.offline")} />}
+        {state === "unavailable" && <ConnectedApps />}
       </div>
     );
   }
@@ -160,6 +162,8 @@ export function AiSettings() {
           </p>
         </section>
       )}
+
+      <ConnectedApps />
 
       {error && (
         <p className="error" role="alert">

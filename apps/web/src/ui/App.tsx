@@ -15,6 +15,7 @@ import { SignIn } from "./SignIn.tsx";
 import { Targets } from "./Targets.tsx";
 import { AiSettings } from "./AiSettings.tsx";
 import { Companion, CompanionButton } from "./Companion.tsx";
+import { ConnectConsent, ResumeConnect, takePendingConnect } from "./Connect.tsx";
 import { useT, type MessageKey } from "../i18n.ts";
 
 const NAV: { path: string; label: MessageKey; icon: IconName }[] = [
@@ -30,6 +31,13 @@ export function App() {
   const t = useT();
 
   useEffect(() => trackRoute(route), [route]);
+
+  // Back from a full-page sign-in (Google) in the middle of connecting an assistant.
+  useEffect(() => {
+    if (!account) return;
+    const pending = takePendingConnect();
+    if (pending) navigate(pending);
+  }, [account]);
 
   useEffect(() => {
     if (route === "/create") navigate(`/recipe/${crypto.randomUUID()}`);
@@ -71,6 +79,17 @@ export function App() {
       <>
         <ConsentScreen />
         <ReportIssue route="/consent" />
+      </>
+    );
+  }
+
+  // An assistant (Claude, ChatGPT) asking to connect; sign-in above comes first when needed.
+  const connectMatch = /^\/connect(\/login)?\?(.+)$/.exec(route);
+  if (connectMatch) {
+    return (
+      <>
+        {connectMatch[1] ? <ResumeConnect query={connectMatch[2]!} /> : <ConnectConsent query={connectMatch[2]!} />}
+        <ReportIssue route="/connect" />
       </>
     );
   }

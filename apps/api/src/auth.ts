@@ -72,7 +72,7 @@ export const authOptions = {
     // Lets Claude, ChatGPT and other MCP clients sign in to The Better Plate (OAuth 2.1 with PKCE,
     // dynamic client registration) and act in the person's kitchen with the scopes they approve.
     oauthProvider({
-      loginPage: `${config.publicAppUrl}/#/connect`,
+      loginPage: `${config.publicAppUrl}/#/connect/login`,
       consentPage: `${config.publicAppUrl}/#/connect`,
       scopes: ["openid", "profile", "email", "offline_access", ...CONNECTOR_SCOPES],
       allowDynamicClientRegistration: true,
