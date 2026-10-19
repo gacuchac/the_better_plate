@@ -1,5 +1,6 @@
 import type { MealLog, MealLogBody, PlannedMeal, PlannedMealBody, Recipe, RecipeBody, SyncOperation, SyncResult } from "@betterplate/contracts";
 import { MAX_SYNC_OPS } from "@betterplate/contracts";
+import { track } from "./activity.ts";
 import { ApiRequestError, NetworkError, api } from "./api.ts";
 import type { LocalLog, LocalPlan, LocalRecipe, OutboxOp, UserDatabase } from "./localdb.ts";
 
@@ -76,6 +77,7 @@ export class SyncEngine {
     };
     await tx.objectStore("recipes").put(record);
     await tx.done;
+    track("Saved a recipe on this device");
     this.setStatus("saved-local");
     this.schedule();
     return record;
@@ -146,6 +148,7 @@ export class SyncEngine {
       await tx.objectStore("plans").put({ ...existing, deleted: true, state: "pending", updatedAt: now() });
     }
     await tx.done;
+    track("Removed a planned meal");
     this.changed();
   }
 
@@ -156,12 +159,14 @@ export class SyncEngine {
     await tx.objectStore("outbox").put(this.op(id, "log.create", null, body));
     await tx.objectStore("logs").put({ id, body, state: "pending", createdAt: now() });
     await tx.done;
+    track("Marked a meal as eaten");
     this.changed();
     return id;
   }
 
   /** Retracts a log ("I didn't eat this"). An unsent log is simply dropped. */
   async deleteLog(id: string): Promise<void> {
+    track("Removed a meal from eaten");
     const tx = this.db.transaction(["logs", "outbox"], "readwrite");
     const existing = await tx.objectStore("logs").get(id);
     const ops = await tx.objectStore("outbox").index("byEntity").getAll(id);
@@ -284,6 +289,7 @@ export class SyncEngine {
       this.lastSyncedAt = now();
       this.setStatus(attention ? "attention" : pending ? "saved-local" : "synced");
     } catch (err) {
+      track(err instanceof NetworkError ? "Sync paused: no connection" : "Sync failed");
       if (err instanceof ApiRequestError && err.status === 401) this.setStatus("signed-out");
       else if (err instanceof NetworkError) this.setStatus("offline");
       else this.setStatus("attention");

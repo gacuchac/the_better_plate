@@ -218,7 +218,7 @@ export function You() {
       </header>
       <dl className="facts">
         <dt>Email</dt>
-        <dd data-testid="account-email">{account?.email}</dd>
+        <dd data-testid="account-email" data-private>{account?.email}</dd>
         <dt>Sync</dt>
         <dd>{online ? status.replace("-", " ") : "offline"}{engine?.lastSyncedAt ? `, last checked ${new Date(engine.lastSyncedAt).toLocaleTimeString()}` : ""}</dd>
       </dl>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fahrenheitToCelsius, SAFE_TEMPERATURE_SOURCE, safetyRuleFor, splitSteps, stepTimerSeconds, type SafetyRule } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp } from "../store.tsx";
@@ -87,7 +87,7 @@ function SafetyCard({ rules }: { rules: { rule: SafetyRule; foods: string[] }[] 
   );
 }
 
-export function Cook({ id }: { id: string }) {
+export function Cook({ id, report }: { id: string; report?: ReactNode }) {
   const { engine, catalog } = useApp();
   const [recipe, setRecipe] = useState<LocalRecipe | null | undefined>(undefined);
   const [index, setIndex] = useState(0);
@@ -135,7 +135,10 @@ export function Cook({ id }: { id: string }) {
         <a className="cook-exit" href={exit}>
           <Icon name="close" /> Exit
         </a>
-        <div className="cook-muted">{index === 0 ? "Before you start" : `Step ${index} of ${total}`}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="cook-muted">{index === 0 ? "Before you start" : `Step ${index} of ${total}`}</div>
+          {report}
+        </div>
       </div>
       {total > 0 && (
         <div className="cook-progress" aria-hidden="true">

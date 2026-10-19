@@ -72,6 +72,9 @@ importers:
       '@fontsource-variable/plus-jakarta-sans':
         specifier: ^5.3.0
         version: 5.3.0
+      html-to-image:
+        specifier: 1.11.11
+        version: 1.11.11
       idb:
         specifier: ^8.0.4
         version: 8.0.4
@@ -1830,6 +1833,9 @@ packages:
   hono@4.13.13:
     resolution: {integrity: sha512-CQ46U0ZkAGmbT/4UxdzzGJpacP2IeKgY4a5/tOI9AABbpOMfK739wfDXmv1usCk+3RkKj1hQy4/fjhiwa2xlrA==}
     engines: {node: '>=16.9.0'}
+
+  html-to-image@1.11.11:
+    resolution: {integrity: sha512-9gux8QhvjRO/erSnDPv28noDZcPZmYE7e1vFsBLKLlRlKDSqNJYebj6Qz1TGd5lsRV+X+xYyjCKjuZdABinWjA==}
 
   idb@7.1.1:
     resolution: {integrity: sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==}
@@ -4425,6 +4431,8 @@ snapshots:
       function-bind: 1.1.2
 
   hono@4.13.13: {}
+
+  html-to-image@1.11.11: {}
 
   idb@7.1.1: {}
 

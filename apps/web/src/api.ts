@@ -1,5 +1,6 @@
 import type { Recipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
+import { trackFailedRequest } from "./activity.ts";
 import { API_URL } from "./env.ts";
 
 export class ApiRequestError extends Error {
@@ -27,10 +28,27 @@ async function request<T>(path: string, init: RequestInit & { json?: unknown } =
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    trackFailedRequest(res.headers.get("x-request-id"));
     const e = (data as { error?: { code?: string; message?: string; requestId?: string } }).error ?? {};
     throw new ApiRequestError(res.status, e.code ?? `http_${res.status}`, e.message ?? data?.message ?? res.statusText, e.requestId);
   }
   return data as T;
+}
+
+export interface FeedbackReport {
+  id: string;
+  kind: "bug" | "feedback" | "suggestion";
+  message: string;
+  activity: { at: string; event: string }[];
+  context: {
+    route: string;
+    appVersion: string;
+    deviceClass: "phone" | "tablet" | "desktop";
+    online: boolean;
+    requestIds: string[];
+    error: { message: string; stack?: string } | null;
+  };
+  screenshot: string | null;
 }
 
 export interface Me {
@@ -66,4 +84,5 @@ export const api = {
   syncBatch: (body: SyncBatchRequest) => request<SyncBatchResponse>("/v1/sync/batch", { method: "POST", json: body }),
   changes: (cursor: string) => request<SyncChangesResponse>(`/v1/sync/changes?cursor=${encodeURIComponent(cursor)}&limit=200`),
   recipe: (id: string) => request<Recipe>(`/v1/recipes/${id}`),
+  feedback: (report: FeedbackReport) => request<{ id: string; receivedAt: string; duplicate: boolean }>("/v1/feedback", { method: "POST", json: report }),
 };

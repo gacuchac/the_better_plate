@@ -42,7 +42,8 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.8 | BYOK AI companion, image generation | — | — | not-started (later) |
 | §2.9 | Recipe share links | — | — | not-started |
 | §2.10 | Chef module OFF with server enforcement | `/v1/chef/*` kill switch, config refuses ON in production | API "keeps unreleased chef features off" | verified (module itself not-started) |
-| §2.11 | Report issue on every screen, activity trail, screenshots, offline queue | — | — | not-started (next slice) |
+| §2.11 | Report issue on every screen (incl. sign-in and cook mode): bug / feedback / suggestion, readable removable recent steps, optional previewed screenshot with typed text hidden, request ids, sanitized error, offline queue with idempotent retry | `modules/feedback.ts`, `004_feedback.sql`, `ui/ReportIssue.tsx`, `activity.ts`, `feedbackQueue.ts` | API "issue reports" (4 tests); E2E "report an issue…" (sent + offline queue) | verified |
+| §2.11 | Admin triage of reports (statuses exist in schema), admin console | — | — | not-started (needs admin role and MFA) |
 | §2.11 | Correlation IDs, structured errors, structured logs | `X-Request-Id`, `errorBody`, JSON logs | API "structured errors with a request id" | verified |
 | §3 | OpenAPI 3.1 checked in, `/v1`, runtime validation | `apps/api/openapi.json` | API "checked-in OpenAPI document matches" | verified |
 | §3 | Typed client library generated from OpenAPI | shared zod contracts used by web | — | implemented-unverified (no generated client yet) |

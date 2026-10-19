@@ -299,3 +299,54 @@ test("cook mode shows your steps one at a time, timers, and cited safe temperatu
   await page.getByRole("link", { name: "Done" }).click();
   await expect(page.getByLabel("Recipe name")).toHaveValue("Seared chicken");
 });
+
+test("report an issue from any screen: readable steps, previewed screenshot, offline queue", async ({ page, context }, info) => {
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Report an issue" })).toBeVisible();
+  await signIn(page, newEmail("report"));
+  await page.getByTestId("today-card").click();
+  await expect(page.getByTestId("eaten-card")).toBeVisible();
+
+  await page.getByRole("button", { name: "Report an issue" }).click();
+  const sheet = page.getByRole("dialog", { name: "Report an issue" });
+  await expect(sheet.getByTestId("report-steps")).toContainText("Opened Meals");
+  await sheet.getByLabel("What happened?").fill("The day total looks wrong");
+  await sheet.getByLabel("Include a screenshot of this screen").check();
+  await expect(sheet.getByRole("img", { name: /Screenshot that will be sent/ })).toBeVisible();
+  await shot(page, info, "report-sheet", "Report: readable recent steps (removable) and screenshot preview with typed text hidden");
+
+  const sent = page.waitForResponse((r) => r.url().endsWith("/v1/feedback") && r.request().method() === "POST");
+  await sheet.getByRole("button", { name: "Send report" }).click();
+  const res = await sent;
+  expect(res.status()).toBe(201);
+  const payload = res.request().postDataJSON();
+  expect(payload).toMatchObject({ kind: "bug", message: "The day total looks wrong", context: { route: "/meals" } });
+  expect(payload.screenshot).toMatch(/^data:image\/jpeg;base64,/);
+  expect(payload.activity.map((a: { event: string }) => a.event)).toContain("Opened Meals");
+  await expect(page.getByTestId("report-done")).toContainText("Your report was sent");
+  await page.getByRole("button", { name: "Done" }).click();
+
+  // Offline: the approved report waits on this device and is sent on reconnect.
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "Report an issue" }).click();
+  await page.getByLabel("What happened?").fill("Sent while offline");
+  await page.getByRole("button", { name: "Send report" }).click();
+  await expect(page.getByTestId("report-done")).toContainText("saved on this device");
+  await shot(page, info, "report-queued-offline", "Offline report saved on this device until reconnect");
+  await page.getByRole("button", { name: "Done" }).click();
+  const flushed = page.waitForResponse((r) => r.url().endsWith("/v1/feedback") && r.request().method() === "POST");
+  await context.setOffline(false);
+  expect((await flushed).status()).toBe(201);
+});
+
+test("recipe names with markup are shown as text, never run", async ({ page }, info) => {
+  await signIn(page, newEmail("xss"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  const evil = `<img src=x onerror="window.__xss=1">Soup`;
+  await page.getByLabel("Recipe name").fill(evil);
+  await saveAndSync(page);
+  await page.getByRole("link", { name: "Back to Kitchen" }).click();
+  await expect(page.getByTestId("recipe-card")).toContainText(evil);
+  expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
+  await shot(page, info, "xss-name-as-text", "Markup in a recipe name is displayed literally");
+});
