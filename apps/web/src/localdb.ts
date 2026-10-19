@@ -6,7 +6,7 @@ import type { CatalogBundle } from "./api.ts";
  * Local-first storage.
  * - One personal database per account ("betterplate-user-<id>"), deleted on sign-out, so
  *   records never leak between accounts on a shared device.
- * - One shared, non-personal catalog database for the USDA starter foods.
+ * - One shared, non-personal catalog database for the USDA foods.
  */
 
 export type RecipeSyncState = "pending" | "synced" | "conflict" | "rejected";

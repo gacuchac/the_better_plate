@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Build the versioned starter food catalog from USDA FoodData Central.
+"""Build the versioned food catalog from USDA FoodData Central (all of SR Legacy).
 
-Reads exact SR Legacy descriptions from starter_foods.txt, resolves each to an
-FDC ID through the official search API (exact case-insensitive match only),
-fetches full records in batches and writes a normalized, source-attributed
-snapshot to data/catalog/starter-catalog.json plus a human-readable report.
+Lists every SR Legacy food through the official API (/foods/list), fetches the
+full records in batches and writes a normalized, source-attributed snapshot to
+data/catalog/starter-catalog.json plus a human-readable report.
 
-Nothing is guessed: descriptions without an exact match are listed in the
-report and left out. Values are copied from USDA per 100 g as published.
+Nothing is guessed: values are copied from USDA per 100 g as published, and a
+nutrient USDA does not report is left out (not reported is not zero).
 
 Usage:
   python3 scripts/usda/import_starter.py            # uses USDA_FDC_API_KEY / USDA_API_KEY / DEMO_KEY
   python3 scripts/usda/import_starter.py --check    # verify snapshot integrity offline
 
-Stdlib only, so it runs anywhere Python 3.10+ exists.
+About 430 API calls, within the 1,000/hour limit of a free api.data.gov key
+(DEMO_KEY is too limited). Stdlib only, so it runs anywhere Python 3.10+ exists.
 """
 
 from __future__ import annotations
@@ -22,7 +22,6 @@ import argparse
 import hashlib
 import json
 import os
-import re
 import sys
 import time
 import urllib.error
@@ -31,13 +30,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-LIST_FILE = Path(__file__).with_name("starter_foods.txt")
 OUT_FILE = ROOT / "data" / "catalog" / "starter-catalog.json"
 REPORT_FILE = ROOT / "data" / "catalog" / "IMPORT_REPORT.md"
 
 DATA_TYPE = "SR Legacy"
-BATCH_SIZE = 20
-FDP_SUFFIX = "(Includes foods for USDA's Food Distribution Program)"
+BATCH_SIZE = 20  # /foods accepts at most 20 ids per call
+LIST_PAGE_SIZE = 200  # /foods/list maximum
+# SR Legacy is frozen at 7,793 foods (April 2018). Far fewer means a truncated run.
+MIN_EXPECTED_FOODS = 7000
 
 # Nutrients carried into the catalog, keyed by FDC nutrient id.
 # key: stable app nutrient key; FDC ids are the official identifiers.
@@ -105,44 +105,21 @@ def post_json(path: str, body: dict, key: str, attempts: int = 4) -> object:
     raise AssertionError("unreachable")
 
 
-def read_list() -> list[str]:
-    names = []
-    for line in LIST_FILE.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if line and not line.startswith("#"):
-            names.append(line)
-    if len(names) != len({n.lower() for n in names}):
-        raise SystemExit("starter_foods.txt has duplicate entries")
-    return names
-
-
-def search_terms(name: str) -> str:
-    """Search query without Lucene syntax characters; the exact match uses the original."""
-    return re.sub(r"\s+", " ", re.sub(r"[()/%+\-:!\"\[\]{}^~*?\\&|,]", " ", name)).strip()
-
-
-def resolve(names: list[str], key: str) -> tuple[dict[str, int], dict[str, list[str]]]:
-    found: dict[str, int] = {}
-    misses: dict[str, list[str]] = {}
-    for name in names:
-        try:
-            result = post_json(
-                "/foods/search",
-                {"query": search_terms(name), "dataType": [DATA_TYPE], "pageSize": 50},
-                key,
-            )
-        except ApiError as err:
-            misses[name] = [f"search error: {err}"]
-            continue
-        foods = result.get("foods", []) if isinstance(result, dict) else []
-        # USDA tags some standard entries with the Food Distribution Program note; same food.
-        wanted = {name.lower(), f"{name} {FDP_SUFFIX}".lower()}
-        exact = [f for f in foods if f.get("description", "").strip().lower() in wanted]
-        if exact:
-            found[name] = int(exact[0]["fdcId"])
-        else:
-            misses[name] = [f.get("description", "") for f in foods[:5]]
-    return found, misses
+def list_ids(key: str) -> list[int]:
+    """Every SR Legacy FDC id, paged through /foods/list in a stable order."""
+    ids: list[int] = []
+    for page in range(1, 200):
+        rows = post_json(
+            "/foods/list",
+            {"dataType": [DATA_TYPE], "pageSize": LIST_PAGE_SIZE, "pageNumber": page, "sortBy": "fdcId", "sortOrder": "asc"},
+            key,
+        )
+        if not isinstance(rows, list):
+            raise ApiError(f"/foods/list page {page} returned an unexpected shape")
+        ids.extend(int(r["fdcId"]) for r in rows if r.get("dataType") == DATA_TYPE)
+        if len(rows) < LIST_PAGE_SIZE:
+            break
+    return sorted(set(ids))
 
 
 def normalize(food: dict, retrieved_at: str) -> dict:
@@ -204,17 +181,20 @@ def content_hash(foods: list[dict]) -> str:
 
 def build() -> None:
     key, key_source = api_key()
-    names = read_list()
-    print(flush=True)
-    print(f"Resolving {len(names)} descriptions against FDC {DATA_TYPE} (key: {key_source})", flush=True)
-    found, misses = resolve(names, key)
+    print(f"Listing FDC {DATA_TYPE} foods (key: {key_source})", flush=True)
+    ids = list_ids(key)
+    if len(ids) < MIN_EXPECTED_FOODS:
+        raise SystemExit(f"Only {len(ids)} {DATA_TYPE} foods listed; expected about 7,793. Not writing a partial catalog.")
 
     retrieved_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    ids = sorted(set(found.values()))
     foods: list[dict] = []
     for i in range(0, len(ids), BATCH_SIZE):
         batch = post_json("/foods", {"fdcIds": ids[i : i + BATCH_SIZE], "format": "full"}, key)
         foods.extend(normalize(f, retrieved_at) for f in batch)
+        if (i // BATCH_SIZE) % 50 == 0:
+            print(f"  fetched {len(foods)}/{len(ids)}", flush=True)
+    returned = {f["fdcId"] for f in foods}
+    missing = [i for i in ids if i not in returned]
     foods.sort(key=lambda f: f["description"].lower())
 
     digest = content_hash(foods)
@@ -244,31 +224,28 @@ def build() -> None:
         "foods": foods,
     }
     OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    OUT_FILE.write_text(json.dumps(snapshot, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    OUT_FILE.write_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
     lines = [
-        "# Starter catalog import report",
+        "# Food catalog import report",
         "",
         f"- Version: `{version}`",
         f"- Retrieved: {retrieved_at}",
         f"- Dataset: USDA FoodData Central, {DATA_TYPE}",
-        f"- Requested: {len(names)}; imported: {len(foods)}; unmatched: {len(misses)}",
+        f"- Listed: {len(ids)}; imported: {len(foods)}; not returned by the API: {len(missing)}",
         "",
         "Generated by `scripts/usda/import_starter.py`. Do not edit by hand.",
         "",
     ]
-    if misses:
-        lines += ["## Unmatched descriptions (left out, not guessed)", ""]
-        for name, suggestions in misses.items():
-            lines.append(f"- `{name}`")
-            for s in suggestions:
-                lines.append(f"  - candidate: {s}")
+    if missing:
+        lines += ["## Listed but not returned (left out)", ""]
+        lines += [f"- fdcId {i}" for i in missing]
         lines.append("")
     missing_counts = {k: sum(1 for f in foods if k not in f["nutrientsPer100g"]) for k, *_ in TRACKED_NUTRIENTS}
     lines += ["## Nutrient coverage (foods without a reported value)", ""]
     lines += [f"- {k}: {n}" for k, n in missing_counts.items()]
     REPORT_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"Wrote {len(foods)} foods to {OUT_FILE.relative_to(ROOT)}; {len(misses)} unmatched (see report)")
+    print(f"Wrote {len(foods)} foods to {OUT_FILE.relative_to(ROOT)}; {len(missing)} not returned (see report)")
 
 
 def check() -> None:

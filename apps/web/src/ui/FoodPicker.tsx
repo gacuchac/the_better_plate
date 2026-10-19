@@ -1,20 +1,18 @@
 import { useMemo, useState } from "react";
-import type { FoodRecord } from "@betterplate/nutrition";
+import { buildSearchIndex, searchIndex, type FoodRecord, type SearchIndex } from "@betterplate/nutrition";
+
+const indexes = new WeakMap<Map<string, FoodRecord>, SearchIndex<FoodRecord>>();
 
 /** Local search over the catalog stored on this device; works offline, no per-keystroke requests. */
-export function searchFoods(foods: Iterable<FoodRecord>, query: string, limit = 30): FoodRecord[] {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const all = [...foods];
-  if (!words.length) return all.slice(0, limit);
-  return all
-    .filter((f) => words.every((w) => f.description.toLowerCase().includes(w)))
-    .sort((a, b) => Number(b.description.toLowerCase().startsWith(words[0]!)) - Number(a.description.toLowerCase().startsWith(words[0]!)) || a.description.length - b.description.length)
-    .slice(0, limit);
+export function searchFoods(foods: Map<string, FoodRecord>, query: string, limit = 30): FoodRecord[] {
+  let index = indexes.get(foods);
+  if (!index) indexes.set(foods, (index = buildSearchIndex(foods.values())));
+  return searchIndex(index, query, limit);
 }
 
 export function FoodPicker({ foods, onPick, online }: { foods: Map<string, FoodRecord>; onPick: (food: FoodRecord) => void; online: boolean }) {
   const [query, setQuery] = useState("");
-  const results = useMemo(() => searchFoods(foods.values(), query), [foods, query]);
+  const results = useMemo(() => searchFoods(foods, query), [foods, query]);
   return (
     <div className="picker">
       <label htmlFor="food-search" className="sr-only">
@@ -47,7 +45,7 @@ export function FoodPicker({ foods, onPick, online }: { foods: Map<string, FoodR
 export function NotInCatalog() {
   return (
     <p className="hint" data-testid="not-in-catalog">
-      No match in the USDA starter foods. Try a simpler word, like "rice" instead of "jasmine rice". If it's still missing, it isn't in our list yet, and we don't estimate nutrients for foods without a USDA source.
+      No match in our USDA foods. Try a simpler word, like "rice" instead of "jasmine rice". If it's still missing, it isn't in our list yet, and we don't estimate nutrients for foods without a USDA source.
     </p>
   );
 }

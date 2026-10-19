@@ -720,6 +720,7 @@
                 "null"
               ],
               "minimum": 0,
+              "maximum": 10000,
               "default": 0,
               "description": "Opaque cursor from the previous page"
             },

@@ -15,3 +15,5 @@ test-results/
 # QA evidence stays out of git (public repo; see docs/OWNER_PREFLIGHT.md N2)
 artifacts/
 dist-e2e/
+
+__pycache__/
