@@ -410,3 +410,4 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .public-cta { margin-top: 28px; display: flex; }
 .public-cta > * { width: 100%; max-width: 360px; }
 @media (min-width: 900px) { .shared-grid { grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr); align-items: start; } }
+.sheet:focus { outline: none; }

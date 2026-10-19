@@ -177,15 +177,27 @@ export function You() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
-  async function exportUnsynced() {
-    if (!engine) return;
-    const data = await engine.exportUnsynced();
+  function download(data: unknown, name: string) {
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `better-plate-unsynced-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `${name}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function exportUnsynced() {
+    if (!engine) return;
+    download(await engine.exportUnsynced(), "better-plate-unsynced");
+  }
+
+  async function exportAll() {
+    setNote(null);
+    try {
+      download(await api.exportData(), "better-plate-export");
+    } catch (err) {
+      setNote(err instanceof ApiRequestError ? err.message : "You need to be online to download your data.");
+    }
   }
 
   async function doSignOut() {
@@ -226,6 +238,9 @@ export function You() {
         <button type="button" className="btn-secondary" onClick={() => void engine?.syncNow()}>
           Sync now
         </button>
+        <button type="button" className="btn-secondary" disabled={!online} onClick={() => void exportAll()}>
+          Download all my data
+        </button>
         <button type="button" className="btn-secondary" onClick={() => void exportUnsynced()}>
           Export unsynced changes
         </button>
@@ -238,7 +253,7 @@ export function You() {
       </div>
       {note && <p className="error">{note}</p>}
       <p className="fine">
-        We keep your email and the recipes you save. Signing out removes your recipes from this device; synced recipes stay in your account. Nutrition numbers are educational estimates, not medical advice.
+        We keep your email, the recipes you save, the meals you plan or mark eaten, links you share and issue reports you send. Download all of it any time. Signing out removes them from this device; synced data stays in your account until you delete it. Nutrition numbers are educational estimates, not medical advice.
       </p>
     </div>
   );

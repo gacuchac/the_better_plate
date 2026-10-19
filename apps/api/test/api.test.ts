@@ -569,6 +569,42 @@ describe("recipe share links", () => {
   });
 });
 
+describe("data export", () => {
+  it("downloads everything stored about the account and nothing about anyone else", async () => {
+    const gus = await signIn();
+    const r = await (await gus.request("/v1/recipes", { method: "POST", json: { title: "Gus rice", servings: 1, ingredients: [ingredient(rice, 100)] } })).json();
+    await gus.request(`/v1/recipes/${r.id}`, { method: "PUT", headers: { "if-match": '"v1"' }, json: { title: "Gus rice v2", servings: 1, ingredients: [ingredient(rice, 120)] } });
+    const ops = [
+      { opId: uuid(), type: "plan.put", entityId: uuid(), baseVersion: null, body: { date: "2026-10-20", slot: "dinner", recipeId: r.id, title: "Gus rice v2", servings: 1 } },
+      { opId: uuid(), type: "log.create", entityId: uuid(), body: { plannedMealId: null, recipeId: r.id, recipe: { title: "Gus rice v2", servings: 1, ingredients: [ingredient(rice, 120)] }, servings: 1, slot: "lunch", localDate: "2026-10-19", eatenAt: "2026-10-19T12:00:00-03:00" } },
+    ];
+    expect((await gus.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations: ops } })).status).toBe(200);
+    await gus.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false } });
+    await gus.request("/v1/feedback", { method: "POST", json: { id: uuid(), kind: "feedback", message: "Lovely", activity: [], context: { route: "/you", appVersion: "test", deviceClass: "desktop", online: true, requestIds: [], error: null }, screenshot: null } });
+
+    expect((await call("/v1/me/export")).status).toBe(401);
+    const res = await gus.request("/v1/me/export");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-disposition")).toMatch(/^attachment; filename="better-plate-export-\d{4}-\d{2}-\d{2}\.json"$/);
+    const text = await res.text();
+    const data = JSON.parse(text);
+    expect(data.format).toBe("betterplate.export/1");
+    expect(data.account.email).toBe(gus.email);
+    expect(data.linkedSignIns).toEqual([]);
+    expect(data.sessions.length).toBeGreaterThan(0);
+    expect(data.recipes.map((x: { title: string }) => x.title)).toEqual(["Gus rice v2"]);
+    expect(data.recipeRevisions.map((x: { version: number }) => x.version)).toEqual([1, 2]);
+    expect(data.plannedMeals).toHaveLength(1);
+    expect(data.mealsEaten).toHaveLength(1);
+    expect(data.mealsEaten[0].nutrition.catalogVersion).toMatch(/^usda-sr-legacy-/);
+    expect(data.shareLinks).toHaveLength(1);
+    expect(data.issueReports.map((x: { message: string }) => x.message)).toEqual(["Lovely"]);
+    // Nothing about other accounts, and no secrets.
+    expect(text).not.toContain(alice.email);
+    expect(text).not.toMatch(/"token"|"password"|accessToken|refreshToken/);
+  });
+});
+
 describe("account deletion", () => {
   it("deletes the account and cascades personal data", async () => {
     const erin = await signIn();

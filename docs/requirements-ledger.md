@@ -13,7 +13,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §2.1 | CSRF / CORS / cookies | `lib/http.ts`, `app.ts`, ADR-002 | API "request safety" | verified |
 | §2.1 | Rate limiting | `lib/http.ts` (memory), Better Auth limits | API "rate limiting" (429 + Retry-After) | verified (single instance; shared store needed before scaling out) |
 | §2.1 | Account deletion | `DELETE /v1/me` | API "account deletion" | verified (UI button untested) |
-| §2.1 | Data export | Unsynced-draft export only (You screen) | none | implemented-unverified; full export not-started |
+| §2.1 | Data export: everything stored about the account (account, linked sign-ins, sessions, recipes with every revision, planned and eaten meals, share links, issue reports with screenshots) as JSON; unsynced drafts export offline | `GET /v1/me/export`, You screen | API "data export"; E2E accounts journey downloads and parses the file | verified (local) |
 | §2.1 | Clear local data on logout/account change | `store.tsx` per-account IndexedDB | E2E isolation checks IndexedDB is gone | verified |
 | §2.1 | Privacy notice versions, consent events, admin MFA, passkeys | — | — | not-started |
 | §2.2 | Official USDA records, IDs, per-100 g, portions, source URL/date | `scripts/usda/import_starter.py`, `data/catalog/` | API "catalog" tests; importer `--check` | verified (all 7,793 SR Legacy foods) |
@@ -54,6 +54,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | §5 | Secret scanning in CI, keys never in bundles | `.github/workflows/ci.yml` (gitleaks), `PUBLIC_` prefix only | CI "Secret scan" job green on every PR | verified |
 | §6 | Four destinations, bottom nav / desktop rail, sync status words; redesign from the Claude Design canvas (Plus Jakarta Sans, self-hosted, OFL) | `ui/App.tsx`, `styles.css`, `SyncChip` | E2E screenshots desktop + mobile, reviewed 2026-10-19 | verified |
 | §6 | Brand colors, 44px targets, Estimated cue, not-reported ≠ 0 | `styles.css`, Nutrition panel | Screenshots reviewed (M1) | verified (visual review) |
-| §6 | WCAG 2.2 AA audit, Spanish-ready strings | — | — | not-started |
+| §6 | WCAG 2.2 AA automated audit (axe-core, wcag2a/aa, 2.1, 2.2 tags) on 15 screens and sheets, desktop and mobile; sheets move focus in, trap Tab, return focus on Escape | `e2e/a11y.spec.ts`, `ui/common.tsx` Sheet | E2E "core screens have no automatically detectable WCAG 2.2 AA violations" | verified (automated rules only; manual screen-reader pass not done) |
+| §6 | Spanish-ready strings | — | — | not-started |
 | §6 | Real food photography | — | — | blocked (licenses, preflight P5) |
 | §7 | Deployment, backups, restore drill, monitoring | — | — | blocked (Railway approval, preflight S1–S4) |
