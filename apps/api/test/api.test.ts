@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getMigrations } from "better-auth/db/migration";
-import { RecipeSchema, SyncBatchResponseSchema, SyncChangesResponseSchema } from "@betterplate/contracts";
+import { RecipeSchema, SharedRecipeSchema, ShareSchema, SyncBatchResponseSchema, SyncChangesResponseSchema } from "@betterplate/contracts";
 import { authOptions } from "../src/auth.ts";
 import { pool } from "../src/db/pool.ts";
 import { generateOpenApi } from "../src/openapi-cli.ts";
@@ -472,6 +472,100 @@ describe("rate limiting", () => {
     expect(Number(limited.headers.get("retry-after"))).toBeGreaterThan(0);
     // Another client is unaffected.
     expect((await mini.request("/x", { headers: { "x-forwarded-for": "203.0.113.10" } })).status).toBe(200);
+  });
+});
+
+describe("recipe share links", () => {
+  async function shareable(client: Client, extra: Record<string, unknown> = {}) {
+    return (await (await client.request("/v1/recipes", {
+      method: "POST",
+      json: { title: "Rice bowl", servings: 2, method: "Secret family step.", ingredients: [ingredient(rice, 300), ingredient(oil, 10, { role: "cooking_oil" })], ...extra },
+    })).json()) as { id: string; version: number };
+  }
+
+  it("publishes a snapshot with only the reviewed fields, readable without signing in", async () => {
+    const r = await shareable(alice);
+    const res = await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false } });
+    expect(res.status).toBe(201);
+    const share = ShareSchema.parse(await res.json());
+    expect(share.url).toMatch(new RegExp(`/s/${share.shareId}$`));
+    expect(share.recipeVersion).toBe(1);
+
+    const pub = await call(`/v1/shared/${share.shareId}`);
+    expect(pub.status).toBe(200);
+    expect(pub.headers.get("cache-control")).toBe("no-store");
+    const text = await pub.text();
+    const shared = SharedRecipeSchema.parse(JSON.parse(text));
+    expect(shared.title).toBe("Rice bowl");
+    expect(shared.method).toBeNull();
+    expect(shared.ingredients[0]!.name).toMatch(/^Rice, white/);
+    expect(shared.nutrition.disclosures.map((d) => d.code)).toContain("oil_discard_not_measured");
+    // Nothing about the owner or their other data.
+    expect(text).not.toContain(alice.email);
+    expect(text).not.toContain("Secret family step");
+    expect(Object.keys(JSON.parse(text)).sort()).toEqual(["expiresAt", "ingredients", "method", "nutrientNames", "nutrition", "servings", "shareId", "sharedAt", "source", "title"]);
+
+    const withMethod = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: true } })).json();
+    expect((await (await call(`/v1/shared/${withMethod.shareId}`)).json()).method).toBe("Secret family step.");
+  });
+
+  it("keeps the shared version when the recipe is edited later", async () => {
+    const r = await shareable(alice);
+    const share = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false } })).json();
+    await alice.request(`/v1/recipes/${r.id}`, { method: "PUT", headers: { "if-match": '"v1"' }, json: { title: "Renamed privately", servings: 2, ingredients: [] } });
+    expect((await (await call(`/v1/shared/${share.shareId}`)).json()).title).toBe("Rice bowl");
+  });
+
+  it("revokes links: the snapshot is erased and the link stops working", async () => {
+    const r = await shareable(alice);
+    const share = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: true } })).json();
+    const listed = await (await alice.request(`/v1/shares?recipeId=${r.id}`)).json();
+    expect(listed.shares.map((s: { shareId: string }) => s.shareId)).toEqual([share.shareId]);
+
+    expect((await bob.request(`/v1/shares/${share.shareId}`, { method: "DELETE" })).status).toBe(404);
+    expect((await call(`/v1/shared/${share.shareId}`)).status).toBe(200);
+
+    expect((await alice.request(`/v1/shares/${share.shareId}`, { method: "DELETE" })).status).toBe(204);
+    expect((await call(`/v1/shared/${share.shareId}`)).status).toBe(404);
+    expect((await call(`/s/${share.shareId}`)).status).toBe(404);
+    const { rows } = await pool.query("select snapshot from share_snapshots where id = $1", [share.shareId]);
+    expect(rows[0].snapshot).toEqual({});
+    expect((await (await alice.request(`/v1/shares?recipeId=${r.id}`)).json()).shares).toEqual([]);
+  });
+
+  it("ends a recipe's links when the recipe is deleted", async () => {
+    const r = await shareable(alice);
+    const share = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false } })).json();
+    expect((await alice.request(`/v1/recipes/${r.id}`, { method: "DELETE", headers: { "if-match": '"v1"' } })).status).toBe(204);
+    expect((await call(`/v1/shared/${share.shareId}`)).status).toBe(404);
+  });
+
+  it("expires links that were given an expiry", async () => {
+    const r = await shareable(alice);
+    const share = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false, expiresInDays: 7 } })).json();
+    expect(share.expiresAt).not.toBeNull();
+    await pool.query("update share_snapshots set expires_at = now() - interval '1 second' where id = $1", [share.shareId]);
+    expect((await call(`/v1/shared/${share.shareId}`)).status).toBe(404);
+  });
+
+  it("only lets the owner share, and needs a session", async () => {
+    const r = await shareable(alice);
+    expect((await bob.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false } })).status).toBe(404);
+    expect((await call(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false } })).status).toBe(401);
+    expect((await call(`/v1/shared/${uuid()}`)).status).toBe(404);
+    expect((await call("/v1/shared/not-a-uuid")).status).toBe(400);
+  });
+
+  it("serves an escaped link preview page that sends people to the app", async () => {
+    const r = await shareable(alice, { title: '<script>alert("x")</script> & co' });
+    const share = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: false } })).json();
+    const page = await call(`/s/${share.shareId}`);
+    expect(page.status).toBe(200);
+    const html = await page.text();
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; co");
+    expect(html).toContain(`/#/shared/${share.shareId}`);
+    expect(html).not.toContain(alice.email);
   });
 });
 

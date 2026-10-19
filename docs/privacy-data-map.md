@@ -10,6 +10,7 @@
 | Planned meals (day, meal slot, recipe id and title, servings) | `planned_meals` | Meal planning | Until the user removes the plan (content cleared to a tombstone) or the account |
 | Eaten meals (recipe snapshot, servings, meal slot, local day, time eaten with offset, nutrition snapshot) | `consumption_events` | Explicitly logged meals | Until the user removes the log (content cleared to a tombstone) or the account |
 | Issue reports: message, chosen recent steps, route, app version, device class, request ids, sanitized error, optional screenshot the person previewed | `feedback_reports` | Fixing problems | Deleted with the account; retention policy for anonymous reports not set yet |
+| Share links: snapshot of the recipe title, servings, ingredients (USDA names and amounts), estimate and, only if ticked, the method; created and expiry times | `share_snapshots` | Revocable public links | Readable by anyone with the link until revoked, expired, the recipe is deleted or the account is deleted; revoking erases the snapshot. Never includes name, email, meals or other recipes |
 | Sync operation ledger | `sync_operations` | Idempotency | Until account deletion (pruning job not-started) |
 | Recipes, plans, eaten logs, outbox, sync cursor | Browser IndexedDB `betterplate-user-<id>` | Offline use | Deleted on sign-out or when another account signs in |
 | Last account id and email | Browser `localStorage` `bp.account` | Open offline | Removed on sign-out |

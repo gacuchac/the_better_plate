@@ -385,3 +385,28 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .bp-capturing input, .bp-capturing textarea, .bp-capturing select { color: transparent !important; }
 .bp-capturing input::placeholder, .bp-capturing textarea::placeholder { color: transparent !important; }
 .bp-capturing [data-private] { color: transparent !important; background: var(--surface-2) !important; border-radius: 6px; }
+
+/* ---------- sharing ---------- */
+.share-preview { margin: 4px 0 8px; }
+.share-preview ul { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 0.9rem; line-height: 1.6; }
+.share-fallbacks { display: flex; justify-content: center; gap: 24px; }
+.share-fallbacks a { color: var(--sage-ink); font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; }
+.share-links { margin-top: 24px; }
+.share-links ul { list-style: none; padding: 0; margin: 8px 0 0; }
+.share-links li { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--line); padding: 4px 0; }
+.public-page { min-height: 100vh; }
+.public-head { max-width: 1040px; margin: 0 auto; padding: 18px 20px; }
+.public-brand { font-weight: 750; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; }
+.public-main { max-width: 1040px; margin: 0 auto; padding: 8px 20px 120px; }
+.public-main .h3 { font-size: 1.125rem; margin-bottom: 8px; }
+.shared-title { font-size: 2rem; overflow-wrap: anywhere; }
+.shared-grid { display: grid; gap: 24px; margin-top: 20px; }
+.shared-grid h2 { margin: 0 0 10px; }
+.shared-grid section > h2 + .shared-method, .shared-ingredients + h2 { margin-top: 24px; }
+.shared-ingredients { list-style: none; padding: 0; margin: 0; }
+.shared-ingredients li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.shared-amount { font-weight: 650; font-variant-numeric: tabular-nums; }
+.shared-method { white-space: pre-wrap; line-height: 1.65; overflow-wrap: anywhere; }
+.public-cta { margin-top: 28px; display: flex; }
+.public-cta > * { width: 100%; max-width: 360px; }
+@media (min-width: 900px) { .shared-grid { grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr); align-items: start; } }

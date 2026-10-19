@@ -350,3 +350,55 @@ test("recipe names with markup are shown as text, never run", async ({ page }, i
   expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
   await shot(page, info, "xss-name-as-text", "Markup in a recipe name is displayed literally");
 });
+
+test("share a recipe: review what is shared, open the link signed out, then revoke it", async ({ page, browser, context }, info) => {
+  const email = newEmail("share");
+  await signIn(page, email);
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Rice for friends");
+  await addIngredient(page, "rice white cooked", RICE);
+  await addIngredient(page, "olive", OIL);
+  await page.getByLabel("Method").fill("Warm the rice.\nStir in the oil.");
+  await saveAndSync(page);
+
+  // Offline: the link cannot be created, and the sheet says why.
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "Share recipe" }).click();
+  const sheet = page.getByRole("dialog", { name: "Share recipe" });
+  await expect(sheet).toContainText("Creating a link needs an internet connection");
+  await context.setOffline(false);
+  await expect(sheet.getByTestId("share-preview")).toContainText("Never your name, email, meals or other recipes");
+  await sheet.getByLabel("Include my method").check();
+  await expect(sheet.getByTestId("share-preview")).toContainText("Your method, word for word");
+  await shot(page, info, "share-review", "Share sheet: exactly what a link holder will see, method opt-in, expiry");
+  await sheet.getByRole("button", { name: "Create link" }).click();
+  await expect(sheet.getByTestId("share-created")).toBeVisible();
+  const url = await sheet.getByLabel("Link", { exact: true }).inputValue();
+  expect(url).toMatch(/^http:\/\/localhost:4100\/s\/[0-9a-f-]{36}$/);
+  await expect(sheet.getByTestId("share-links").getByRole("listitem")).toHaveCount(1);
+  await shot(page, info, "share-created", "Link ready: native share, copy, email and text fallbacks; active links with Revoke");
+
+  // Someone without an account opens the link.
+  const guest = await browser.newContext();
+  const reader = await guest.newPage();
+  await reader.goto(url);
+  await expect(reader).toHaveURL(/\/#\/shared\/[0-9a-f-]{36}$/);
+  const shared = reader.getByTestId("shared-recipe");
+  await expect(shared.getByRole("heading", { name: "Rice for friends" })).toBeVisible();
+  await expect(shared).toContainText(RICE);
+  await expect(shared).toContainText("Stir in the oil.");
+  await expect(shared).toContainText("counted as eaten");
+  await expect(reader.getByTestId("shared-nutrient-energy_kcal")).toContainText("kcal");
+  await expect(reader.locator("body")).not.toContainText(email);
+  await expect(reader.getByRole("link", { name: "Make your own in The Better Plate" })).toBeVisible();
+  await shot(reader, info, "shared-recipe-guest", "Shared recipe opened signed out: ingredients, method, estimate with USDA source");
+
+  // The owner revokes it; the link stops working.
+  page.once("dialog", (d) => void d.accept());
+  await sheet.getByTestId("share-links").getByRole("button", { name: "Revoke" }).click();
+  await expect(sheet.getByTestId("share-links")).toHaveCount(0);
+  await reader.reload();
+  await expect(reader.getByTestId("share-gone")).toContainText("This link no longer works");
+  await shot(reader, info, "shared-recipe-revoked", "Revoked link: nothing of the recipe remains");
+  await guest.close();
+});

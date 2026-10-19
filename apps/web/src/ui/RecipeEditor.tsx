@@ -8,6 +8,7 @@ import { FoodPicker } from "./FoodPicker.tsx";
 import { Icon } from "./icons.tsx";
 import { LogSheet, PlanSheet } from "./MealSheets.tsx";
 import { NutritionPanel } from "./Nutrition.tsx";
+import { ShareSheet } from "./Share.tsx";
 
 const MACROS = [
   { key: "energy_kcal", label: "kcal" },
@@ -30,7 +31,7 @@ export function RecipeEditor({ id }: { id: string }) {
   const [picking, setPicking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [sheet, setSheet] = useState<"plan" | "log" | null>(null);
+  const [sheet, setSheet] = useState<"plan" | "log" | "share" | null>(null);
 
   useEffect(() => {
     if (!engine) return;
@@ -244,6 +245,9 @@ export function RecipeEditor({ id }: { id: string }) {
           )}
           {loaded && (
             <div className="actions">
+              <button type="button" className="btn-soft" onClick={() => setSheet("share")} disabled={dirty}>
+                <Icon name="share" size={18} /> Share recipe
+              </button>
               <button type="button" className="btn-link danger" onClick={() => void remove()}>
                 Delete recipe
               </button>
@@ -282,6 +286,7 @@ export function RecipeEditor({ id }: { id: string }) {
         )}
       </div>
       {sheet === "plan" && loaded && <PlanSheet recipeId={id} title={loaded.body.title} onClose={() => setSheet(null)} />}
+      {sheet === "share" && loaded && <ShareSheet recipe={loaded} onClose={() => setSheet(null)} />}
       {sheet === "log" && loaded && <LogSheet recipeId={id} recipe={loaded.body} onClose={() => setSheet(null)} />}
       {picking && (
         <Sheet title="Add ingredient" onClose={() => setPicking(false)}>

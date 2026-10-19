@@ -131,6 +131,8 @@ export async function deleteRecipe(client: pg.PoolClient, userId: string, id: st
     [id, version],
   );
   await client.query(`insert into recipe_revisions (recipe_id, version, user_id, deleted) values ($1, $2, $3, true)`, [id, version, userId]);
+  // A deleted recipe's share links stop working and their snapshots are erased.
+  await client.query(`update share_snapshots set revoked_at = now(), snapshot = '{}'::jsonb where recipe_id = $1 and revoked_at is null`, [id]);
   return { status: "applied", version, recipe: null };
 }
 
