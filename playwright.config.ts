@@ -18,6 +18,10 @@ const apiEnv = {
   RATE_LIMIT_MULTIPLIER: "50",
   // Companion on with a derived local key; journeys use the scripted fake provider.
   FEATURE_AI_COMPANION_ENABLED: "true",
+  // Included companion on a fake owner key, only for these two invited test accounts.
+  OPENAI_HOUSE_API_KEY: "fake-local-house",
+  AI_HOUSE_ALLOWED_EMAILS: "included-desktop@example.test,included-mobile@example.test",
+  AI_HOUSE_DAILY_REQUESTS: "500",
   // Photo search goes to a local stand-in with labeled test fixtures.
   OPENVERSE_API_URL: "http://localhost:4197",
   // Fake OAuth client: the journey stops at Google's door (intercepted), never calls Google.

@@ -1,4 +1,4 @@
-import { AI_TOOLS, RecipeBodySchema, type AiProvider, type AiToolCall, type AiToolInput, type AiToolName, type AiTurnRequest, type RecipeBody } from "@betterplate/contracts";
+import { AI_TOOLS, RecipeBodySchema, type AiTurnProvider, type AiToolCall, type AiToolInput, type AiToolName, type AiTurnRequest, type RecipeBody } from "@betterplate/contracts";
 import { calculateRecipe, type FoodRecord, type NutrientDefinition } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError } from "./api.ts";
 import type { RecipeImage } from "@betterplate/contracts";
@@ -362,7 +362,7 @@ export class AgentSession {
     track("Undid a companion step");
   }
 
-  async send(text: string, provider: AiProvider, env: ToolEnv) {
+  async send(text: string, provider: AiTurnProvider, env: ToolEnv) {
     if (this.running) return;
     this.running = true;
     this.stopRequested = false;

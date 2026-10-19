@@ -47,6 +47,33 @@ function googleConfig(): { clientId: string; clientSecret: string } | null {
  * BYOK_ENCRYPTION_KEY: 32 bytes as base64 or hex. Required outside local/test when the AI
  * companion is on. Local runs without one derive a throwaway key from SESSION_SECRET.
  */
+/**
+ * The included companion: an owner-provided OpenAI key for people who haven't connected their own.
+ * Off unless OPENAI_HOUSE_API_KEY is set. Spend is estimated from token counts at the configured
+ * prices; the OpenAI project's own budget limit is the hard stop.
+ */
+function houseConfig() {
+  const num = (name: string, fallback: number) => {
+    const raw = process.env[name]?.trim();
+    if (!raw) return fallback;
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) throw new Error(`${name} must be a non-negative number`);
+    return n;
+  };
+  const allowed = (process.env.AI_HOUSE_ALLOWED_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  return {
+    apiKey: process.env.OPENAI_HOUSE_API_KEY?.trim() || "",
+    model: process.env.AI_HOUSE_MODEL?.trim() || "gpt-6-luna",
+    dailyRequests: Math.floor(num("AI_HOUSE_DAILY_REQUESTS", 20)),
+    monthlyBudgetUsd: num("AI_HOUSE_MONTHLY_BUDGET_USD", 10),
+    /** USD per million tokens (gpt-6-luna list price, 2026-10-19). */
+    inputPricePerMTok: num("AI_HOUSE_INPUT_PRICE_PER_MTOK", 0.1),
+    outputPricePerMTok: num("AI_HOUSE_OUTPUT_PRICE_PER_MTOK", 0.5),
+    /** "*" lets every signed-in account use it; otherwise only these emails. Empty means nobody. */
+    allowedEmails: allowed.includes("*") ? ("*" as const) : new Set(allowed),
+  };
+}
+
 function byokEncryptionKey(isLocal: boolean, enabled: boolean, sessionSecret: string): Buffer | null {
   if (!enabled) return null;
   const raw = process.env.BYOK_ENCRYPTION_KEY?.trim() ?? "";
@@ -108,6 +135,7 @@ function loadConfig() {
     features: { chef: chefEnabled, aiCompanion: aiEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
+    house: houseConfig(),
     /** Relaxed limits for automated local/test runs only. */
     rateLimitMultiplier: isLocal ? Number(process.env.RATE_LIMIT_MULTIPLIER ?? 10) : 1,
   };

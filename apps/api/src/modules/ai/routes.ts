@@ -12,7 +12,7 @@ import {
 } from "@betterplate/contracts";
 import { config } from "../../config.ts";
 import { pool } from "../../db/pool.ts";
-import { ApiError, type AppEnv, rateLimit, requireUser } from "../../lib/http.ts";
+import { ApiError, type AppEnv, type AuthUser, rateLimit, requireUser } from "../../lib/http.ts";
 import { ErrorResponses } from "../common.ts";
 import { keyHint, openKey, sealKey } from "./byok.ts";
 import { adapterFor, checkConversation, type Native } from "./providers.ts";
@@ -48,11 +48,43 @@ async function settingsRow(userId: string) {
   return rows[0] ?? { active_provider: null, daily_request_limit: 200 };
 }
 
-async function loadSettings(userId: string) {
-  const [s, creds, requestsToday] = await Promise.all([
+// ---------------------------------------------------------------- included companion (owner's key)
+
+/** Estimated spend this calendar month across all accounts, in USD. */
+export async function houseSpendThisMonth(): Promise<number> {
+  const { rows } = await pool.query<{ input: string | null; output: string | null }>(
+    "select sum(input_tokens) as input, sum(output_tokens) as output from ai_house_usage where day >= date_trunc('month', current_date)",
+  );
+  const h = config.house;
+  return (Number(rows[0]?.input ?? 0) * h.inputPricePerMTok + Number(rows[0]?.output ?? 0) * h.outputPricePerMTok) / 1_000_000;
+}
+
+async function houseRequestsToday(userId: string): Promise<number> {
+  const { rows } = await pool.query<{ requests: string | null }>("select sum(requests) as requests from ai_house_usage where user_id = $1 and day = current_date", [userId]);
+  return Number(rows[0]?.requests ?? 0);
+}
+
+async function houseState(user: AuthUser) {
+  const h = config.house;
+  const requestsToday = await houseRequestsToday(user.id);
+  const invited = h.allowedEmails === "*" || h.allowedEmails.has(user.email.toLowerCase());
+  const status: "available" | "not_invited" | "budget_reached" | "off" = !h.apiKey
+    ? "off"
+    : !invited
+      ? "not_invited"
+      : (await houseSpendThisMonth()) >= h.monthlyBudgetUsd
+        ? "budget_reached"
+        : "available";
+  return { status, model: status === "off" ? null : h.model, dailyLimit: h.dailyRequests, requestsToday };
+}
+
+async function loadSettings(user: AuthUser) {
+  const userId = user.id;
+  const [s, creds, requestsToday, house] = await Promise.all([
     settingsRow(userId),
     pool.query<{ provider: AiProvider; key_hint: string; model: string; models: string[] }>("select provider, key_hint, model, models from ai_credentials where user_id = $1", [userId]),
     usageToday(userId),
+    houseState(user),
   ]);
   const byProvider = new Map(creds.rows.map((r) => [r.provider, r]));
   return {
@@ -60,6 +92,7 @@ async function loadSettings(userId: string) {
     activeProvider: s.active_provider && byProvider.has(s.active_provider) ? s.active_provider : (creds.rows[0]?.provider ?? null),
     dailyRequestLimit: s.daily_request_limit,
     requestsToday,
+    house,
     providers: PROVIDERS.map((provider) => {
       const c = byProvider.get(provider);
       return { provider, connected: !!c, keyHint: c?.key_hint ?? null, model: c?.model ?? null, models: c?.models ?? [] };
@@ -80,7 +113,7 @@ const SettingsResponse = { 200: { description: "Companion settings (keys are nev
 
 aiRoutes.openapi(
   createRoute({ method: "get", path: "/v1/ai/settings", tags: ["ai"], summary: "AI companion settings and today's usage", responses: SettingsResponse }),
-  async (c) => c.json(await loadSettings(requireUser(c).id), 200),
+  async (c) => c.json(await loadSettings(requireUser(c)), 200),
 );
 
 aiRoutes.openapi(
@@ -106,7 +139,7 @@ aiRoutes.openapi(
         [user.id, body.activeProvider === undefined ? current.active_provider : body.activeProvider, body.dailyRequestLimit ?? current.daily_request_limit],
       );
     }
-    return c.json(await loadSettings(user.id), 200);
+    return c.json(await loadSettings(user), 200);
   },
 );
 
@@ -138,7 +171,7 @@ aiRoutes.openapi(
       `insert into ai_settings (user_id, active_provider) values ($1, $2) on conflict (user_id) do update set active_provider = excluded.active_provider, updated_at = now()`,
       [user.id, provider],
     );
-    return c.json(await loadSettings(user.id), 200);
+    return c.json(await loadSettings(user), 200);
   },
 );
 
@@ -152,7 +185,7 @@ aiRoutes.openapi(
     const user = requireUser(c);
     const { provider } = c.req.valid("param");
     await pool.query("delete from ai_credentials where user_id = $1 and provider = $2", [user.id, provider]);
-    return c.json(await loadSettings(user.id), 200);
+    return c.json(await loadSettings(user), 200);
   },
 );
 
@@ -175,31 +208,54 @@ aiRoutes.openapi(
   async (c) => {
     const user = requireUser(c);
     const body = c.req.valid("json");
-    const settings = await settingsRow(user.id);
-    if ((await usageToday(user.id)) >= settings.daily_request_limit) {
-      throw new ApiError(429, "ai_daily_limit", "You reached today's companion limit; change it in AI settings");
-    }
-    const { rows } = await pool.query<{ ciphertext: Buffer; iv: Buffer; auth_tag: Buffer; model: string }>(
-      "select ciphertext, iv, auth_tag, model from ai_credentials where user_id = $1 and provider = $2",
-      [user.id, body.provider],
-    );
-    const cred = rows[0];
-    if (!cred) throw new ApiError(404, "not_connected", "Connect an AI provider in AI settings first");
+    const input = (b: typeof body) =>
+      b.input.type === "message" ? { type: "message" as const, text: b.input.text + contextBlock(b.input.context) } : b.input;
     const conversation = body.conversation as Native[];
-    checkConversation(body.provider, conversation);
 
-    const apiKey = openKey({ ciphertext: cred.ciphertext, iv: cred.iv, authTag: cred.auth_tag }, user.id, body.provider);
-    const input =
-      body.input.type === "message" ? { type: "message" as const, text: body.input.text + contextBlock(body.input.context) } : body.input;
-    const turn = await adapterFor(body.provider, apiKey).turn({ apiKey, model: cred.model, system: SYSTEM_PROMPT, conversation, input });
-
-    const { rows: usage } = await pool.query<{ requests: number }>(
-      `insert into ai_usage (user_id, day, requests, input_tokens, output_tokens) values ($1, current_date, 1, $2, $3)
-       on conflict (user_id, day) do update set requests = ai_usage.requests + 1,
-         input_tokens = ai_usage.input_tokens + excluded.input_tokens, output_tokens = ai_usage.output_tokens + excluded.output_tokens
-       returning requests`,
-      [user.id, turn.usage.inputTokens, turn.usage.outputTokens],
-    );
+    let turn: Awaited<ReturnType<ReturnType<typeof adapterFor>["turn"]>>;
+    let requestsToday: number;
+    let dailyLimit: number;
+    if (body.provider === "house") {
+      const house = await houseState(user);
+      if (house.status === "off" || house.status === "not_invited") throw new ApiError(404, "not_connected", "Connect an AI provider in AI settings first");
+      if (house.status === "budget_reached") throw new ApiError(429, "ai_house_budget", "The included companion is used up for this month; connect your own key in AI settings to keep going");
+      if (house.requestsToday >= house.dailyLimit) throw new ApiError(429, "ai_daily_limit", "You reached today's included companion limit; it resets tomorrow");
+      checkConversation("openai", conversation);
+      const apiKey = config.house.apiKey;
+      turn = await adapterFor("openai", apiKey).turn({ apiKey, model: config.house.model, system: SYSTEM_PROMPT, conversation, input: input(body) });
+      const { rows } = await pool.query<{ requests: number }>(
+        `insert into ai_house_usage (user_id, day, model, requests, input_tokens, output_tokens) values ($1, current_date, $2, 1, $3, $4)
+         on conflict (user_id, day, model) do update set requests = ai_house_usage.requests + 1,
+           input_tokens = ai_house_usage.input_tokens + excluded.input_tokens, output_tokens = ai_house_usage.output_tokens + excluded.output_tokens
+         returning requests`,
+        [user.id, config.house.model, turn.usage.inputTokens, turn.usage.outputTokens],
+      );
+      requestsToday = rows[0]!.requests;
+      dailyLimit = house.dailyLimit;
+    } else {
+      const settings = await settingsRow(user.id);
+      if ((await usageToday(user.id)) >= settings.daily_request_limit) {
+        throw new ApiError(429, "ai_daily_limit", "You reached today's companion limit; change it in AI settings");
+      }
+      const { rows } = await pool.query<{ ciphertext: Buffer; iv: Buffer; auth_tag: Buffer; model: string }>(
+        "select ciphertext, iv, auth_tag, model from ai_credentials where user_id = $1 and provider = $2",
+        [user.id, body.provider],
+      );
+      const cred = rows[0];
+      if (!cred) throw new ApiError(404, "not_connected", "Connect an AI provider in AI settings first");
+      checkConversation(body.provider, conversation);
+      const apiKey = openKey({ ciphertext: cred.ciphertext, iv: cred.iv, authTag: cred.auth_tag }, user.id, body.provider);
+      turn = await adapterFor(body.provider, apiKey).turn({ apiKey, model: cred.model, system: SYSTEM_PROMPT, conversation, input: input(body) });
+      const { rows: usage } = await pool.query<{ requests: number }>(
+        `insert into ai_usage (user_id, day, requests, input_tokens, output_tokens) values ($1, current_date, 1, $2, $3)
+         on conflict (user_id, day) do update set requests = ai_usage.requests + 1,
+           input_tokens = ai_usage.input_tokens + excluded.input_tokens, output_tokens = ai_usage.output_tokens + excluded.output_tokens
+         returning requests`,
+        [user.id, turn.usage.inputTokens, turn.usage.outputTokens],
+      );
+      requestsToday = usage[0]!.requests;
+      dailyLimit = settings.daily_request_limit;
+    }
 
     const toolCalls = turn.toolCalls.map((call) => {
       const tool = AI_TOOLS[call.name as AiToolName];
@@ -216,7 +272,7 @@ aiRoutes.openapi(
         toolCalls,
         done: toolCalls.length === 0,
         model: turn.model,
-        usage: { ...turn.usage, requestsToday: usage[0]!.requests, dailyLimit: settings.daily_request_limit },
+        usage: { ...turn.usage, requestsToday, dailyLimit },
       },
       200,
     );

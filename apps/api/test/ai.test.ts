@@ -126,3 +126,73 @@ describe("AI companion turns", () => {
     expect(rows).toHaveLength(0);
   });
 });
+
+describe("included companion (owner's key, capped)", () => {
+  const house = config.house as { apiKey: string; dailyRequests: number; monthlyBudgetUsd: number; allowedEmails: "*" | Set<string> };
+  const saved = { ...house };
+  let carol: Client;
+  let dave: Client;
+  const houseTurn = (client: Client) => client.request("/v1/ai/turn", { method: "POST", json: { provider: "house", conversation: [], input: { type: "message", text: "hello", context } } });
+
+  beforeAll(async () => {
+    [carol, dave] = await Promise.all([signIn(), signIn()]);
+    Object.assign(house, { apiKey: "fake-local-house", dailyRequests: 2, monthlyBudgetUsd: 1000, allowedEmails: new Set([carol.email.toLowerCase()]) });
+  });
+  afterAll(() => Object.assign(house, saved));
+
+  it("is off without the owner's key", async () => {
+    house.apiKey = "";
+    try {
+      expect(AiSettingsSchema.parse(await (await carol.request("/v1/ai/settings")).json()).house).toMatchObject({ status: "off", model: null });
+      expect((await houseTurn(carol)).status).toBe(404);
+    } finally {
+      house.apiKey = "fake-local-house";
+    }
+  });
+
+  it("is only for invited accounts", async () => {
+    expect(AiSettingsSchema.parse(await (await dave.request("/v1/ai/settings")).json()).house.status).toBe("not_invited");
+    const res = await houseTurn(dave);
+    expect(res.status).toBe(404);
+    expect((await res.json()).error.code).toBe("not_connected");
+  });
+
+  it("answers invited accounts without their own key, up to the daily cap", async () => {
+    const settings = AiSettingsSchema.parse(await (await carol.request("/v1/ai/settings")).json());
+    expect(settings.activeProvider).toBeNull();
+    expect(settings.house).toMatchObject({ status: "available", dailyLimit: 2, requestsToday: 0 });
+    for (const n of [1, 2]) {
+      const res = await houseTurn(carol);
+      expect(res.status).toBe(200);
+      expect(AiTurnResponseSchema.parse(await res.json()).usage).toMatchObject({ requestsToday: n, dailyLimit: 2 });
+    }
+    const over = await houseTurn(carol);
+    expect(over.status).toBe(429);
+    expect((await over.json()).error.code).toBe("ai_daily_limit");
+    // Own-key usage is counted separately.
+    expect(AiSettingsSchema.parse(await (await carol.request("/v1/ai/settings")).json()).requestsToday).toBe(0);
+  });
+
+  it("stops for everyone when the monthly budget is reached", async () => {
+    house.monthlyBudgetUsd = 0;
+    house.dailyRequests = 100;
+    try {
+      expect(AiSettingsSchema.parse(await (await carol.request("/v1/ai/settings")).json()).house.status).toBe("budget_reached");
+      const res = await houseTurn(carol);
+      expect(res.status).toBe(429);
+      expect((await res.json()).error.code).toBe("ai_house_budget");
+    } finally {
+      house.monthlyBudgetUsd = 1000;
+      house.dailyRequests = 2;
+    }
+  });
+
+  it("exports the counters, and keeps them without the account after deletion so the monthly total can't be reset", async () => {
+    const exported = await (await carol.request("/v1/me/export")).json();
+    expect(exported.aiCompanion.includedDailyUsage[0]).toMatchObject({ requests: 2 });
+    const before = (await pool.query<{ n: string }>("select coalesce(sum(requests), 0) as n from ai_house_usage where day = current_date")).rows[0]!.n;
+    expect((await carol.request("/v1/me", { method: "DELETE" })).status).toBe(204);
+    const after = (await pool.query<{ n: string }>("select coalesce(sum(requests), 0) as n from ai_house_usage where day = current_date")).rows[0]!.n;
+    expect(after).toBe(before);
+  });
+});
