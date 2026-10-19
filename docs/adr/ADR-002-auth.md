@@ -12,6 +12,13 @@ PRODUCT.md §2.1: email verification through a vetted provider, recovery, sessio
 - **CSRF:** Better Auth origin checks on its routes; our routes require JSON bodies on mutations and an allowed `Origin` when present. CORS lists exact origins only.
 - **Email delivery:** local/test use an in-memory mailbox (readable at `/v1/dev/mailbox`, 404 elsewhere). Dev/production refuse to send until a provider is chosen and configured.
 
+## Amendment: Google sign-in (2026-10-19)
+- Optional **"Continue with Google"** through Better Auth's Google provider (OIDC, PKCE, `state`), enabled only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are both set; `GET /v1/sign-in-methods` tells clients which methods exist.
+- Scopes `openid email profile`. We keep the email and name; the profile photo is dropped. Google tokens in `accounts` are encrypted at rest (`encryptOAuthTokens`).
+- Account linking is on for Google only: signing in with Google using the same email as an existing email-code account joins that account (Google has verified the address).
+- `POST /v1/auth/sign-in/social` rejects any `callbackURL`, `errorCallbackURL` or `newUserCallbackURL` outside the allowed app origins (403 `redirect_not_allowed`), closing an open redirect the library allowed.
+- Email codes stay available as the fallback for people without Google.
+
 ## Open items
 - Pick the transactional email provider (owner account, preflight S5) and add its adapter.
 - Passkeys (Better Auth passkey plugin) and admin MFA arrive with the admin console.

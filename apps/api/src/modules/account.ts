@@ -34,6 +34,21 @@ accountRoutes.openapi(
   },
 );
 
+const SignInMethodsSchema = z
+  .object({ methods: z.array(z.enum(["email_code", "google"])) })
+  .openapi("SignInMethods");
+
+accountRoutes.openapi(
+  createRoute({
+    method: "get", path: "/v1/sign-in-methods", tags: ["account"], summary: "Sign-in methods enabled on this server",
+    responses: { 200: { description: "Methods", content: { "application/json": { schema: SignInMethodsSchema } } } },
+  }),
+  (c) => {
+    const methods: ("google" | "email_code")[] = config.google ? ["google", "email_code"] : ["email_code"];
+    return c.json({ methods }, 200);
+  },
+);
+
 export const healthRoutes = new OpenAPIHono<AppEnv>();
 const HealthSchema = z.object({ status: z.string(), checks: z.record(z.string(), z.string()).optional() });
 

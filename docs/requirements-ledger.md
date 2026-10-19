@@ -7,6 +7,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 | PRODUCT.md | Requirement | Implementation | Evidence | State |
 |---|---|---|---|---|
 | §2.1 | Email sign-in with verification (one-time code) | `apps/api/src/auth.ts`, `apps/web/src/ui/SignIn.tsx` | API "signs in…", "rejects a wrong code"; E2E all journeys | verified (local; real email provider blocked on S5) |
+| §2.1 | Google sign-in (OIDC) | `apps/api/src/auth.ts`, redirect guard in `apps/api/src/app.ts`, `apps/web/src/ui/SignIn.tsx` | API "Google sign-in" (methods, redirect to Google with PKCE, foreign callback rejected); E2E "Continue with Google sends you to Google…" (Google stubbed) | implemented-unverified (real Google round trip needs owner's OAuth client) |
 | §2.1 | Session revocation / sign-out | Better Auth sign-out; web clears personal DB | E2E "accounts are isolated" | verified |
 | §2.1 | Per-record ownership, no cross-user access | `modules/recipes.ts`, `modules/sync.ts` | API "account isolation"; E2E isolation | verified |
 | §2.1 | CSRF / CORS / cookies | `lib/http.ts`, `app.ts`, ADR-002 | API "request safety" | verified |

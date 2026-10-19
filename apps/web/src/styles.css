@@ -189,6 +189,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .signin-card h1 { font-size: 1.6rem; margin-bottom: 8px; }
 .lede { color: var(--ink-2); }
 .signin-card .btn-primary { width: 100%; margin-top: 16px; }
+.btn-google {
+  width: 100%; min-height: 48px; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-weight: 600; color: var(--ink);
+}
+.btn-google:hover { background: var(--sage-soft); }
+.divider { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 0.8rem; margin: 18px 0 4px; }
+.divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
 
 /* You */
 .facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }

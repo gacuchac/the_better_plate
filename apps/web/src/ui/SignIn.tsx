@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiRequestError, NetworkError } from "../api.ts";
 import { useApp } from "../store.tsx";
 
@@ -8,7 +8,32 @@ export function SignIn() {
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() =>
+    new URLSearchParams(location.search).has("signin") ? "Google sign-in didn't finish. Try again, or use an email code." : null,
+  );
+  const [google, setGoogle] = useState(false);
+
+  useEffect(() => {
+    // Drop the one-time ?signin=… marker so a reload doesn't show the message again.
+    if (location.search) history.replaceState(null, "", location.pathname + location.hash);
+  }, []);
+
+  useEffect(() => {
+    if (!online) return;
+    void api.signInMethods().then((r) => setGoogle(r.methods.includes("google")), () => setGoogle(false));
+  }, [online]);
+
+  async function continueWithGoogle() {
+    setBusy(true);
+    setError(null);
+    try {
+      const { url } = await api.googleSignIn(`${location.origin}/`);
+      location.assign(url);
+    } catch (err) {
+      setError(describe(err, "Google sign-in isn't available right now. Use an email code instead."));
+      setBusy(false);
+    }
+  }
 
   const describe = (err: unknown, fallback: string) =>
     err instanceof NetworkError
@@ -51,6 +76,22 @@ export function SignIn() {
         <p className="eyebrow">The Better Plate</p>
         <h1>Your kitchen, with you everywhere</h1>
         <p className="lede">Save recipes on this device, cook with clear steps, and see nutrition estimates traced to USDA data.</p>
+        {step === "email" && google && (
+          <>
+            <button className="btn-google" type="button" onClick={() => void continueWithGoogle()} disabled={busy || !online}>
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.7 17.8 9.5 24 9.5z" />
+                <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z" />
+                <path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z" />
+                <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z" />
+              </svg>
+              Continue with Google
+            </button>
+            <p className="divider" aria-hidden="true">
+              <span>or</span>
+            </p>
+          </>
+        )}
         {step === "email" ? (
           <form onSubmit={sendCode}>
             <label htmlFor="email">Email</label>

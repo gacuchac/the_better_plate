@@ -4,6 +4,7 @@
 |---|---|---|---|
 | Email, optional name (empty by default), email-verified flag | `users` | Account and sign-in | Until account deletion (`DELETE /v1/me` cascades) |
 | Session token, IP address, user agent | `sessions` | Session security (Better Auth default fields) | Expires after 30 days; deleted on sign-out or account deletion |
+| Google account id and encrypted Google tokens (only for Google sign-in); name from the Google profile | `accounts`, `users.name` | Sign-in with Google | Until account deletion; profile photo is not stored |
 | Hashed sign-in code | `verifications` | Email verification | Expires after 10 minutes |
 | Recipes and immutable revisions | `recipes`, `recipe_revisions` | The product | Until the user deletes the recipe (content cleared to a tombstone) or the account |
 | Sync operation ledger | `sync_operations` | Idempotency | Until account deletion (pruning job not-started) |

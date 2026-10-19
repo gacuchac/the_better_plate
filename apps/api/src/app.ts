@@ -51,7 +51,19 @@ export function createApp() {
   });
 
   // Better Auth owns /v1/auth/* (email one-time codes, sessions, sign-out).
-  app.on(["GET", "POST"], "/v1/auth/*", (c) => auth.handler(c.req.raw));
+  app.on(["GET", "POST"], "/v1/auth/*", async (c) => {
+    // Post-sign-in redirects may only return to our own app (no open redirect via the OAuth flow).
+    if (c.req.method === "POST" && c.req.path === "/v1/auth/sign-in/social") {
+      const body = (await c.req.raw.clone().json().catch(() => ({}))) as Record<string, unknown>;
+      for (const key of ["callbackURL", "errorCallbackURL", "newUserCallbackURL"]) {
+        const value = body[key];
+        if (value === undefined) continue;
+        const origin = typeof value === "string" && URL.canParse(value) ? new URL(value).origin : null;
+        if (!origin || !config.corsOrigins.includes(origin)) throw new ApiError(403, "redirect_not_allowed", `${key} must point to this app`);
+      }
+    }
+    return auth.handler(c.req.raw);
+  });
 
   app.use("/v1/*", csrfMiddleware);
   app.use("/v1/*", sessionMiddleware);

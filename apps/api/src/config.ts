@@ -33,6 +33,15 @@ function list(value: string | undefined): string[] {
   return (value ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
+/** Google sign-in is on only when both OAuth client values are set; one without the other is a mistake. */
+function googleConfig(): { clientId: string; clientSecret: string } | null {
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim() ?? "";
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim() ?? "";
+  if (!clientId && !clientSecret) return null;
+  if (!clientId || !clientSecret) throw new Error("Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither");
+  return { clientId, clientSecret };
+}
+
 function loadConfig() {
   const appEnv = (process.env.APP_ENV ?? "local") as AppEnv;
   if (!APP_ENVS.includes(appEnv)) throw new Error(`APP_ENV must be one of ${APP_ENVS.join(", ")}`);
@@ -72,6 +81,7 @@ function loadConfig() {
     emailFrom: process.env.AUTH_EMAIL_FROM ?? "The Better Plate <no-reply@localhost>",
     emailProviderKey: process.env.EMAIL_PROVIDER_API_KEY ?? "",
     serveWeb: process.env.SERVE_WEB === "true",
+    google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
     features: { chef: chefEnabled, aiCompanion: process.env.FEATURE_AI_COMPANION_ENABLED === "true" },
     /** Relaxed limits for automated local/test runs only. */

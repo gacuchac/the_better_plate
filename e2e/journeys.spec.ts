@@ -171,3 +171,24 @@ test("explore foods with per-100 g values and provenance", async ({ page }, info
   await expect(dialog.getByRole("link")).toHaveAttribute("href", /fdc\.nal\.usda\.gov/);
   await shot(page, info, "explore-food-detail", "Food detail: USDA values per 100 g, not-reported shown as such, source link");
 });
+
+test("Continue with Google sends you to Google with this app's callback", async ({ page }, info) => {
+  let googleUrl: URL | null = null;
+  await page.route("https://accounts.google.com/**", async (route) => {
+    googleUrl = new URL(route.request().url());
+    await route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google (stub)</h1>" });
+  });
+  await page.goto("/");
+  const google = page.getByRole("button", { name: "Continue with Google" });
+  await expect(google).toBeVisible();
+  await shot(page, info, "sign-in-with-google", "Sign-in: Continue with Google, or an email code");
+  await google.click();
+  await expect(page.getByRole("heading", { name: "Google (stub)" })).toBeVisible();
+  expect(googleUrl!.searchParams.get("client_id")).toBe("e2e-client.apps.googleusercontent.com");
+  expect(googleUrl!.searchParams.get("redirect_uri")).toBe(`${API}/v1/auth/callback/google`);
+
+  // A failed or cancelled Google sign-in comes back with a marker and an honest message.
+  await page.goto("/?signin=google_failed");
+  await expect(page.getByRole("alert")).toContainText("Google sign-in didn't finish");
+  expect(new URL(page.url()).search).toBe("");
+});
