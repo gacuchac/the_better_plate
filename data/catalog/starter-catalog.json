@@ -1,7 +1,7 @@
 {
  "schema": "betterplate.catalog/1",
- "version": "usda-sr-legacy-2026-10-19-e06b8378",
- "retrievedAt": "2026-10-19T13:36:39Z",
+ "version": "usda-sr-legacy-2026-10-19-a0e32df9",
+ "retrievedAt": "2026-10-19T13:41:26Z",
  "source": {
   "name": "USDA FoodData Central",
   "dataset": "SR Legacy",
@@ -124,8 +124,75 @@
    "unit": "µg"
   }
  ],
- "contentSha256": "e06b83781842e07ff9fef12234aefb5ebed6220ba1cae799d0fa2834d2ad006a",
+ "contentSha256": "a0e32df9d0f0460cf2f626c9ac3a9891dd6788a043417a158a860aec75f34969",
  "foods": [
+  {
+   "id": "fdc:171688",
+   "fdcId": 171688,
+   "description": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9003,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 52.0,
+    "protein": 0.26,
+    "fat_total": 0.17,
+    "fat_saturated": 0.028,
+    "carbohydrate": 13.81,
+    "fiber": 2.4,
+    "sugars_total": 10.39,
+    "cholesterol": 0.0,
+    "sodium": 1.0,
+    "potassium": 107.0,
+    "calcium": 6.0,
+    "iron": 0.12,
+    "magnesium": 5.0,
+    "zinc": 0.04,
+    "vitamin_c": 4.6,
+    "vitamin_a_rae": 3.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 3.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, quartered or chopped",
+     "gramWeight": 125.0
+    },
+    {
+     "label": "1.0 cup slices",
+     "gramWeight": 109.0
+    },
+    {
+     "label": "1.0 large (3-1/4\" dia)",
+     "gramWeight": 223.0
+    },
+    {
+     "label": "1.0 medium (3\" dia)",
+     "gramWeight": 182.0
+    },
+    {
+     "label": "1.0 small (2-3/4\" dia)",
+     "gramWeight": 149.0
+    },
+    {
+     "label": "1.0 extra small (2-1/2\" dia)",
+     "gramWeight": 101.0
+    },
+    {
+     "label": "1.0 NLEA serving",
+     "gramWeight": 242.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171688/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
   {
    "id": "fdc:169387",
    "fdcId": 169387,
@@ -169,7 +236,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169387/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -232,7 +299,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168389/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -291,7 +358,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171705/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -362,7 +429,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173944/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -405,7 +472,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170285/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -456,7 +523,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172232/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -499,7 +566,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173735/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -546,7 +613,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/175194/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -593,7 +660,50 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169961/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171796",
+   "fdcId": 171796,
+   "description": "Beef, ground, 85% lean meat / 15% fat, raw (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Beef Products",
+   "ndbNumber": 23567,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 215.0,
+    "protein": 18.59,
+    "fat_total": 15.0,
+    "fat_saturated": 5.715,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 68.0,
+    "sodium": 66.0,
+    "potassium": 295.0,
+    "calcium": 15.0,
+    "iron": 2.09,
+    "magnesium": 18.0,
+    "zinc": 4.48,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 4.0,
+    "vitamin_d": 0.1,
+    "vitamin_b12": 2.17,
+    "folate_dfe": 6.0
+   },
+   "portions": [
+    {
+     "label": "4.0 oz",
+     "gramWeight": 113.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171796/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -636,7 +746,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/174030/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -683,7 +793,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169145/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -726,7 +836,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/174832/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -777,7 +887,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173647/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -824,7 +934,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171711/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -903,7 +1013,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/174924/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -950,7 +1060,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172688/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1009,7 +1119,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169967/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1072,7 +1182,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170379/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1119,7 +1229,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170383/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1174,7 +1284,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173410/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1229,7 +1339,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173430/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1300,7 +1410,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169975/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1375,7 +1485,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170393/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1434,7 +1544,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169986/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1501,7 +1611,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169988/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1548,7 +1658,70 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173904/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173414",
+   "fdcId": 173414,
+   "description": "Cheese, cheddar (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1009,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 403.0,
+    "protein": 22.87,
+    "fat_total": 33.31,
+    "fat_saturated": 18.867,
+    "carbohydrate": 3.37,
+    "fiber": 0.0,
+    "sugars_total": 0.48,
+    "cholesterol": 99.0,
+    "sodium": 653.0,
+    "potassium": 76.0,
+    "calcium": 710.0,
+    "iron": 0.14,
+    "magnesium": 27.0,
+    "zinc": 3.64,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 337.0,
+    "vitamin_d": 0.6,
+    "vitamin_b12": 1.1,
+    "folate_dfe": 27.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, diced",
+     "gramWeight": 132.0
+    },
+    {
+     "label": "1.0 cup, melted",
+     "gramWeight": 244.0
+    },
+    {
+     "label": "1.0 cup, shredded",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "1.0 cubic inch",
+     "gramWeight": 17.0
+    },
+    {
+     "label": "1.0 slice (1 oz)",
+     "gramWeight": 28.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173414/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1595,7 +1768,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172182/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1650,7 +1823,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173420/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1701,7 +1874,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170845/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1752,7 +1925,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171247/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1807,7 +1980,58 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171719/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:171077",
+   "fdcId": 171077,
+   "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+   "dataType": "SR Legacy",
+   "category": "Poultry Products",
+   "ndbNumber": 5062,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 120.0,
+    "protein": 22.5,
+    "fat_total": 2.62,
+    "fat_saturated": 0.563,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 73.0,
+    "sodium": 45.0,
+    "potassium": 334.0,
+    "calcium": 5.0,
+    "iron": 0.37,
+    "magnesium": 28.0,
+    "zinc": 0.68,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 9.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.21,
+    "folate_dfe": 9.0
+   },
+   "portions": [
+    {
+     "label": "4.0 oz",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 piece",
+     "gramWeight": 272.0
+    },
+    {
+     "label": "1.0 package",
+     "gramWeight": 926.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/171077/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1858,7 +2082,54 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171477/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173627",
+   "fdcId": 173627,
+   "description": "Chicken, broilers or fryers, dark meat, thigh, meat only, raw",
+   "dataType": "SR Legacy",
+   "category": "Poultry Products",
+   "ndbNumber": 5096,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 121.0,
+    "protein": 19.66,
+    "fat_total": 4.12,
+    "fat_saturated": 1.097,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 94.0,
+    "sodium": 95.0,
+    "potassium": 242.0,
+    "calcium": 7.0,
+    "iron": 0.81,
+    "magnesium": 23.0,
+    "zinc": 1.58,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 7.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.61,
+    "folate_dfe": 4.0
+   },
+   "portions": [
+    {
+     "label": "4.0 oz",
+     "gramWeight": 113.0
+    },
+    {
+     "label": "1.0 thigh without skin",
+     "gramWeight": 149.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173627/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1901,7 +2172,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173757/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1945,7 +2216,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170273/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -1992,7 +2263,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169593/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2039,7 +2310,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169997/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2094,7 +2365,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169998/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2137,7 +2408,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169697/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2188,7 +2459,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169700/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2243,7 +2514,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170859/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2290,7 +2561,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168409/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2330,7 +2601,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168191/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2373,7 +2644,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168411/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2420,7 +2691,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172183/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2471,7 +2742,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173424/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2534,7 +2805,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171287/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2585,7 +2856,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169228/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2632,7 +2903,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171955/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2679,7 +2950,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/175168/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2726,7 +2997,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/175167/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2769,7 +3040,66 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/175176/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:173709",
+   "fdcId": 173709,
+   "description": "Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Finfish and Shellfish Products",
+   "ndbNumber": 15121,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 86.0,
+    "protein": 19.44,
+    "fat_total": 0.96,
+    "fat_saturated": 0.211,
+    "carbohydrate": 0.0,
+    "fiber": 0.0,
+    "sugars_total": 0.0,
+    "cholesterol": 36.0,
+    "sodium": 247.0,
+    "potassium": 179.0,
+    "calcium": 17.0,
+    "iron": 1.63,
+    "magnesium": 23.0,
+    "zinc": 0.69,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 17.0,
+    "vitamin_d": 1.2,
+    "vitamin_b12": 2.55,
+    "folate_dfe": 4.0
+   },
+   "portions": [
+    {
+     "label": "1.0 oz",
+     "gramWeight": 28.35
+    },
+    {
+     "label": "3.0 oz",
+     "gramWeight": 85.0
+    },
+    {
+     "label": "1.0 can",
+     "gramWeight": 165.0
+    },
+    {
+     "label": "1.0 cup, solid or chunks",
+     "gramWeight": 154.0
+    },
+    {
+     "label": "1.0 can (12.5 oz), drained",
+     "gramWeight": 315.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/173709/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2824,7 +3154,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169230/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2875,7 +3205,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169231/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2926,7 +3256,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/174683/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -2977,7 +3307,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169640/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3024,7 +3354,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/174289/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3067,7 +3397,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168421/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3118,7 +3448,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168153/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3169,7 +3499,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169246/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3228,7 +3558,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/167746/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3275,7 +3605,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172421/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3322,7 +3652,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172420/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3381,7 +3711,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169247/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3456,7 +3786,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169248/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3503,7 +3833,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168155/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3550,7 +3880,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169910/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3633,7 +3963,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169092/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3684,7 +4014,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171269/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3735,7 +4065,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171267/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3790,7 +4120,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171265/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3857,7 +4187,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169251/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3904,7 +4234,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172234/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -3967,7 +4297,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170567/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4010,7 +4340,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170162/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4055,7 +4385,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170173/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4118,7 +4448,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170187/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4166,7 +4496,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173573/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4217,7 +4547,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172336/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4268,7 +4598,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171412/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4319,7 +4649,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171413/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4370,7 +4700,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171016/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4421,7 +4751,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171025/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4500,7 +4830,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170000/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4555,7 +4885,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169097/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4606,7 +4936,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170416/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4681,7 +5011,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169737/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4752,7 +5082,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169736/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4815,7 +5145,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169928/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4862,7 +5192,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172470/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4909,7 +5239,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172430/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -4972,7 +5302,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169118/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5015,7 +5345,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170419/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5086,7 +5416,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170427/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5153,7 +5483,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170108/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5212,7 +5542,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169124/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5263,7 +5593,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168249/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5318,7 +5648,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170093/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5373,7 +5703,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170026/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5416,7 +5746,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168448/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5459,7 +5789,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168917/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5500,7 +5830,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168874/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5563,7 +5893,70 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169276/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168165",
+   "fdcId": 168165,
+   "description": "Raisins, dark, seedless (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Fruits and Fruit Juices",
+   "ndbNumber": 9298,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 299.0,
+    "protein": 3.3,
+    "fat_total": 0.25,
+    "fat_saturated": 0.094,
+    "carbohydrate": 79.32,
+    "fiber": 4.5,
+    "sugars_total": 65.18,
+    "cholesterol": 0.0,
+    "sodium": 26.0,
+    "potassium": 744.0,
+    "calcium": 62.0,
+    "iron": 1.79,
+    "magnesium": 36.0,
+    "zinc": 0.36,
+    "vitamin_c": 2.3,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 5.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, packed",
+     "gramWeight": 165.0
+    },
+    {
+     "label": "1.0 cup (not packed)",
+     "gramWeight": 145.0
+    },
+    {
+     "label": "1.0 miniature box (.5 oz)",
+     "gramWeight": 14.0
+    },
+    {
+     "label": "1.0 small box (1.5 oz)",
+     "gramWeight": 43.0
+    },
+    {
+     "label": "50.0 raisins",
+     "gramWeight": 26.0
+    },
+    {
+     "label": "1.0 oz (60 raisins)",
+     "gramWeight": 28.35
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168165/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5614,7 +6007,93 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/167755/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169704",
+   "fdcId": 169704,
+   "description": "Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20037,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 123.0,
+    "protein": 2.74,
+    "fat_total": 0.97,
+    "fat_saturated": 0.26,
+    "carbohydrate": 25.58,
+    "fiber": 1.6,
+    "sugars_total": 0.24,
+    "cholesterol": 0.0,
+    "sodium": 4.0,
+    "potassium": 86.0,
+    "calcium": 3.0,
+    "iron": 0.56,
+    "magnesium": 39.0,
+    "zinc": 0.71,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 9.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 202.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169704/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:169703",
+   "fdcId": 169703,
+   "description": "Rice, brown, long-grain, raw (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20036,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 367.0,
+    "protein": 7.54,
+    "fat_total": 3.2,
+    "fat_saturated": 0.591,
+    "carbohydrate": 76.25,
+    "fiber": 3.6,
+    "sugars_total": 0.66,
+    "cholesterol": 0.0,
+    "sodium": 5.0,
+    "potassium": 250.0,
+    "calcium": 9.0,
+    "iron": 1.29,
+    "magnesium": 116.0,
+    "zinc": 2.13,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 23.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 185.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/169703/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5657,7 +6136,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168878/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5700,7 +6179,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168877/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5755,7 +6234,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173468/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5798,7 +6277,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171192/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5837,7 +6316,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170554/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5896,7 +6375,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169414/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5943,7 +6422,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170556/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -5990,7 +6469,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170150/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6037,7 +6516,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170562/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6084,7 +6563,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/174278/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6124,7 +6603,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/175215/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6171,7 +6650,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171320/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6218,7 +6697,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170923/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6265,7 +6744,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171329/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6320,7 +6799,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170931/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6375,7 +6854,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168462/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6438,7 +6917,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169291/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6481,7 +6960,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169295/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6560,7 +7039,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/167762/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6619,7 +7098,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168833/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6674,7 +7153,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169655/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6729,7 +7208,54 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168483/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168482",
+   "fdcId": 168482,
+   "description": "Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11507,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 86.0,
+    "protein": 1.57,
+    "fat_total": 0.05,
+    "fat_saturated": 0.018,
+    "carbohydrate": 20.12,
+    "fiber": 3.0,
+    "sugars_total": 4.18,
+    "cholesterol": 0.0,
+    "sodium": 55.0,
+    "potassium": 337.0,
+    "calcium": 30.0,
+    "iron": 0.61,
+    "magnesium": 25.0,
+    "zinc": 0.3,
+    "vitamin_c": 2.4,
+    "vitamin_a_rae": 709.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 11.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup, cubes",
+     "gramWeight": 133.0
+    },
+    {
+     "label": "1.0 sweetpotato, 5\" long",
+     "gramWeight": 130.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168482/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6780,7 +7306,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/169661/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6825,7 +7351,62 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172475/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170459",
+   "fdcId": 170459,
+   "description": "Tomato products, canned, paste, without salt added (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Vegetables and Vegetable Products",
+   "ndbNumber": 11546,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 82.0,
+    "protein": 4.32,
+    "fat_total": 0.47,
+    "fat_saturated": 0.1,
+    "carbohydrate": 18.91,
+    "fiber": 4.1,
+    "sugars_total": 12.18,
+    "cholesterol": 0.0,
+    "sodium": 59.0,
+    "potassium": 1014.0,
+    "calcium": 36.0,
+    "iron": 2.98,
+    "magnesium": 42.0,
+    "zinc": 0.63,
+    "vitamin_c": 21.9,
+    "vitamin_a_rae": 76.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 12.0
+   },
+   "portions": [
+    {
+     "label": "0.25 cup",
+     "gramWeight": 66.0
+    },
+    {
+     "label": "1.0 cup",
+     "gramWeight": 262.0
+    },
+    {
+     "label": "1.0 tbsp",
+     "gramWeight": 16.0
+    },
+    {
+     "label": "1.0 can (6 oz)",
+     "gramWeight": 170.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170459/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6888,7 +7469,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170051/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -6979,7 +7560,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/170457/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -7030,7 +7611,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/175036/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -7081,7 +7662,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171505/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -7127,7 +7708,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/172241/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -7178,7 +7759,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/173469/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -7241,7 +7822,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/167765/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -7284,7 +7865,93 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/168894/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:168893",
+   "fdcId": 168893,
+   "description": "Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Cereal Grains and Pasta",
+   "ndbNumber": 20080,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 340.0,
+    "protein": 13.21,
+    "fat_total": 2.5,
+    "fat_saturated": 0.43,
+    "carbohydrate": 71.97,
+    "fiber": 10.7,
+    "sugars_total": 0.41,
+    "cholesterol": 0.0,
+    "sodium": 2.0,
+    "potassium": 363.0,
+    "calcium": 34.0,
+    "iron": 3.6,
+    "magnesium": 137.0,
+    "zinc": 2.6,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 0.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.0,
+    "folate_dfe": 44.0
+   },
+   "portions": [
+    {
+     "label": "1.0 cup",
+     "gramWeight": 120.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/168893/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
+    "license": "Public domain (CC0 1.0), per FoodData Central"
+   }
+  },
+  {
+   "id": "fdc:170894",
+   "fdcId": 170894,
+   "description": "Yogurt, Greek, plain, nonfat (Includes foods for USDA's Food Distribution Program)",
+   "dataType": "SR Legacy",
+   "category": "Dairy and Egg Products",
+   "ndbNumber": 1256,
+   "publicationDate": "4/1/2019",
+   "nutrientsPer100g": {
+    "energy_kcal": 59.0,
+    "protein": 10.19,
+    "fat_total": 0.39,
+    "fat_saturated": 0.117,
+    "carbohydrate": 3.6,
+    "fiber": 0.0,
+    "sugars_total": 3.24,
+    "cholesterol": 5.0,
+    "sodium": 36.0,
+    "potassium": 141.0,
+    "calcium": 110.0,
+    "iron": 0.07,
+    "magnesium": 11.0,
+    "zinc": 0.52,
+    "vitamin_c": 0.0,
+    "vitamin_a_rae": 1.0,
+    "vitamin_d": 0.0,
+    "vitamin_b12": 0.75,
+    "folate_dfe": 7.0
+   },
+   "portions": [
+    {
+     "label": "1.0 container",
+     "gramWeight": 170.0
+    }
+   ],
+   "source": {
+    "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
+    "dataset": "SR Legacy",
+    "url": "https://fdc.nal.usda.gov/food-details/170894/nutrients",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   },
@@ -7339,7 +8006,7 @@
     "publisher": "U.S. Department of Agriculture, Agricultural Research Service, FoodData Central",
     "dataset": "SR Legacy",
     "url": "https://fdc.nal.usda.gov/food-details/171284/nutrients",
-    "retrievedAt": "2026-10-19T13:36:39Z",
+    "retrievedAt": "2026-10-19T13:41:26Z",
     "license": "Public domain (CC0 1.0), per FoodData Central"
    }
   }
