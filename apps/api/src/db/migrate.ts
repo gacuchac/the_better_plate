@@ -1,10 +1,10 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import type pg from "pg";
+import { REPO_ROOT } from "../config.ts";
 
-const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
+const MIGRATIONS_DIR = path.join(REPO_ROOT, "apps", "api", "src", "db", "migrations");
 
 /** Applies pending SQL migrations in filename order, each in its own transaction. Refuses edited migrations. */
 export async function migrate(pool: pg.Pool, log: (msg: string) => void = console.info): Promise<string[]> {

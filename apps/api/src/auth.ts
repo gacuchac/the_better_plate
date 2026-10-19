@@ -34,6 +34,8 @@ export const authOptions = {
     storage: "memory" as const,
   },
   advanced: {
+    // Railway and most managed proxies set X-Forwarded-For; locally there is no proxy.
+    ipAddress: { ipAddressHeaders: ["x-forwarded-for"] },
     database: { generateId: "uuid" as const },
     useSecureCookies: !config.isLocal,
     defaultCookieAttributes: { sameSite: "lax" as const, httpOnly: true },

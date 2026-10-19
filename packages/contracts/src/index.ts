@@ -74,7 +74,8 @@ export const SyncBatchRequestSchema = z.object({
 export const SyncResultSchema = z.object({
   opId: z.uuid(),
   entityId: z.uuid(),
-  status: z.enum(["applied", "conflict", "rejected"]),
+  /** retry: transient server failure, nothing was applied; resend the same opId later. */
+  status: z.enum(["applied", "conflict", "rejected", "retry"]),
   /** True when this opId was already processed; the stored result is returned again. */
   replayed: z.boolean(),
   version: z.number().int().nullable(),

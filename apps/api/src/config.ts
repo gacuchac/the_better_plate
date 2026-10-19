@@ -2,7 +2,18 @@ import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+function findRepoRoot(start: string): string {
+  let dir = start;
+  while (!existsSync(path.join(dir, "pnpm-workspace.yaml"))) {
+    const parent = path.dirname(dir);
+    if (parent === dir) return process.cwd();
+    dir = parent;
+  }
+  return dir;
+}
+
+/** Works from source (tsx) and from the bundled dist build. */
+export const REPO_ROOT = findRepoRoot(path.dirname(fileURLToPath(import.meta.url)));
 
 // Local convenience: load the git-ignored root .env written by scripts/bootstrap.sh.
 // Real environment variables always win; deployed environments never use a file.
