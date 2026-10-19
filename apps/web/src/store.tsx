@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { FoodRecord } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError, type CatalogBundle, type Me } from "./api.ts";
+import { clearTargets } from "./targets.ts";
 import { deleteUserDb, isQuotaError, openUserDb, readCatalog, STORAGE_FULL_EVENT, requestPersistentStorage, writeCatalog, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
 import { SyncEngine } from "./sync.ts";
 
@@ -122,7 +123,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .then((me) => {
         if (cancelled) return;
         const prev = rememberedAccount();
-        if (prev && prev.id !== me.id) void deleteUserDb(prev.id);
+        if (prev && prev.id !== me.id) {
+          void deleteUserDb(prev.id);
+          clearTargets(prev.id);
+        }
         localStorage.setItem(ACCOUNT_KEY, JSON.stringify(me));
         setAccountState(me);
       })
@@ -184,7 +188,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setAccount = useCallback((me: Me) => {
     const prev = rememberedAccount();
-    if (prev && prev.id !== me.id) void deleteUserDb(prev.id);
+    if (prev && prev.id !== me.id) {
+      void deleteUserDb(prev.id);
+      clearTargets(prev.id);
+    }
     localStorage.setItem(ACCOUNT_KEY, JSON.stringify(me));
     setAccountState(me);
     setAccountChecked(true);
@@ -197,7 +204,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAccountState(null);
     setEngine(null);
     // Personal records leave the device with the account; the shared catalog stays.
-    if (id) await deleteUserDb(id).catch(() => {});
+    if (id) {
+      clearTargets(id);
+      await deleteUserDb(id).catch(() => {});
+    }
   }, [account?.id]);
 
   const value = useMemo<AppState>(

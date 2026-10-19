@@ -40,9 +40,9 @@ export interface DailyValue {
 }
 
 /**
- * Percent of a published reference Daily Value. Returns null when there is no reference
- * for the nutrient, the units differ, or the amount is unknown. A reference level is not a
- * personal target or a diagnosis.
+ * Percent of a daily value: a published reference or a target the person typed in. Returns
+ * null when there is none for the nutrient, the units differ, or the amount is unknown.
+ * Never a diagnosis.
  */
 export function percentDailyValue(total: Pick<NutrientTotal, "key" | "amount" | "unit">, dailyValues: DailyValue[]): number | null {
   const dv = dailyValues.find((d) => d.key === total.key);

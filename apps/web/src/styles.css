@@ -426,3 +426,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .language-picker label { margin: 0; }
 .language-picker select { width: auto; min-height: 44px; }
 .facts .language-picker { margin: 0; }
+
+/* Personal daily targets */
+.target-list { list-style: none; margin: 0 0 16px; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+.target-row:last-child { border-bottom: 0; }
+.target-row label { margin: 0; }
+.target-input { display: flex; align-items: center; gap: 8px; }
+.target-input input { width: 7.5rem; min-height: 44px; text-align: right; }
+.target-unit { width: 2.5rem; color: var(--ink-3); }
