@@ -1,6 +1,6 @@
 # Deploy and restore
 
-**Nothing is deployed yet.** The owner is starting on Railway's 30-day trial (no card); steps below.
+**Dev is deployed** at https://thebetterplate-dev.up.railway.app (Railway 30-day trial, no card), built from the `dev` branch. Sign-in waits on email setup (step 5).
 
 ## Local
 - Start: `pnpm dev` (development) or `pnpm start` (built, with service worker).
@@ -25,7 +25,7 @@ Owner setup in the Railway dashboard (no tokens needed for this path; Railway's 
    DATABASE_URL=${{Postgres.DATABASE_URL}}
    SESSION_SECRET=replace-with-a-random-value
    ```
-   Generate the secret on your own computer and paste it only into Railway: `openssl rand -base64 48` (Mac/Linux) or, in PowerShell, `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))`.
+   Generate the secret on your own computer and paste it only into Railway: `openssl rand -base64 48` (Mac/Linux) or, in PowerShell, `$b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)`.
 5. Email for sign-in codes (until set, the app runs but cannot send codes): `EMAIL_PROVIDER=resend` or `brevo`, `EMAIL_PROVIDER_API_KEY`, and `AUTH_EMAIL_FROM` (a sender verified with that provider).
 
 Then: hosted pass of the two-pass gate (same Playwright suite against the dev URL).
