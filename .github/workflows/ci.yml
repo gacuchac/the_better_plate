@@ -1,18 +1,22 @@
 name: CI
 
-# Lint/typecheck, unit + API tests against PostgreSQL, and the Playwright local pass, once per
-# push to a PR into dev or main (work branches always go through a PR). Run it by hand for a
-# branch without a PR.
+# Fast checks (typecheck, unit and API tests against PostgreSQL) on every PR push. Browser
+# journeys (the Playwright local pass) run on a PR only when it touches files behind app flows,
+# or carries the "e2e" label; and always, in full, on every push to dev (each merge), which also
+# keeps the Chromium cache warm for PRs. Owner decision 2026-10-20 (AGENTS.md, two-pass gate).
 on:
   pull_request:
     branches: [dev, main]
+    types: [opened, synchronize, reopened, labeled]
+  push:
+    branches: [dev]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event.action == 'labeled' && 'label' || 'code' }}
   cancel-in-progress: true
 
 jobs:
@@ -28,7 +32,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    name: Typecheck, unit, API and E2E
+    name: Typecheck, unit and API
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -59,6 +63,57 @@ jobs:
           done
       - name: Typecheck, catalog integrity, unit and API tests
         run: bash scripts/test.sh
+
+  changes:
+    name: Decide on browser journeys
+    runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.decide.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          LABELLED: ${{ contains(github.event.pull_request.labels.*.name, 'e2e') }}
+        run: bash scripts/needs-e2e.sh
+
+  e2e:
+    name: Browser journeys
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: betterplate
+          POSTGRES_PASSWORD: betterplate
+          POSTGRES_DB: betterplate
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U betterplate" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: betterplate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Create test databases
+        run: |
+          for db in betterplate_test betterplate_e2e; do
+            psql -h localhost -U betterplate -d betterplate -c "create database $db" || true
+          done
+      - name: Install dependencies and databases
+        run: bash scripts/bootstrap.sh
       - name: Playwright version
         id: pw
         run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"

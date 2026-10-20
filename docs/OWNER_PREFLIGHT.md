@@ -107,6 +107,9 @@ Every change that will be deployed passes the same tests twice, locally first an
 
 Each pass saves evidence under `artifacts/qa/<milestone>/<run-id>/local/` and `.../dev/` (git-ignored; synthetic data only). Until the dev environment is approved (S1–S4), only the local pass can run, and deployment is reported as blocked, not complete.
 
+
+**2026-10-20 update (owner decision):** PRs run the browser journeys only when flow-related files change (`scripts/needs-e2e.sh`) or with the `e2e` label; every merge into `dev` runs the full journeys in CI. See AGENTS.md.
+
 ## What the agent will do without asking
 
 Local implementation in small tested slices, ADRs, the requirements ledger, CI workflows (lint, typecheck, tests, OpenAPI checks, secret scanning with an open-source scanner), the local pass of the two-pass testing gate, work branches cut from `dev`, and PRs into `dev`. Merging into `main` waits for the owner. It will not create accounts, add payment methods, deploy, configure DNS, accept legal terms or enable chef features.
