@@ -378,6 +378,19 @@ connectorRoutes.all("/mcp", async (c) => {
   // Stateless: a fresh server and transport per request, answering with plain JSON.
   const server = createServer(session);
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+  // Why a request was refused (protocol version, malformed message…): no bodies or tokens, only
+  // the transport's own short reason and the version header the client sent.
+  transport.onerror = (err) =>
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        msg: "mcp_refused",
+        requestId: c.get("requestId"),
+        reason: err.message.slice(0, 200),
+        protocolVersion: c.req.header("mcp-protocol-version") ?? null,
+        hasSessionId: !!c.req.header("mcp-session-id"),
+      }),
+    );
   await server.connect(transport);
   try {
     return await transport.handleRequest(c.req.raw, { authInfo: { token: "", clientId: session.clientId, scopes: [...session.scopes], extra: { userId: session.userId } } });
