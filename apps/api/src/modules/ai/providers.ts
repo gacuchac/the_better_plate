@@ -156,10 +156,18 @@ const openai: Adapter = {
     const next: Native[] =
       input.type === "message" ? [{ role: "user", content: input.text }] : input.results.map((r) => ({ role: "tool", tool_call_id: r.id, content: r.isError ? `Error: ${r.output}` : r.output }));
     const messages = [...conversation, ...next];
-    const data = await openaiFetch(apiKey, "/chat/completions", {
+    const body = {
       model,
       messages: [{ role: "system", content: system }, ...messages],
       tools: toolSchemasFor(tools).map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } })),
+    };
+    const data = await openaiFetch(apiKey, "/chat/completions", body).catch((err: unknown) => {
+      // Newer reasoning models refuse function tools on Chat Completions unless reasoning is
+      // off, and older models refuse the parameter itself, so it is only sent when asked for.
+      if (err instanceof ApiError && err.code === "ai_provider_rejected" && /reasoning_effort/.test(err.message)) {
+        return openaiFetch(apiKey, "/chat/completions", { ...body, reasoning_effort: "none" });
+      }
+      throw err;
     });
     const choice = (data.choices as { message: { content: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[]; refusal?: string | null } }[])[0];
     if (!choice) throw new ApiError(503, "ai_provider_error", "OpenAI returned no answer");
