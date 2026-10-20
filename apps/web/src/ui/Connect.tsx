@@ -3,6 +3,7 @@ import { track } from "../activity.ts";
 import { api, ApiRequestError, NetworkError, type ConnectedApp, type OAuthClientInfo } from "../api.ts";
 import { API_URL } from "../env.ts";
 import { useT, type MessageKey } from "../i18n.ts";
+import { ASSISTANTS_CHANGED } from "../store.tsx";
 
 // Claude, ChatGPT or another assistant asks to reach this kitchen. The API sends the person here
 // with a signed authorization query: `#/connect/login?…` before they were signed in, `#/connect?…`
@@ -152,9 +153,9 @@ export function ConnectedApps() {
         <h2>{t("connect.appsTitle")}</h2>
       </div>
       <p className="hint">{t("connect.appsHint")}</p>
-      <p className="hint">
-        {t("connect.appsUrl")} <code data-testid="connector-url">{`${API_URL}/mcp`}</code>
-      </p>
+      <p className="hint">{t("connect.appsUrl")}</p>
+      <ConnectorAddress />
+      <AssistantButtons />
       {apps && apps.length === 0 && <p className="hint">{t("connect.appsNone")}</p>}
       {apps?.map((a) => (
         <div key={a.id} className="ai-provider-head" data-testid="connected-app">
@@ -165,6 +166,7 @@ export function ConnectedApps() {
             onClick={() =>
               void api.disconnectApp(a.id).then(() => {
                 track("Disconnected an assistant");
+                window.dispatchEvent(new Event(ASSISTANTS_CHANGED));
                 return load();
               })
             }
@@ -175,4 +177,97 @@ export function ConnectedApps() {
       ))}
     </section>
   );
+}
+
+const ASSISTANTS = [
+  { name: "Claude", url: "https://claude.ai/new" },
+  { name: "ChatGPT", url: "https://chatgpt.com/" },
+] as const;
+
+/** Opens Claude or ChatGPT in its own window; on wide screens it sits beside the app. */
+function openAssistant(url: string) {
+  const width = 480;
+  const wide = window.screen.availWidth >= 1200;
+  const features = wide ? `popup,width=${width},height=${window.screen.availHeight},left=${window.screen.availWidth - width},top=0` : "";
+  track("Opened an outside assistant");
+  window.open(url, "bp-assistant", features ? `${features},noopener` : "noopener");
+}
+
+export function AssistantButtons() {
+  const t = useT();
+  return (
+    <div className="assistant-buttons">
+      {ASSISTANTS.map((a) => (
+        <button key={a.name} type="button" className="btn-secondary" onClick={() => openAssistant(a.url)}>
+          {t("connect.open", { name: a.name })}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function ConnectorAddress() {
+  const t = useT();
+  const [copied, setCopied] = useState(false);
+  const address = `${API_URL}/mcp`;
+  return (
+    <div className="connector-address">
+      <code data-testid="connector-url">{address}</code>
+      <button
+        type="button"
+        className="btn-link"
+        onClick={() =>
+          void navigator.clipboard?.writeText(address).then(
+            () => setCopied(true),
+            () => setCopied(false),
+          )
+        }
+      >
+        {copied ? t("connect.copied") : t("connect.copy")}
+      </button>
+    </div>
+  );
+}
+
+/** Inside the companion: the alternative of using the person's own Claude or ChatGPT. */
+export function UseYourAssistant({ onBack }: { onBack: () => void }) {
+  const t = useT();
+  return (
+    <div className="companion-hint use-assistant" data-testid="use-assistant">
+      <h3>{t("connect.useTitle")}</h3>
+      <p>{t("connect.useLede")}</p>
+      <ol className="use-assistant-steps">
+        <li>
+          {t("connect.useStep1")}
+          <ConnectorAddress />
+        </li>
+        <li>{t("connect.useStep2")}</li>
+        <li>{t("connect.useStep3")}</li>
+      </ol>
+      <AssistantButtons />
+      <p className="fine">{t("connect.useNote")}</p>
+      <button type="button" className="btn-link" onClick={onBack}>
+        {t("connect.useBack")}
+      </button>
+    </div>
+  );
+}
+
+let connectorAvailable: Promise<boolean> | null = null;
+
+/** Whether this server offers the connector (it answers 404 when switched off). */
+export function useConnectorAvailable(): boolean {
+  const [available, setAvailable] = useState(false);
+  useEffect(() => {
+    connectorAvailable ??= api.connectedApps().then(
+      () => true,
+      (err) => {
+        // Only "switched off" is final; other failures (offline) are asked again later.
+        if (!(err instanceof ApiRequestError && err.status === 404)) connectorAvailable = null;
+        return false;
+      },
+    );
+    void connectorAvailable.then(setAvailable);
+  }, []);
+  return available;
 }

@@ -26,3 +26,11 @@ People asked to use the assistant they already pay for instead of an API key. Cl
 - Not yet exercised from real Claude or ChatGPT; both need the public HTTPS dev URL with the flag on. Each client's own setup steps (Claude: Settings → Connectors → Add custom connector; ChatGPT: developer mode connectors) may change and are not promised in the app copy.
 - Registered client records stay after a person disconnects (they hold no personal data); approvals and tokens are deleted with the account.
 - Rollback: turn the flag off. Migration `011` only adds tables.
+
+## Addendum (2026-10-20): offered beside the companion, with live updates
+
+The owner asked whether Claude or ChatGPT could sit in a floating panel inside the app. That isn't possible: both refuse to load inside another site's frame, and neither offers an embeddable chat for personal accounts. Owner decision: the in-app companion stays the promoted option, and "use your own Claude or ChatGPT" is offered as an alternative.
+
+- **Where it's offered:** inside the companion panel ("Prefer your own Claude or ChatGPT? Use it instead") and under Connected apps. Both show the connector address with Copy, plus Open Claude / Open ChatGPT buttons. On wide screens the assistant opens in a window docked to the right of the app; elsewhere it opens a tab. The offer is hidden when the server has the connector switched off.
+- **Live updates:** while the app is visible and the person has a connected assistant, it quietly pulls the sync feed every 5 seconds. A quiet pull doesn't touch the sync status chip and re-renders only when something changed. Local unsynced work goes through a normal sync first. There's no background polling when the tab is hidden or no assistant is connected.
+

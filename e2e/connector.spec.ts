@@ -7,7 +7,7 @@ import { acceptPrivacyNotice, API, newEmail, readCode, shot } from "./helpers.ts
 // assistant's callback is intercepted; nothing leaves the machine.
 const CALLBACK = "https://claude.ai/api/mcp/auth_callback";
 
-test("a person signs in, approves an assistant, then disconnects it", async ({ page }, info) => {
+test("a person signs in, approves an assistant, then disconnects it", async ({ page, request }, info) => {
   const reg = await page.request.post(`${API}/v1/auth/oauth2/register`, {
     data: { client_name: "Claude", redirect_uris: [CALLBACK], token_endpoint_auth_method: "none", grant_types: ["authorization_code", "refresh_token"], response_types: ["code"] },
   });
@@ -51,6 +51,42 @@ test("a person signs in, approves an assistant, then disconnects it", async ({ p
 
   await expect.poll(() => callback?.searchParams.get("state") ?? null).toBe("e2e-state");
   expect(callback!.searchParams.get("code")).toBeTruthy();
+
+  // The assistant (played here by the test) saves a recipe through the connector while the app
+  // is open; it shows up in the kitchen within seconds, without a reload. The assistant's calls
+  // carry no browser cookies, so they use a separate request context.
+  const token = await request.post(`${API}/v1/auth/oauth2/token`, {
+    form: { grant_type: "authorization_code", code: callback!.searchParams.get("code")!, redirect_uri: CALLBACK, client_id: clientId, code_verifier: verifier, resource: `${API}/mcp` },
+  });
+  expect(token.status(), await token.text()).toBe(200);
+  const accessToken = (await token.json()).access_token as string;
+  await page.goto("/#/kitchen");
+  await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
+  const mcp = (id: number, method: string, params: object) =>
+    request.post(`${API}/mcp`, {
+      headers: { authorization: `Bearer ${accessToken}`, accept: "application/json, text/event-stream", "mcp-protocol-version": "2025-06-18" },
+      data: { jsonrpc: "2.0", id, method, params },
+    });
+  const found = await (await mcp(1, "tools/call", { name: "search_foods", arguments: { query: "chicken breast raw" } })).json();
+  const foodId = JSON.parse(found.result.content[0].text).foods[0].id as string;
+  const saved = await mcp(2, "tools/call", { name: "save_recipe", arguments: { title: "Recipe from my assistant", servings: 2, ingredients: [{ foodId, grams: 300 }] } });
+  expect((await saved.json()).result.isError).toBeFalsy();
+  await expect(page.getByText("Recipe from my assistant")).toBeVisible({ timeout: 12_000 });
+  await shot(page, info, "assistant-recipe-live", "Kitchen: a recipe saved by the connected assistant appears without reloading");
+
+  // The companion stays first and offers the person's own Claude or ChatGPT as the alternative.
+  await page.getByTestId("companion-open").click();
+  const panel = page.getByTestId("companion");
+  await panel.getByTestId("companion-outside").click();
+  const outside = panel.getByTestId("use-assistant");
+  await expect(outside.getByTestId("connector-url")).toHaveText(`${API}/mcp`);
+  await page.context().route("https://claude.ai/new**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<p>Claude</p>" }));
+  const popup = page.waitForEvent("popup");
+  await outside.getByRole("button", { name: "Open Claude" }).click();
+  expect((await popup).url()).toBe("https://claude.ai/new");
+  await shot(page, info, "companion-use-your-assistant", "Companion: use your own Claude or ChatGPT instead, with the connector address and open buttons");
+  await outside.getByRole("button", { name: "Back to the companion" }).click();
+  await panel.getByRole("button", { name: "Close companion" }).click();
 
   // The connection shows under AI settings and can be removed there.
   await page.goto("/#/ai");

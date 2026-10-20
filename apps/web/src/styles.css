@@ -460,6 +460,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .companion-log { list-style: none; margin: 0; padding: 16px 20px; overflow: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .companion-hint p { margin: 0; color: var(--ink-2); }
 .companion-hint .fine { margin-top: 10px; }
+.companion-outside { margin-top: 12px; padding: 0; text-align: left; }
+.use-assistant h3 { margin: 0 0 6px; font-size: 1rem; }
+.use-assistant-steps { margin: 12px 0; padding-left: 20px; line-height: 1.5; color: var(--ink-2); }
+.use-assistant-steps li + li { margin-top: 8px; }
+.connector-address { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 6px 0; }
+.connector-address code { word-break: break-all; font-size: 0.85rem; }
+.assistant-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.assistant-buttons button { min-height: 44px; }
 .bubble { max-width: 88%; padding: 10px 14px; border-radius: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .bubble-user { align-self: flex-end; background: var(--ink); color: #fff; border-bottom-right-radius: 6px; }
 .bubble-agent { align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 6px; }

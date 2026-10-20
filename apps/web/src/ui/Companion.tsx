@@ -6,6 +6,7 @@ import { useT } from "../i18n.ts";
 import { useApp } from "../store.tsx";
 import { navigate } from "./common.tsx";
 import { Icon } from "./icons.tsx";
+import { UseYourAssistant, useConnectorAvailable } from "./Connect.tsx";
 
 /** null: not checked yet; false: the companion is switched off on this server. */
 type Availability = AiSettings | false | null;
@@ -85,6 +86,8 @@ export function Companion() {
   const open = usePanelOpen();
   const setOpen = setPanelOpen;
   const [text, setText] = useState("");
+  const [outside, setOutside] = useState(false);
+  const connector = useConnectorAvailable();
   const logRef = useRef<HTMLOListElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const session = account ? sessionFor(account.id) : null;
@@ -132,27 +135,38 @@ export function Companion() {
         </span>
       </header>
 
-      <ol className="companion-log" ref={logRef} aria-live="polite" aria-relevant="additions">
-        {snap.items.length === 0 && (
-          <li className="companion-hint">
-            <p>{t("agent.intro")}</p>
-            {provider === "house" && settings && (
-              <p className="fine" data-testid="companion-included">
-                {t("agent.included", { n: settings.house.requestsToday, limit: settings.house.dailyLimit })}
-              </p>
-            )}
-            <p className="fine">{t("agent.disclaimer")}</p>
-          </li>
-        )}
-        {snap.items.map((item) => (
-          <ChatRow key={item.id} item={item} onUndo={(id) => void session.undo(id)} onConfirm={(id, ok) => session.confirm(id, ok)} />
-        ))}
-        {snap.running && !snap.items.some((i) => i.kind === "step" && (i.step.status === "running" || i.step.status === "waiting")) && (
-          <li className="companion-thinking">{t("agent.thinking")}</li>
-        )}
-      </ol>
+      {outside ? (
+        <div className="companion-log">
+          <UseYourAssistant onBack={() => setOutside(false)} />
+        </div>
+      ) : (
+        <ol className="companion-log" ref={logRef} aria-live="polite" aria-relevant="additions">
+          {snap.items.length === 0 && (
+            <li className="companion-hint">
+              <p>{t("agent.intro")}</p>
+              {provider === "house" && settings && (
+                <p className="fine" data-testid="companion-included">
+                  {t("agent.included", { n: settings.house.requestsToday, limit: settings.house.dailyLimit })}
+                </p>
+              )}
+              <p className="fine">{t("agent.disclaimer")}</p>
+              {connector && (
+                <button type="button" className="btn-link companion-outside" onClick={() => setOutside(true)} data-testid="companion-outside">
+                  {t("connect.useOffer")}
+                </button>
+              )}
+            </li>
+          )}
+          {snap.items.map((item) => (
+            <ChatRow key={item.id} item={item} onUndo={(id) => void session.undo(id)} onConfirm={(id, ok) => session.confirm(id, ok)} />
+          ))}
+          {snap.running && !snap.items.some((i) => i.kind === "step" && (i.step.status === "running" || i.step.status === "waiting")) && (
+            <li className="companion-thinking">{t("agent.thinking")}</li>
+          )}
+        </ol>
+      )}
 
-      {settings === null ? null : !provider ? (
+      {outside || settings === null ? null : !provider ? (
         <div className="companion-foot">
           <p className="hint">{t(settings.house.status === "budget_reached" ? "agent.houseUsedUp" : "agent.notConnected")}</p>
           <button type="button" className="btn-secondary" onClick={() => navigate("/ai")}>
