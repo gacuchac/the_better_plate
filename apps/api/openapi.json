@@ -5952,7 +5952,7 @@
           "sharing"
         ],
         "summary": "Publish a read-only snapshot of the current saved version and get its link",
-        "description": "Online only. The snapshot holds the title, description, servings, ingredients, the USDA-based estimate and, if chosen, the method. Anyone with the link can read it until it is revoked or expires.",
+        "description": "Online only. The snapshot holds the title, description, servings, ingredients, the USDA-based estimate and, if chosen, the method and the photo. Anyone with the link can read it until it is revoked or expires.",
         "parameters": [
           {
             "schema": {
@@ -5973,6 +5973,10 @@
                 "properties": {
                   "includeMethod": {
                     "type": "boolean"
+                  },
+                  "includeImage": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "expiresInDays": {
                     "type": [
@@ -6017,6 +6021,9 @@
                     "includeMethod": {
                       "type": "boolean"
                     },
+                    "includeImage": {
+                      "type": "boolean"
+                    },
                     "url": {
                       "type": "string"
                     },
@@ -6036,6 +6043,7 @@
                     "recipeVersion",
                     "title",
                     "includeMethod",
+                    "includeImage",
                     "url",
                     "createdAt",
                     "expiresAt"
@@ -6248,6 +6256,9 @@
                           "includeMethod": {
                             "type": "boolean"
                           },
+                          "includeImage": {
+                            "type": "boolean"
+                          },
                           "url": {
                             "type": "string"
                           },
@@ -6267,6 +6278,7 @@
                           "recipeVersion",
                           "title",
                           "includeMethod",
+                          "includeImage",
                           "url",
                           "createdAt",
                           "expiresAt"
@@ -6705,6 +6717,137 @@
                         "null"
                       ]
                     },
+                    "image": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "alt": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo",
+                            "generated",
+                            "upload"
+                          ]
+                        },
+                        "credit": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "openverse"
+                              ]
+                            },
+                            "sourceId": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "title": {
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            "creator": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 200
+                            },
+                            "license": {
+                              "type": "string",
+                              "enum": [
+                                "cc0",
+                                "pdm",
+                                "by",
+                                "by-sa"
+                              ]
+                            },
+                            "licenseVersion": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 20
+                            },
+                            "licenseUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 500,
+                              "format": "uri"
+                            },
+                            "sourceUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 1000,
+                              "format": "uri"
+                            },
+                            "provider": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "sourceId",
+                            "title",
+                            "creator",
+                            "license",
+                            "licenseVersion",
+                            "licenseUrl",
+                            "sourceUrl",
+                            "provider"
+                          ]
+                        },
+                        "generator": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "openai"
+                              ]
+                            },
+                            "model": {
+                              "type": "string",
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "model"
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "alt",
+                        "kind",
+                        "credit",
+                        "generator",
+                        "url"
+                      ]
+                    },
                     "nutrition": {
                       "type": "object",
                       "properties": {
@@ -6865,6 +7008,7 @@
                     "servings",
                     "ingredients",
                     "method",
+                    "image",
                     "nutrition",
                     "nutrientNames",
                     "source",
@@ -6872,6 +7016,182 @@
                     "expiresAt"
                   ]
                 }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/shared/{shareId}/image": {
+      "get": {
+        "tags": [
+          "sharing"
+        ],
+        "summary": "The photo of a shared recipe (no sign-in)",
+        "description": "Only when the owner shared the photo. Stops working with the link: revoked, expired and unknown links all answer 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "shareId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image bytes",
+            "content": {
+              "image/webp": {
+                "schema": {}
+              },
+              "image/jpeg": {
+                "schema": {}
+              },
+              "image/png": {
+                "schema": {}
               }
             }
           },

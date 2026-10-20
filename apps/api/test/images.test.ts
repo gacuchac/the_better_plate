@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { RecipeImageSchema } from "@betterplate/contracts";
 import { pool } from "../src/db/pool.ts";
+import { runMaintenance } from "../src/jobs.ts";
 import sharp from "sharp";
 import { keywords } from "../src/modules/images.ts";
 import { fetchPublicFile, isPublicAddress } from "../src/lib/public-fetch.ts";
@@ -75,6 +76,44 @@ describe("recipe photos", () => {
     const stolen = await bob.request("/v1/recipes", { method: "POST", json: { title: "Not mine", servings: 1, ingredients, image } });
     expect(stolen.status).toBe(201);
     expect((await stolen.json()).image).toBeNull();
+  });
+
+  it("shares a recipe's photo only when asked, readable without sign-in until the link stops working", async () => {
+    const image = RecipeImageSchema.parse(await (await alice.request("/v1/images/import", { method: "POST", json: { source: "openverse", sourceId: CHICKEN } })).json());
+    const ingredients = [{ id: crypto.randomUUID(), foodId: await catalogFood(), quantity: 100, unit: "g", role: "ingredient" }];
+    const recipe = await (await alice.request("/v1/recipes", { method: "POST", json: { title: "Shared photo", servings: 1, ingredients, image: { ...image, alt: "Seared chicken" } } })).json();
+
+    const plain = await (await alice.request(`/v1/recipes/${recipe.id}/share`, { method: "POST", json: { includeMethod: false } })).json();
+    expect(plain.includeImage).toBe(false);
+    expect((await (await call(`/v1/shared/${plain.shareId}`)).json()).image).toBeNull();
+    expect((await call(`/v1/shared/${plain.shareId}/image`)).status).toBe(404);
+    expect(await (await call(`/s/${plain.shareId}`)).text()).not.toContain("og:image");
+
+    const share = await (await alice.request(`/v1/recipes/${recipe.id}/share`, { method: "POST", json: { includeMethod: false, includeImage: true } })).json();
+    expect(share.includeImage).toBe(true);
+    const shared = await (await call(`/v1/shared/${share.shareId}`)).json();
+    expect(shared.image).toEqual({
+      alt: "Seared chicken", kind: "photo", generator: null, url: expect.stringMatching(new RegExp(`/v1/shared/${share.shareId}/image$`)),
+      credit: expect.objectContaining({ creator: "Fixture Photographer", license: "by" }),
+    });
+    expect(JSON.stringify(shared)).not.toContain(image.id);
+    const bytes = await call(`/v1/shared/${share.shareId}/image`);
+    expect(bytes.status).toBe(200);
+    expect(bytes.headers.get("content-type")).toBe("image/png");
+    expect(bytes.headers.get("cache-control")).toBe("no-store");
+    const page = await (await call(`/s/${share.shareId}`)).text();
+    expect(page).toContain(`<meta property="og:image" content="${shared.image.url}">`);
+    expect(page).toContain("summary_large_image");
+
+    // The photo outlives its place on the recipe while the link is live, then goes with the link.
+    await alice.request(`/v1/recipes/${recipe.id}`, { method: "PUT", headers: { "if-match": '"v1"' }, json: { title: "Shared photo", servings: 1, ingredients, image: null } });
+    await pool.query("update recipe_images set created_at = now() - interval '8 days' where id = $1", [image.id]);
+    await runMaintenance();
+    expect((await call(`/v1/shared/${share.shareId}/image`)).status).toBe(200);
+    expect((await alice.request(`/v1/shares/${share.shareId}`, { method: "DELETE" })).status).toBe(204);
+    expect((await call(`/v1/shared/${share.shareId}/image`)).status).toBe(404);
+    await runMaintenance();
+    expect((await pool.query("select 1 from recipe_images where id = $1", [image.id])).rowCount).toBe(0);
   });
 
   it("generates an image on the person's OpenAI key, labelled with its model", async () => {

@@ -520,6 +520,8 @@ body.companion-open .report-btn { display: none; }
 .recipe-photo { margin: 0; }
 .recipe-photo img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
 .recipe-photo.compact img { aspect-ratio: 16 / 9; }
+.public-main .recipe-photo { margin-bottom: 16px; }
+.public-main .recipe-photo img { aspect-ratio: 16 / 9; max-height: 420px; }
 .photo-credit { color: var(--ink-3); font-size: 0.75rem; margin-top: 6px; line-height: 1.4; }
 .photo-credit .tag { margin-left: 0; }
 .photo-actions { display: flex; gap: 12px; }

@@ -23,14 +23,19 @@ export function describeRecipe(body: Pick<RecipeBody, "title" | "ingredients">, 
 }
 
 /** The recipe's image with its credit, or the AI-generated label. Never shown without one of them. */
-export function RecipePhoto({ image, compact = false }: { image: RecipeImage; compact?: boolean }) {
+export function RecipePhoto({ image, compact = false }: { image: RecipeImage | (Omit<RecipeImage, "id"> & { url: string }); compact?: boolean }) {
   const t = useT();
   return (
     <figure className={`recipe-photo${compact ? " compact" : ""}`} data-testid="recipe-photo">
-      <img src={imageUrl(image.id)} alt={image.alt} loading="lazy" crossOrigin="use-credentials" />
+      {"url" in image ? (
+        // A shared recipe's photo is public; no cookies go with it.
+        <img src={image.url} alt={image.alt} loading="lazy" />
+      ) : (
+        <img src={imageUrl(image.id)} alt={image.alt} loading="lazy" crossOrigin="use-credentials" />
+      )}
       <figcaption className="photo-credit" data-testid="photo-credit">
         {image.kind === "upload" ? (
-          <span>{t("photo.yours")}</span>
+          <span>{"url" in image ? t("photo.cooks") : t("photo.yours")}</span>
         ) : image.kind === "generated" ? (
           <>
             <span className="tag tag-amber">{t("photo.aiLabel")}</span> {t("photo.aiNote", { model: image.generator?.model ?? "" })}

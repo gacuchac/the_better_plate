@@ -46,6 +46,27 @@ test("upload your own photo after confirming you may use it; only you see it", a
   const saved = (await (await page.request.get(`${API}/v1/recipes`)).json()).recipes[0];
   expect(saved.image).toMatchObject({ kind: "upload", credit: null });
   await shot(page, info, "photo-uploaded", "Recipe with the person's own photo, credited as theirs");
+
+  // Sharing shows the photo in the review and lets the owner leave it out; the link holder sees it.
+  await page.getByRole("button", { name: "Share recipe" }).click();
+  const share = page.getByRole("dialog", { name: "Share recipe" });
+  const preview = share.getByTestId("share-preview");
+  await expect(preview).toContainText("The photo, with its credit or AI label");
+  await expect.poll(() => loaded(preview.getByTestId("recipe-photo").locator("img"))).toBe(true);
+  await share.getByLabel("Include the photo").uncheck();
+  await expect(preview.getByTestId("recipe-photo")).toHaveCount(0);
+  await share.getByLabel("Include the photo").check();
+  await shot(page, info, "share-with-photo", "Share review with the recipe's photo, which the owner can leave out");
+  await share.getByRole("button", { name: "Create link" }).click();
+  const url = await share.getByLabel("Link", { exact: true }).inputValue();
+  const guest = await page.context().browser()!.newContext();
+  const reader = await guest.newPage();
+  await reader.goto(url);
+  const shared = reader.getByTestId("shared-recipe");
+  await expect(shared.getByTestId("photo-credit")).toHaveText("The cook's own photo");
+  await expect.poll(() => loaded(shared.getByTestId("recipe-photo").locator("img"))).toBe(true);
+  await shot(reader, info, "shared-recipe-photo", "Shared recipe opened signed out, with its photo");
+  await guest.close();
 });
 
 test("find a recipe photo by describing it, with credit; generate one on your key; photos stay offline", async ({ page, context }, info) => {
