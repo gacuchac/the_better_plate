@@ -111,8 +111,8 @@ export async function exportAccount(userId: string) {
     q<{ id: string; kind: string; mime: string; bytes: Buffer; credit: unknown; generator: unknown; rights_confirmed_at: Date | null; upload_source: string | null; created_at: Date }>(
       "select id, kind, mime, bytes, credit, generator, rights_confirmed_at, upload_source, created_at from recipe_images where user_id = $1 order by created_at",
     ),
-    q<{ day: Date; model: string; requests: number; input_tokens: string; output_tokens: string }>(
-      "select day, model, requests, input_tokens, output_tokens from ai_house_usage where user_id = $1 order by day",
+    q<{ day: Date; model: string; requests: number; input_tokens: string; output_tokens: string; images: number }>(
+      "select day, model, requests, input_tokens, output_tokens, images from ai_house_usage where user_id = $1 order by day",
     ),
     q<{ name: string | null; redirect_uris: string[] | null; scopes: string[]; created_at: Date }>(
       `select c.name, c."redirectUris" as redirect_uris, k.scopes, k."createdAt" as created_at
@@ -133,7 +133,7 @@ export async function exportAccount(userId: string) {
       connections: aiKeys.map((k) => ({ provider: k.provider, keyHint: k.key_hint, model: k.model, connectedAt: k.created_at.toISOString() })),
       settings: aiSettings[0] ? { activeProvider: aiSettings[0].active_provider, dailyRequestLimit: aiSettings[0].daily_request_limit } : null,
       dailyUsage: aiUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens) })),
-      includedDailyUsage: houseUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), model: u.model, requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens) })),
+      includedDailyUsage: houseUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), model: u.model, requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens), images: u.images })),
     },
     // Assistants (Claude, ChatGPT) allowed to reach this kitchen; tokens themselves are never exported.
     connectedApps: connectedApps.map((a) => ({ name: a.name, redirectUris: a.redirect_uris ?? [], scopes: a.scopes, connectedAt: a.created_at.toISOString() })),

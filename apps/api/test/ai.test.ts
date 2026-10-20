@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { AiSettingsSchema, AiTurnResponseSchema, HOUSE_TOOL_NAMES } from "@betterplate/contracts";
+import { AiSettingsSchema, AiTurnResponseSchema } from "@betterplate/contracts";
 import { config } from "../src/config.ts";
 import { pool } from "../src/db/pool.ts";
 import { openKey, sealKey } from "../src/modules/ai/byok.ts";
-import { toolSchemasFor } from "../src/modules/ai/providers.ts";
+import { houseSpendThisMonth } from "../src/modules/ai/routes.ts";
 import { call, type Client, signIn } from "./helpers.ts";
 
 const FAKE_KEY = "fake-local-test-key-9z9z";
@@ -129,7 +129,7 @@ describe("AI companion turns", () => {
 });
 
 describe("included companion (owner's key, capped)", () => {
-  const house = config.house as { apiKey: string; dailyRequests: number; monthlyBudgetUsd: number; allowedEmails: "*" | Set<string> };
+  const house = config.house as { apiKey: string; dailyRequests: number; dailyImages: number; monthlyBudgetUsd: number; allowedEmails: "*" | Set<string> };
   const saved = { ...house };
   let carol: Client;
   let dave: Client;
@@ -197,14 +197,35 @@ describe("included companion (owner's key, capped)", () => {
     expect(after).toBe(before);
   });
 
-  it("offers only the core kitchen tools and refuses any other tool call", async () => {
-    expect(toolSchemasFor(HOUSE_TOOL_NAMES).map((t) => t.name)).toEqual(["search_foods", "list_recipes", "save_recipe", "plan_meal", "log_meal", "get_day"]);
-    expect(toolSchemasFor().length).toBeGreaterThan(HOUSE_TOOL_NAMES.length);
+  it("has every feature of an own key: all tools, and generated photos within their own daily cap", async () => {
     const erin = await signIn();
-    Object.assign(house, { dailyRequests: 100, allowedEmails: new Set([erin.email.toLowerCase()]) });
+    Object.assign(house, { dailyRequests: 100, dailyImages: 2, allowedEmails: new Set([erin.email.toLowerCase()]) });
     const res = await erin.request("/v1/ai/turn", { method: "POST", json: { provider: "house", conversation: [], input: { type: "message", text: "open the kitchen", context } } });
     expect(res.status).toBe(200);
     const turn = AiTurnResponseSchema.parse(await res.json());
-    expect(turn.toolCalls[0]).toMatchObject({ name: "navigate", error: "navigate isn't available on the included companion" });
+    expect(turn.toolCalls[0]).toMatchObject({ name: "navigate" });
+    expect(turn.toolCalls[0]!.error).toBeUndefined();
+
+    const spendBefore = await houseSpendThisMonth();
+    const generate = () => erin.request("/v1/images/generate", { method: "POST", json: { prompt: "lemon chicken on a white plate", alt: "Lemon chicken" } });
+    for (let n = 0; n < 2; n++) {
+      const img = await generate();
+      expect(img.status).toBe(201);
+      expect(await img.json()).toMatchObject({ kind: "generated", generator: { provider: "openai" } });
+    }
+    const over = await generate();
+    expect(over.status).toBe(429);
+    expect((await over.json()).error.code).toBe("ai_daily_image_limit");
+    expect(AiSettingsSchema.parse(await (await erin.request("/v1/ai/settings")).json()).house).toMatchObject({ imagesToday: 2, dailyImageLimit: 2, requestsToday: 1 });
+    expect(await houseSpendThisMonth()).toBeCloseTo(spendBefore + 2 * config.house.imagePriceUsd, 6);
+    expect((await (await erin.request("/v1/me/export")).json()).aiCompanion.includedDailyUsage).toEqual(
+      expect.arrayContaining([expect.objectContaining({ images: 2 })]),
+    );
+
+    // Not invited: no included photos either.
+    const frank = await signIn();
+    const refused = await frank.request("/v1/images/generate", { method: "POST", json: { prompt: "lemon chicken", alt: "x" } });
+    expect(refused.status).toBe(404);
+    expect((await refused.json()).error.code).toBe("not_connected");
   });
 });

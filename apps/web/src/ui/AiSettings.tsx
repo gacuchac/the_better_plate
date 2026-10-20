@@ -95,6 +95,8 @@ export function AiSettings() {
           {settings.house.status !== "not_invited" && (
             <p className="hint" data-testid="ai-included-usage">
               {t("ai.usage", { n: settings.house.requestsToday, limit: settings.house.dailyLimit })}
+              <br />
+              {t("ai.imageUsage", { n: settings.house.imagesToday, limit: settings.house.dailyImageLimit })}
             </p>
           )}
         </section>

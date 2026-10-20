@@ -17,6 +17,7 @@ import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
 import { openKey } from "./ai/byok.ts";
 import { isFakeKey } from "./ai/fake.ts";
 import { openaiFetch } from "./ai/providers.ts";
+import { houseState } from "./ai/routes.ts";
 import { ErrorResponses, IdParam } from "./common.ts";
 
 /** Per-person cap; old images nothing refers to are cleared by the daily maintenance job. */
@@ -344,8 +345,10 @@ imageRoutes.openapi(
     method: "post",
     path: "/v1/images/generate",
     tags: ["images"],
-    summary: "Generate a photorealistic recipe image with your own OpenAI key",
-    description: "Needs the AI companion with OpenAI connected. The image is labelled AI-generated wherever it is shown and is not an exact depiction.",
+    summary: "Generate a photorealistic recipe image",
+    description:
+      "Uses the person's own OpenAI key when connected, otherwise the included companion (with its own daily image limit). " +
+      "The image is labelled AI-generated wherever it is shown and is not an exact depiction.",
     request: { body: { required: true, content: { "application/json": { schema: ImageGenerateSchema } } } },
     responses: ImageResponse,
   }),
@@ -357,14 +360,30 @@ imageRoutes.openapi(
       "select ciphertext, iv, auth_tag from ai_credentials where user_id = $1 and provider = 'openai'",
       [user.id],
     );
-    if (!rows[0]) throw new ApiError(404, "not_connected", "Connect an OpenAI key in AI settings to generate images");
-    const apiKey = openKey({ ciphertext: rows[0].ciphertext, iv: rows[0].iv, authTag: rows[0].auth_tag }, user.id, "openai");
-    const { bytes, mime, model } = await generate(apiKey, prompt);
-    await pool.query(
-      `insert into ai_usage (user_id, day, requests, input_tokens, output_tokens) values ($1, current_date, 1, 0, 0)
-       on conflict (user_id, day) do update set requests = ai_usage.requests + 1`,
-      [user.id],
-    );
+    let bytes: Buffer, mime: "image/webp" | "image/png", model: string;
+    if (rows[0]) {
+      const apiKey = openKey({ ciphertext: rows[0].ciphertext, iv: rows[0].iv, authTag: rows[0].auth_tag }, user.id, "openai");
+      ({ bytes, mime, model } = await generate(apiKey, prompt));
+      await pool.query(
+        `insert into ai_usage (user_id, day, requests, input_tokens, output_tokens) values ($1, current_date, 1, 0, 0)
+         on conflict (user_id, day) do update set requests = ai_usage.requests + 1`,
+        [user.id],
+      );
+    } else {
+      // The included companion: every feature of an own key, within its own limits.
+      const house = await houseState(user);
+      if (house.status === "off" || house.status === "not_invited") throw new ApiError(404, "not_connected", "Connect an OpenAI key in AI settings to generate images");
+      if (house.status === "budget_reached") throw new ApiError(429, "ai_house_budget", "The included companion is used up for this month; connect your own OpenAI key in AI settings to keep going");
+      if (house.imagesToday >= house.dailyImageLimit) {
+        throw new ApiError(429, "ai_daily_image_limit", `You made today's ${house.dailyImageLimit} included photos; it resets tomorrow, or connect your own OpenAI key`);
+      }
+      ({ bytes, mime, model } = await generate(config.house.apiKey, prompt));
+      await pool.query(
+        `insert into ai_house_usage (user_id, day, model, images) values ($1, current_date, $2, 1)
+         on conflict (user_id, day, model) do update set images = ai_house_usage.images + 1`,
+        [user.id, model],
+      );
+    }
     return c.json(await store(user.id, { kind: "generated", credit: null, generator: { provider: "openai", model }, bytes, mime }, alt), 201);
   },
 );

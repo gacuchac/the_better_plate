@@ -13,6 +13,7 @@ test("an invited account uses the included companion without its own key", async
   await expect(included).toContainText("In use");
   await expect(included).toContainText("go to OpenAI under The Better Plate's account");
   await expect(page.getByTestId("ai-included-usage")).toContainText(/Today: \d+ of 500 requests/);
+  await expect(page.getByTestId("ai-included-usage")).toContainText(/Generated photos today: \d+ of 3/);
   await shot(page, info, "ai-included", "AI settings: included companion with its daily limit and where messages go");
 
   await page.getByTestId("companion-open").click();
@@ -21,7 +22,7 @@ test("an invited account uses the included companion without its own key", async
   await panel.getByLabel("Ask me to build a recipe").fill("Make me a chicken recipe");
   await panel.getByRole("button", { name: "Send" }).click();
   await expect(panel).toContainText("g of protein per serving", { timeout: 20_000 });
-  // No navigate tool on the included companion: the app opens the saved recipe itself.
+  // Same tools as an own key: the companion opens the saved recipe itself.
   await expect(page).toHaveURL(/#\/recipe\/[0-9a-f-]{36}$/);
   await shot(page, info, "companion-included", "Companion answering on the included key, no own key connected");
 });

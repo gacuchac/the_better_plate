@@ -80,8 +80,8 @@ test("find a recipe photo by describing it, with credit; generate one on your ke
   expect((await page.request.put(`${API}/v1/ai/credentials/openai`, { data: { apiKey: "fake-local-openai-0000" }, headers: { origin: "http://localhost:3100" } })).status()).toBe(200);
   await page.reload();
   await page.getByRole("button", { name: "Change photo" }).click();
-  await expect(sheet.getByRole("heading", { name: "Or generate one with your OpenAI key" })).toBeVisible();
-  await expect(sheet).toContainText("Billed to your OpenAI account");
+  await expect(sheet.getByRole("heading", { name: "Or generate one with AI" })).toBeVisible();
+  await expect(sheet).toContainText("Uses your OpenAI key if you connected one");
   await sheet.getByRole("button", { name: "Generate image" }).click();
   await expect(sheet).toBeHidden();
   await expect(page.getByTestId("photo-credit")).toContainText("AI-generated");
