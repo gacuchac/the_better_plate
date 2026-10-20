@@ -4,6 +4,7 @@ import { DIETARY_GUIDELINES_SOURCE, dayCount, goalProblem, goalProgress, periodW
 import type { GoalProgress, GoalWindowProgress, NutrientDefinition } from "@betterplate/nutrition";
 import { useApp } from "../store.tsx";
 import { goalSentence, intakeByDay } from "../goals.ts";
+import { barScale, goalBars, type GoalBar } from "../goalBars.ts";
 import type { LocalGoal } from "../localdb.ts";
 import { localDate } from "../meals.ts";
 import { dateLocale, formatQty, nutrientName, t as tr, useT, type MessageKey } from "../i18n.ts";
@@ -270,7 +271,7 @@ function GoalSheet({ goal, defs, onClose }: { goal: LocalGoal | null; defs: Nutr
 type Range = "7" | "30" | "month" | "custom";
 
 export function PeriodTotals() {
-  const { catalog } = useApp();
+  const { catalog, goals } = useApp();
   const t = useT();
   const intake = useIntake();
   const today = localDate();
@@ -328,6 +329,8 @@ export function PeriodTotals() {
           {summary.daysLogged === 0 ? (
             <p className="hint">{t("summary.empty")}</p>
           ) : (
+            <>
+            <GoalChart bars={goalBars(goals, intake, window.from, window.to)} otherGoals={goals.some((g) => !g.deleted && g.body.period !== "day")} defs={defs} />
             <table className="totals-table">
               <thead>
                 <tr>
@@ -351,6 +354,7 @@ export function PeriodTotals() {
                 })}
               </tbody>
             </table>
+            </>
           )}
           <p className="fine">{t("summary.fine")}</p>
         </>
@@ -358,3 +362,54 @@ export function PeriodTotals() {
     </section>
   );
 }
+
+/** Eaten next to the person's own daily goals: one pair of bars per goal, each on its own scale. */
+function GoalChart({ bars, otherGoals, defs }: { bars: GoalBar[]; otherGoals: boolean; defs: NutrientDefinition[] }) {
+  const t = useT();
+  if (!bars.length) return otherGoals ? <p className="fine">{t("chart.otherGoals")}</p> : null;
+  const pct = (v: number, scale: number) => `${Math.min(100, (v / scale) * 100)}%`;
+  return (
+    <div className="goal-chart" data-testid="goal-chart">
+      <h3 id="goal-chart-title">{t("chart.title")}</h3>
+      <p className="fine">{t("chart.intro")}</p>
+      <ul aria-labelledby="goal-chart-title">
+        {bars.map((bar) => {
+          const { body } = bar.goal;
+          const name = nutrientName(body.nutrientKey, defs.find((d) => d.key === body.nutrientKey)?.name ?? body.nutrientKey);
+          const scale = barScale(bar);
+          const eaten =
+            bar.amount === null
+              ? bar.daysLogged
+                ? t("goals.status.notReported")
+                : t("chart.noDays")
+              : t("chart.eaten", { amount: bar.partial ? t("summary.atLeast", { amount: formatQty(bar.amount, body.unit) }) : formatQty(bar.amount, body.unit) });
+          const lo = body.kind === "between" ? body.min! : 0;
+          const hi = body.kind === "at_least" ? body.min! : body.max!;
+          return (
+            <li key={bar.goal.id} className="goal-bar" data-testid="goal-bar" data-status={bar.status}>
+              <p className="goal-bar-head">
+                <strong>{name}</strong>{" "}
+                <span>
+                  {eaten} · {goalSentence(body)}
+                  {bar.amount !== null && ` · ${t(CHART_STATUS[bar.status])}`}
+                </span>
+              </p>
+              <div className="goal-bar-rows" aria-hidden="true">
+                <span className="goal-bar-label">{t("chart.eatenLabel")}</span>
+                <span className="goal-bar-track">
+                  {bar.amount !== null && <span className={`goal-bar-fill${bar.partial ? " partial" : ""}`} style={{ width: pct(bar.amount, scale) }} />}
+                </span>
+                <span className="goal-bar-label">{t("chart.goalLabel")}</span>
+                <span className="goal-bar-track">
+                  <span className="goal-bar-goal" style={{ left: pct(lo, scale), width: `calc(${pct(hi, scale)} - ${pct(lo, scale)})` }} />
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+const CHART_STATUS = { met: "goals.status.met", below: "goals.status.below", above: "goals.status.above", no_data: "goals.status.notReported" } as const;

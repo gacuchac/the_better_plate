@@ -542,6 +542,17 @@ body.companion-open .report-btn { display: none; }
 .goal-now { margin: 4px 0; }
 .date-range { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
 .date-range > span { display: flex; flex-direction: column; min-width: 9rem; flex: 1; }
+.goal-chart { margin: 4px 0 16px; }
+.goal-chart ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 14px; }
+.goal-bar-head { margin: 0 0 6px; font-size: 0.9375rem; }
+.goal-bar-head span { color: var(--ink-2); }
+.goal-bar-rows { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; }
+.goal-bar-label { font-size: 0.8125rem; color: var(--ink-3); }
+.goal-bar-track { position: relative; height: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.goal-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--sage-ink); }
+.goal-bar-fill.partial { background: repeating-linear-gradient(135deg, var(--sage-ink) 0 6px, var(--sage) 6px 10px); }
+.goal-bar-goal { position: absolute; top: 0; bottom: 0; border-radius: 6px; background: var(--line-strong); box-shadow: inset 0 0 0 2px var(--ink-3); }
+@media (prefers-reduced-motion: no-preference) { .goal-bar-fill, .goal-bar-goal { transition: width 200ms ease, left 200ms ease; } }
 .totals-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
 .totals-table th, .totals-table td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
 .totals-table th[scope="row"], .totals-table thead th:first-child { text-align: left; font-weight: 500; }
