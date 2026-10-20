@@ -5,6 +5,7 @@ import { api, ApiRequestError, NetworkError } from "../api.ts";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp } from "../store.tsx";
 import { navigate, Sheet } from "./common.tsx";
+import { RecipePhoto } from "./Photos.tsx";
 import { Icon } from "./icons.tsx";
 import { disclosureText, NutrientLine } from "./Nutrition.tsx";
 import { dateLocale, nutrientName, t as translate, useT, type MessageKey } from "../i18n.ts";
@@ -32,6 +33,7 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
   const { online, engine } = useApp();
   const t = useT();
   const [includeMethod, setIncludeMethod] = useState(false);
+  const [includeImage, setIncludeImage] = useState(true);
   const [expiry, setExpiry] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -40,6 +42,7 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
   const [copied, setCopied] = useState(false);
   const synced = recipe.state === "synced" && recipe.serverVersion !== null;
   const body: RecipeBody = recipe.body;
+  const withImage = includeImage && !!body.image;
 
   useEffect(() => {
     if (!online || !synced) return;
@@ -50,7 +53,7 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
     setBusy(true);
     setProblem(null);
     try {
-      const share = await api.createShare(recipe.id, { includeMethod, expiresInDays: expiry ? Number(expiry) : null });
+      const share = await api.createShare(recipe.id, { includeMethod, includeImage: withImage, expiresInDays: expiry ? Number(expiry) : null });
       track("Created a share link");
       setCreated(share);
     } catch (err) {
@@ -122,12 +125,14 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
         <>
           <p className="hint">{t("share.willSee")}</p>
           <div className="card share-preview" data-testid="share-preview">
+            {withImage && body.image && <RecipePhoto image={body.image} compact />}
             <strong className="recipe-title">{body.title}</strong>
             {body.description && <p className="hint">{body.description}</p>}
             <ul>
               <li>{t("share.seeIngredients", { servings: t("common.servings", { n: body.servings }), ingredients: t("share.ingredients", { n: body.ingredients.length }) })}</li>
               <li>{t("share.seeNutrition")}</li>
               {includeMethod && <li>{t("share.seeMethod")}</li>}
+              {withImage && <li>{t("share.seePhoto")}</li>}
             </ul>
             <p className="fine" style={{ marginTop: 8 }}>{t("share.never")}</p>
           </div>
@@ -135,6 +140,12 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
             <input type="checkbox" checked={includeMethod} disabled={!body.method} onChange={(e) => setIncludeMethod(e.target.checked)} />
             {body.method ? t("share.includeMethod") : t("share.includeMethodNone")}
           </label>
+          {body.image && (
+            <label className="check">
+              <input type="checkbox" checked={includeImage} onChange={(e) => setIncludeImage(e.target.checked)} />
+              {t("share.includePhoto")}
+            </label>
+          )}
           <label htmlFor="share-expiry">{t("share.linkWorks")}</label>
           <select id="share-expiry" value={expiry} onChange={(e) => setExpiry(e.target.value)}>
             {EXPIRY.map((o) => (
@@ -253,6 +264,7 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
         {state.status === "ok" && (
           <article data-testid="shared-recipe">
             <p className="eyebrow">{t("shared.eyebrow")}</p>
+            {state.recipe.image && <RecipePhoto image={state.recipe.image} />}
             <h1 className="shared-title">{state.recipe.title}</h1>
             {state.recipe.description && <p className="lede shared-description">{state.recipe.description}</p>}
             <p className="hint">

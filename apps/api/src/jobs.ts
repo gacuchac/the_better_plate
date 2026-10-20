@@ -17,10 +17,12 @@ export async function runMaintenance(): Promise<{ syncOperations: number; sessio
       const ops = await client.query(`delete from sync_operations where created_at < now() - make_interval(days => $1)`, [SYNC_LEDGER_DAYS]);
       // Expired sign-in sessions hold an IP address and browser description; keep them no longer than needed.
       const sessions = await client.query(`delete from "sessions" where "expiresAt" < now()`);
-      // Recipe images no live recipe uses, after a week (revisions keep only the reference).
+      // Recipe images no live recipe or live share link uses, after a week (revisions keep only the reference).
       const images = await client.query(
         `delete from recipe_images i where created_at < now() - interval '7 days'
-           and not exists (select 1 from recipes r where r.user_id = i.user_id and r.deleted_at is null and r.body->'image'->>'id' = i.id::text)`,
+           and not exists (select 1 from recipes r where r.user_id = i.user_id and r.deleted_at is null and r.body->'image'->>'id' = i.id::text)
+           and not exists (select 1 from share_snapshots s where s.user_id = i.user_id and s.revoked_at is null
+                             and (s.expires_at is null or s.expires_at > now()) and s.snapshot->'image'->>'id' = i.id::text)`,
       );
       return { syncOperations: ops.rowCount ?? 0, sessions: sessions.rowCount ?? 0, images: images.rowCount ?? 0 };
     } finally {

@@ -616,7 +616,7 @@ describe("recipe share links", () => {
     // Nothing about the owner or their other data.
     expect(text).not.toContain(alice.email);
     expect(text).not.toContain("Secret family step");
-    expect(Object.keys(JSON.parse(text)).sort()).toEqual(["description", "expiresAt", "ingredients", "method", "nutrientNames", "nutrition", "servings", "shareId", "sharedAt", "source", "title"]);
+    expect(Object.keys(JSON.parse(text)).sort()).toEqual(["description", "expiresAt", "image", "ingredients", "method", "nutrientNames", "nutrition", "servings", "shareId", "sharedAt", "source", "title"]);
 
     const withMethod = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: true } })).json();
     expect((await (await call(`/v1/shared/${withMethod.shareId}`)).json()).method).toBe("Secret family step.");

@@ -305,6 +305,8 @@ export const SyncChangesResponseSchema = z.object({
 export const ShareCreateSchema = z.object({
   /** The method is the cook's own words; it is shared only when the owner ticks it. */
   includeMethod: z.boolean(),
+  /** The recipe's photo, with its credit or AI label; shared only when the owner ticks it. */
+  includeImage: z.boolean().default(false),
   /** Optional automatic expiry; null keeps the link until it is revoked. */
   expiresInDays: z.number().int().min(1).max(365).nullable().default(null),
 });
@@ -323,6 +325,8 @@ export const SharedRecipeSchema = z.object({
   servings: z.number(),
   ingredients: z.array(SharedIngredientSchema),
   method: z.string().nullable(),
+  /** The photo the owner chose to share; `url` serves it without sign-in until the link stops working. */
+  image: RecipeImageSchema.omit({ id: true }).extend({ url: z.string() }).nullable(),
   nutrition: RecipeNutritionSchema,
   /** Display names for the nutrient keys, so the page reads without the food catalog. */
   nutrientNames: z.record(z.string(), z.string()),
@@ -337,6 +341,7 @@ export const ShareSchema = z.object({
   recipeVersion: z.number().int().positive(),
   title: z.string(),
   includeMethod: z.boolean(),
+  includeImage: z.boolean(),
   url: z.string(),
   createdAt: z.string(),
   expiresAt: z.string().nullable(),
