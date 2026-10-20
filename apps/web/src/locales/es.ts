@@ -146,6 +146,8 @@ export const es: Messages = {
   "editor.oilDiscarded": "Aceite descartado después de cocinar, si lo mediste (g)",
   "editor.notMeasured": "Sin medir",
   "editor.oilHint": "Pesa lo que queda en la sartén o lo que escurriste. Si lo omites, todo el aceite cuenta como consumido.",
+  "editor.description": "Descripción",
+  "editor.descriptionPlaceholder": "Una o dos frases sobre el plato (opcional)",
   "editor.method": "Preparación",
   "editor.methodPlaceholder": "Pasos, con tus propias palabras",
   "editor.delete": "Eliminar receta",

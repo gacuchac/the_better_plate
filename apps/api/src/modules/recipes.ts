@@ -23,7 +23,7 @@ type RecipeRow = {
   user_id: string;
   title: string;
   servings: string;
-  body: { ingredients?: RecipeBody["ingredients"]; method?: string; image?: RecipeBody["image"] };
+  body: { ingredients?: RecipeBody["ingredients"]; method?: string; description?: string; image?: RecipeBody["image"] };
   nutrition: RecipeNutritionDto | null;
   version: number;
   server_seq: string;
@@ -38,6 +38,7 @@ export function toRecipe(r: RecipeRow): Recipe {
     title: r.title,
     servings: Number(r.servings),
     ingredients: r.body.ingredients ?? [],
+    description: r.body.description ?? "",
     method: r.body.method ?? "",
     image: r.body.image ?? null,
     version: r.version,
@@ -105,7 +106,7 @@ export async function putRecipe(
   const image = await resolveRecipeImage(client, userId, body.image);
 
   const version = row ? row.version + 1 : 1;
-  const stored = { ingredients: body.ingredients, method: body.method, image: image.ok ? image.image : null };
+  const stored = { ingredients: body.ingredients, description: body.description, method: body.method, image: image.ok ? image.image : null };
   const { rows } = await client.query<RecipeRow>(
     row
       ? `update recipes set title = $3, servings = $4, body = $5, nutrition = $6, version = $7, server_seq = nextval('change_seq'), updated_at = now()

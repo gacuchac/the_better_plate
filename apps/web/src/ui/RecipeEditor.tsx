@@ -19,7 +19,7 @@ export const MACROS: { key: string; label: MessageKey }[] = [
   { key: "fat_total", label: "macro.fat" },
 ];
 
-const blank = (): RecipeBody => ({ title: "", servings: 2, ingredients: [], method: "" });
+const blank = (): RecipeBody => ({ title: "", description: "", servings: 2, ingredients: [], method: "" });
 
 function unitValue(i: RecipeIngredientInput) {
   return i.unit === "portion" ? `p:${i.portionIndex ?? 0}` : i.unit;
@@ -119,6 +119,18 @@ export function RecipeEditor({ id }: { id: string }) {
             {t("editor.name")}
           </label>
           <input id="title" className="title-input" value={draft.title} placeholder={t("editor.namePlaceholder")} onChange={(e) => update({ title: e.target.value })} />
+          <label htmlFor="description" className="sr-only">
+            {t("editor.description")}
+          </label>
+          <textarea
+            id="description"
+            className="description-input"
+            rows={2}
+            maxLength={500}
+            value={draft.description ?? ""}
+            placeholder={t("editor.descriptionPlaceholder")}
+            onChange={(e) => update({ description: e.target.value })}
+          />
 
           {draft.image ? (
             <div className="photo-block">

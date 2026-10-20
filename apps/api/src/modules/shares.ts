@@ -60,6 +60,7 @@ async function buildSnapshot(recipe: Recipe, includeMethod: boolean): Promise<Sh
         oilDiscardedGrams: i.oilDiscardedGrams ?? null,
       };
     }),
+    description: recipe.description,
     method: includeMethod && recipe.method ? recipe.method : null,
     nutrition: recipe.nutrition,
     nutrientNames: Object.fromEntries(catalog.nutrients.map((n) => [n.key, n.name])),
@@ -84,7 +85,7 @@ shareRoutes.openapi(
   createRoute({
     method: "post", path: "/v1/recipes/{id}/share", tags: ["sharing"],
     summary: "Publish a read-only snapshot of the current saved version and get its link",
-    description: "Online only. The snapshot holds the title, servings, ingredients, the USDA-based estimate and, if chosen, the method. Anyone with the link can read it until it is revoked or expires.",
+    description: "Online only. The snapshot holds the title, description, servings, ingredients, the USDA-based estimate and, if chosen, the method. Anyone with the link can read it until it is revoked or expires.",
     request: { params: IdParam, body: { required: true, ...json(ShareCreateSchema) } },
     responses: { 201: { description: "Link created", ...json(ShareSchema) }, 409: { description: "Recipe not ready to share", ...json(z.object({ error: z.any() })) }, ...ErrorResponses },
   }),
@@ -152,7 +153,8 @@ export async function readShared(shareId: string): Promise<SharedRecipe | null> 
   );
   const r = rows[0];
   if (!r) return null;
-  return { shareId: r.id, ...r.snapshot, sharedAt: r.created_at.toISOString(), expiresAt: r.expires_at?.toISOString() ?? null };
+  // Links made before recipes had a description carry none.
+  return { shareId: r.id, ...r.snapshot, description: r.snapshot.description ?? "", sharedAt: r.created_at.toISOString(), expiresAt: r.expires_at?.toISOString() ?? null };
 }
 
 shareRoutes.openapi(
@@ -187,7 +189,8 @@ sharePageRoutes.get("/s/:shareId", async (c) => {
   const target = `${config.publicAppUrl.replace(/\/$/, "")}/#/shared/${valid ? shareId : "missing"}`;
   const title = shared ? `${shared.title} · The Better Plate` : "The Better Plate";
   const description = shared
-    ? `A recipe for ${shared.servings} ${shared.servings === 1 ? "serving" : "servings"} with ${shared.ingredients.length} ingredients and an estimated nutrition breakdown from USDA data.`
+    ? shared.description ||
+      `A recipe for ${shared.servings} ${shared.servings === 1 ? "serving" : "servings"} with ${shared.ingredients.length} ingredients and an estimated nutrition breakdown from USDA data.`
     : "This link was revoked, expired or never existed.";
   c.header("Cache-Control", "no-store");
   c.header("X-Robots-Tag", "noindex");

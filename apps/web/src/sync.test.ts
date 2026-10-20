@@ -5,7 +5,7 @@ import { NetworkError } from "./api.ts";
 import { openUserDb } from "./localdb.ts";
 import { SyncEngine } from "./sync.ts";
 
-const body = (title: string) => ({ title, servings: 1, ingredients: [], method: "" });
+const body = (title: string) => ({ title, description: "", servings: 1, ingredients: [], method: "" });
 
 /** In-memory stand-in for the API that follows protocol 1 semantics. */
 function fakeServer() {

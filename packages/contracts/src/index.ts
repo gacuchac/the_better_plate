@@ -51,6 +51,8 @@ export const RecipeImageSchema = z.object({
 
 export const RecipeBodySchema = z.object({
   title: trimmed(120).min(1, "Give the recipe a name"),
+  /** A sentence or two about the dish, shown under the title. */
+  description: trimmed(500).default(""),
   servings: z.number().positive().max(100),
   ingredients: z.array(RecipeIngredientSchema).max(MAX_INGREDIENTS),
   method: trimmed(10_000).default(""),
@@ -242,6 +244,7 @@ export const SharedIngredientSchema = RecipeIngredientSchema.pick({ id: true, fo
 export const SharedRecipeSchema = z.object({
   shareId: z.uuid(),
   title: z.string(),
+  description: z.string(),
   servings: z.number(),
   ingredients: z.array(SharedIngredientSchema),
   method: z.string().nullable(),

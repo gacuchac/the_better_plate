@@ -169,6 +169,7 @@ const TOOLS: { [N in ConnectorTool]: Impl<N> } = {
     return {
       recipeId: r.id,
       title: r.title,
+      description: r.description,
       servings: r.servings,
       method: r.method,
       ingredients: r.ingredients.map((i) => ({
@@ -188,6 +189,7 @@ const TOOLS: { [N in ConnectorTool]: Impl<N> } = {
     const previous = input.recipeId ? await recipeOrThrow(userId, input.recipeId) : null;
     const body: RecipeBody = RecipeBodySchema.parse({
       title: input.title,
+      description: input.description,
       servings: input.servings,
       method: input.method,
       image: previous?.image ?? null,

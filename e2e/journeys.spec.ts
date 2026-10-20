@@ -387,6 +387,7 @@ test("share a recipe: review what is shared, open the link signed out, then revo
   await signIn(page, email);
   await page.getByRole("button", { name: "New recipe" }).click();
   await page.getByLabel("Recipe name").fill("Rice for friends");
+  await page.getByLabel("Description").fill("A quick side for a crowd.");
   await addIngredient(page, "rice white cooked", RICE);
   await addIngredient(page, "olive", OIL);
   await page.getByLabel("Method").fill("Warm the rice.\nStir in the oil.");
@@ -418,6 +419,7 @@ test("share a recipe: review what is shared, open the link signed out, then revo
   await expect(shared.getByRole("heading", { name: "Rice for friends" })).toBeVisible();
   await expect(shared).toContainText(RICE);
   await expect(shared).toContainText("Stir in the oil.");
+  await expect(shared).toContainText("A quick side for a crowd.");
   await expect(shared).toContainText("counted as eaten");
   await expect(reader.getByTestId("shared-nutrient-energy_kcal")).toContainText("kcal");
   await expect(reader.locator("body")).not.toContainText(email);

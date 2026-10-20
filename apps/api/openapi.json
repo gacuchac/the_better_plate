@@ -1456,6 +1456,11 @@
                             "minLength": 1,
                             "maxLength": 120
                           },
+                          "description": {
+                            "type": "string",
+                            "maxLength": 500,
+                            "default": ""
+                          },
                           "servings": {
                             "type": "number",
                             "exclusiveMinimum": 0,
@@ -1978,6 +1983,11 @@
                     "minLength": 1,
                     "maxLength": 120
                   },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "default": ""
+                  },
                   "servings": {
                     "type": "number",
                     "exclusiveMinimum": 0,
@@ -2215,6 +2225,11 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 120
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "default": ""
                     },
                     "servings": {
                       "type": "number",
@@ -3155,6 +3170,11 @@
                       "minLength": 1,
                       "maxLength": 120
                     },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "default": ""
+                    },
                     "servings": {
                       "type": "number",
                       "exclusiveMinimum": 0,
@@ -3690,6 +3710,11 @@
                     "minLength": 1,
                     "maxLength": 120
                   },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "default": ""
+                  },
                   "servings": {
                     "type": "number",
                     "exclusiveMinimum": 0,
@@ -3923,6 +3948,11 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 120
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "default": ""
                     },
                     "servings": {
                       "type": "number",
@@ -5412,7 +5442,7 @@
           "sharing"
         ],
         "summary": "Publish a read-only snapshot of the current saved version and get its link",
-        "description": "Online only. The snapshot holds the title, servings, ingredients, the USDA-based estimate and, if chosen, the method. Anyone with the link can read it until it is revoked or expires.",
+        "description": "Online only. The snapshot holds the title, description, servings, ingredients, the USDA-based estimate and, if chosen, the method. Anyone with the link can read it until it is revoked or expires.",
         "parameters": [
           {
             "schema": {
@@ -6081,6 +6111,9 @@
                     "title": {
                       "type": "string"
                     },
+                    "description": {
+                      "type": "string"
+                    },
                     "servings": {
                       "type": "number"
                     },
@@ -6318,6 +6351,7 @@
                   "required": [
                     "shareId",
                     "title",
+                    "description",
                     "servings",
                     "ingredients",
                     "method",
@@ -6529,6 +6563,11 @@
                                   "type": "string",
                                   "minLength": 1,
                                   "maxLength": 120
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "maxLength": 500,
+                                  "default": ""
                                 },
                                 "servings": {
                                   "type": "number",
@@ -7135,6 +7174,11 @@
                                 "type": "string",
                                 "minLength": 1,
                                 "maxLength": 120
+                              },
+                              "description": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "default": ""
                               },
                               "servings": {
                                 "type": "number",
@@ -7797,6 +7841,11 @@
                                 "type": "string",
                                 "minLength": 1,
                                 "maxLength": 120
+                              },
+                              "description": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "default": ""
                               },
                               "servings": {
                                 "type": "number",

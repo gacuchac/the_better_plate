@@ -120,9 +120,10 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     const found = await tool(token, "search_foods", { query: "chicken breast raw" });
     const chicken = found.data.foods[0].id as string;
     expect(chicken).toMatch(/^fdc:\d+$/);
-    const saved = await tool(token, "save_recipe", { title: "Connector chicken", servings: 2, ingredients: [{ foodId: chicken, grams: 300 }], method: "Cook to 165°F." });
+    const saved = await tool(token, "save_recipe", { title: "Connector chicken", description: "Simple and juicy.", servings: 2, ingredients: [{ foodId: chicken, grams: 300 }], method: "Cook to 165°F." });
     expect(saved.data.estimatedPerServing.find((n: { key: string }) => n.key === "protein").amount).toBeGreaterThan(0);
     const recipeId = saved.data.recipeId as string;
+    expect((await tool(token, "get_recipe", { recipeId })).data.description).toBe("Simple and juicy.");
 
     expect((await tool(token, "save_recipe", { title: "Bad", servings: 1, ingredients: [{ foodId: "fdc:999999999", grams: 10 }] })).isError).toBe(true);
     expect((await tool(token, "plan_meal", { recipeId, date: today, slot: "dinner", servings: 1 })).data.planned).toBe(true);

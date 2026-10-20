@@ -153,6 +153,8 @@ export const en = {
   "editor.oilDiscarded": "Oil discarded after cooking, if measured (g)",
   "editor.notMeasured": "Not measured",
   "editor.oilHint": "Weigh what's left in the pan or drained. If you skip this, all the oil counts as eaten.",
+  "editor.description": "Description",
+  "editor.descriptionPlaceholder": "A sentence or two about the dish (optional)",
   "editor.method": "Method",
   "editor.methodPlaceholder": "Steps, in your own words",
   "editor.delete": "Delete recipe",
