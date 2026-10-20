@@ -123,6 +123,7 @@ export function ShareSheet({ recipe, onClose }: { recipe: LocalRecipe; onClose: 
           <p className="hint">{t("share.willSee")}</p>
           <div className="card share-preview" data-testid="share-preview">
             <strong className="recipe-title">{body.title}</strong>
+            {body.description && <p className="hint">{body.description}</p>}
             <ul>
               <li>{t("share.seeIngredients", { servings: t("common.servings", { n: body.servings }), ingredients: t("share.ingredients", { n: body.ingredients.length }) })}</li>
               <li>{t("share.seeNutrition")}</li>
@@ -212,6 +213,7 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
     const id = crypto.randomUUID();
     await engine!.saveRecipe(id, {
       title: recipe.title,
+      description: recipe.description ?? "",
       servings: recipe.servings,
       method: recipe.method ?? "",
       ingredients: recipe.ingredients.map((i) => ({
@@ -252,6 +254,7 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
           <article data-testid="shared-recipe">
             <p className="eyebrow">{t("shared.eyebrow")}</p>
             <h1 className="shared-title">{state.recipe.title}</h1>
+            {state.recipe.description && <p className="lede shared-description">{state.recipe.description}</p>}
             <p className="hint">
               {t("common.servings", { n: state.recipe.servings })} ·{" "}
               {t("shared.sharedOn", { date: new Date(state.recipe.sharedAt).toLocaleDateString(dateLocale(), { day: "numeric", month: "long", year: "numeric" }) })}

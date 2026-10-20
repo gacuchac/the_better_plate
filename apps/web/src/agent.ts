@@ -106,6 +106,7 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
       output: {
         recipeId,
         title: r.body.title,
+        description: r.body.description ?? "",
         servings: r.body.servings,
         method: r.body.method,
         ingredients: r.body.ingredients.map((i) => {
@@ -124,6 +125,7 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
     for (const i of input.ingredients) if (!env.foods.has(i.foodId)) throw new Error(`Unknown foodId ${i.foodId}; use search_foods`);
     const body = RecipeBodySchema.parse({
       title: input.title,
+      description: input.description,
       servings: input.servings,
       method: input.method,
       // Replacing a recipe keeps its photo.

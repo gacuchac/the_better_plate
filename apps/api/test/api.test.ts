@@ -476,11 +476,26 @@ describe("rate limiting", () => {
   });
 });
 
+describe("recipe description", () => {
+  it("is stored, returned, synced and limited to 500 characters", async () => {
+    const created = await alice.request("/v1/recipes", { method: "POST", json: { title: "Described", description: "  Bright and quick.  ", servings: 1, ingredients: [] } });
+    expect(created.status).toBe(201);
+    const { id } = (await created.json()) as { id: string };
+    expect((await (await alice.request(`/v1/recipes/${id}`)).json()).description).toBe("Bright and quick.");
+    const changes = await (await alice.request("/v1/sync/changes?cursor=0&limit=500")).json();
+    expect(JSON.stringify(changes)).toContain("Bright and quick.");
+    // Recipes saved without one read back as an empty description.
+    const plain = (await (await alice.request("/v1/recipes", { method: "POST", json: { title: "Plain", servings: 1, ingredients: [] } })).json()) as { id: string };
+    expect((await (await alice.request(`/v1/recipes/${plain.id}`)).json()).description).toBe("");
+    expect((await alice.request("/v1/recipes", { method: "POST", json: { title: "Long", description: "x".repeat(501), servings: 1, ingredients: [] } })).status).toBe(400);
+  });
+});
+
 describe("recipe share links", () => {
   async function shareable(client: Client, extra: Record<string, unknown> = {}) {
     return (await (await client.request("/v1/recipes", {
       method: "POST",
-      json: { title: "Rice bowl", servings: 2, method: "Secret family step.", ingredients: [ingredient(rice, 300), ingredient(oil, 10, { role: "cooking_oil" })], ...extra },
+      json: { title: "Rice bowl", description: "A warm bowl for busy nights.", servings: 2, method: "Secret family step.", ingredients: [ingredient(rice, 300), ingredient(oil, 10, { role: "cooking_oil" })], ...extra },
     })).json()) as { id: string; version: number };
   }
 
@@ -498,13 +513,14 @@ describe("recipe share links", () => {
     const text = await pub.text();
     const shared = SharedRecipeSchema.parse(JSON.parse(text));
     expect(shared.title).toBe("Rice bowl");
+    expect(shared.description).toBe("A warm bowl for busy nights.");
     expect(shared.method).toBeNull();
     expect(shared.ingredients[0]!.name).toMatch(/^Rice, white/);
     expect(shared.nutrition.disclosures.map((d) => d.code)).toContain("oil_discard_not_measured");
     // Nothing about the owner or their other data.
     expect(text).not.toContain(alice.email);
     expect(text).not.toContain("Secret family step");
-    expect(Object.keys(JSON.parse(text)).sort()).toEqual(["expiresAt", "ingredients", "method", "nutrientNames", "nutrition", "servings", "shareId", "sharedAt", "source", "title"]);
+    expect(Object.keys(JSON.parse(text)).sort()).toEqual(["description", "expiresAt", "ingredients", "method", "nutrientNames", "nutrition", "servings", "shareId", "sharedAt", "source", "title"]);
 
     const withMethod = await (await alice.request(`/v1/recipes/${r.id}/share`, { method: "POST", json: { includeMethod: true } })).json();
     expect((await (await call(`/v1/shared/${withMethod.shareId}`)).json()).method).toBe("Secret family step.");

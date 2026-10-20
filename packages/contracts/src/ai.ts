@@ -67,6 +67,7 @@ export const AI_TOOLS = {
     input: z.object({
       recipeId: uuid.optional(),
       title: z.string().trim().min(1).max(120),
+      description: z.string().trim().max(500).default(""),
       servings: z.number().positive().max(100),
       ingredients: z.array(IngredientInput).max(40),
       method: z.string().trim().max(4000).default(""),

@@ -199,6 +199,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .title-input { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; border-color: transparent; background: transparent; padding-left: 0; }
 .title-input:hover { border-color: var(--line); background: var(--surface); padding-left: 14px; }
 .title-input:focus { border-color: var(--sage); background: var(--surface); padding-left: 14px; }
+.description-input { resize: vertical; min-height: 0; margin-top: 4px; color: var(--ink-2); border-color: transparent; background: transparent; padding-left: 0; }
+.description-input:hover { border-color: var(--line); background: var(--surface); padding-left: 14px; }
+.description-input:focus { border-color: var(--sage); background: var(--surface); padding-left: 14px; color: var(--ink); }
 .stepper-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 6px 6px 16px; margin-top: 12px; }
 .stepper-row label { margin: 0; font-size: 0.9375rem; font-weight: 550; color: var(--ink); }
 .stepper { display: flex; align-items: center; gap: 4px; }
