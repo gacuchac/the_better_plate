@@ -532,4 +532,4 @@ body.companion-open .report-btn { display: none; }
 .photo-grid .photo-title, .photo-grid small { padding: 0 8px; }
 .photo-grid .photo-title { font-size: 0.8125rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .photo-grid small { color: var(--ink-3); font-size: 0.75rem; }
-.photo-generate { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+.photo-upload, .photo-generate { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; }

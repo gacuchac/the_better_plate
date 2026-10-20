@@ -108,8 +108,8 @@ export async function exportAccount(userId: string) {
     q<{ provider: string; key_hint: string; model: string; created_at: Date }>("select provider, key_hint, model, created_at from ai_credentials where user_id = $1 order by created_at"),
     q<{ active_provider: string | null; daily_request_limit: number }>("select active_provider, daily_request_limit from ai_settings where user_id = $1"),
     q<{ day: Date; requests: number; input_tokens: string; output_tokens: string }>("select day, requests, input_tokens, output_tokens from ai_usage where user_id = $1 order by day"),
-    q<{ id: string; kind: string; mime: string; bytes: Buffer; credit: unknown; generator: unknown; created_at: Date }>(
-      "select id, kind, mime, bytes, credit, generator, created_at from recipe_images where user_id = $1 order by created_at",
+    q<{ id: string; kind: string; mime: string; bytes: Buffer; credit: unknown; generator: unknown; rights_confirmed_at: Date | null; upload_source: string | null; created_at: Date }>(
+      "select id, kind, mime, bytes, credit, generator, rights_confirmed_at, upload_source, created_at from recipe_images where user_id = $1 order by created_at",
     ),
     q<{ day: Date; model: string; requests: number; input_tokens: string; output_tokens: string }>(
       "select day, model, requests, input_tokens, output_tokens from ai_house_usage where user_id = $1 order by day",
@@ -141,6 +141,7 @@ export async function exportAccount(userId: string) {
     recipeRevisions: revisions.map((r) => ({ recipeId: r.recipe_id, version: r.version, deleted: r.deleted, body: r.body, nutrition: r.nutrition, catalogVersion: r.catalog_version, createdAt: r.created_at.toISOString() })),
     recipeImages: images.map((i) => ({
       id: i.id, kind: i.kind, credit: i.credit, generator: i.generator, createdAt: i.created_at.toISOString(),
+      rightsConfirmedAt: i.rights_confirmed_at?.toISOString() ?? null, uploadSource: i.upload_source,
       image: `data:${i.mime};base64,${i.bytes.toString("base64")}`,
     })),
     plannedMeals: plans.map(toPlan),

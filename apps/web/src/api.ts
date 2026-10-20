@@ -120,6 +120,7 @@ export const api = {
   aiTurn: (body: AiTurnRequest) => request<AiTurnResponse>("/v1/ai/turn", { method: "POST", json: body }),
   searchPhotos: (description: string) => request<{ results: PhotoSearchResult[] }>(`/v1/photos/search?q=${encodeURIComponent(description)}`, { cache: "no-store" }),
   importPhoto: (sourceId: string, alt?: string) => request<RecipeImage>("/v1/images/import", { method: "POST", json: { source: "openverse", sourceId, alt } }),
+  uploadImage: (data: string, alt: string) => request<RecipeImage>("/v1/images/upload", { method: "POST", json: { data, alt, rightsConfirmed: true } }),
   generateImage: (prompt: string, alt: string) => request<RecipeImage>("/v1/images/generate", { method: "POST", json: { prompt, alt } }),
   oauthClient: (clientId: string) => request<OAuthClientInfo>(`/v1/auth/oauth2/public-client?client_id=${encodeURIComponent(clientId)}`, { cache: "no-store" }),
   oauthConsent: (accept: boolean, oauthQuery: string) =>

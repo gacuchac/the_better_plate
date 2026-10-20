@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { config } from "../src/config.ts";
 import { pool } from "../src/db/pool.ts";
@@ -133,6 +134,16 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     expect(day.eaten).toHaveLength(1);
     expect(day.planned).toHaveLength(1);
     expect(day.estimatedEatenTotals.find((t: { key: string }) => t.key === "protein").amount).toBeGreaterThan(0);
+
+    // The person's own photo, as file data; links to private addresses are refused.
+    const photo = (await sharp({ create: { width: 800, height: 600, channels: 3, background: "#d8c9a7" } }).jpeg().toBuffer()).toString("base64");
+    expect((await tool(token, "upload_recipe_photo", { recipeId, imageBase64: photo })).isError).toBe(true);
+    const uploaded = await tool(token, "upload_recipe_photo", { recipeId, imageBase64: photo, alt: "My chicken", rightsConfirmed: true });
+    expect(uploaded.data.photo).toBe("uploaded");
+    const withPhoto = await (await alice.request(`/v1/recipes/${recipeId}`)).json();
+    expect(withPhoto.image).toMatchObject({ kind: "upload", alt: "My chicken", credit: null });
+    const local = await tool(token, "upload_recipe_photo", { recipeId, imageUrl: "https://127.0.0.1/photo.jpg", rightsConfirmed: true });
+    expect(local).toMatchObject({ isError: true, text: "That link points to a private address" });
 
     // The app sees the change through its normal sync feed.
     const changes = await (await alice.request("/v1/sync/changes?cursor=0")).json();

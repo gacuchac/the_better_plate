@@ -1,9 +1,52 @@
+import { crc32, deflateSync } from "node:zlib";
 import { expect, test, type Locator } from "@playwright/test";
 import { addIngredient, API, expectSynced, newEmail, saveAndSync, shot, signIn, waitForServiceWorker } from "./helpers.ts";
 
 // Photo search runs against a local Openverse stand-in (scripts/mock-openverse.mjs) whose
 // fixtures are flat-colour test images, labeled as such; generation uses a fake key.
 const loaded = (img: Locator) => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0);
+
+/** A plain-colour PNG standing in for a phone photo. */
+function testPng(w: number, h: number): Buffer {
+  const chunk = (type: string, data: Buffer) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const td = Buffer.concat([Buffer.from(type), data]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(td));
+    return Buffer.concat([len, td, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr.set([8, 2, 0, 0, 0], 8);
+  const row = Buffer.concat([Buffer.from([0]), Buffer.from(Array.from({ length: w }, () => [0xc8, 0xb4, 0x8a]).flat())]);
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(Buffer.concat(Array.from({ length: h }, () => row)))), chunk("IEND", Buffer.alloc(0))]);
+}
+
+test("upload your own photo after confirming you may use it; only you see it", async ({ page }, info) => {
+  await signIn(page, newEmail("upload"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Grandma's stew");
+  await saveAndSync(page);
+
+  await page.getByRole("button", { name: "Add a photo" }).click();
+  const sheet = page.getByRole("dialog", { name: "Recipe photo" });
+  const upload = sheet.getByTestId("photo-upload");
+  await upload.getByLabel("Photo file").setInputFiles({ name: "stew.png", mimeType: "image/png", buffer: testPng(400, 300) });
+  await expect(upload.getByRole("button", { name: "Upload photo" })).toBeDisabled();
+  await expect(upload).toContainText("You're responsible for having the rights to it");
+  await upload.getByLabel("I took this photo or have the right to use it").check();
+  await shot(page, info, "photo-upload", "Upload your own photo: rights confirmation required, private, metadata removed");
+  await upload.getByRole("button", { name: "Upload photo" }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByTestId("photo-credit")).toHaveText("Your photo");
+  await expect.poll(() => loaded(page.getByTestId("recipe-photo").locator("img"))).toBe(true);
+  await saveAndSync(page);
+  const saved = (await (await page.request.get(`${API}/v1/recipes`)).json()).recipes[0];
+  expect(saved.image).toMatchObject({ kind: "upload", credit: null });
+  await shot(page, info, "photo-uploaded", "Recipe with the person's own photo, credited as theirs");
+});
 
 test("find a recipe photo by describing it, with credit; generate one on your key; photos stay offline", async ({ page, context }, info) => {
   await signIn(page, newEmail("photos"));

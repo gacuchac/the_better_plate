@@ -1551,7 +1551,8 @@
                                 "type": "string",
                                 "enum": [
                                   "photo",
-                                  "generated"
+                                  "generated",
+                                  "upload"
                                 ]
                               },
                               "credit": {
@@ -2078,7 +2079,8 @@
                         "type": "string",
                         "enum": [
                           "photo",
-                          "generated"
+                          "generated",
+                          "upload"
                         ]
                       },
                       "credit": {
@@ -2321,7 +2323,8 @@
                           "type": "string",
                           "enum": [
                             "photo",
-                            "generated"
+                            "generated",
+                            "upload"
                           ]
                         },
                         "credit": {
@@ -3265,7 +3268,8 @@
                           "type": "string",
                           "enum": [
                             "photo",
-                            "generated"
+                            "generated",
+                            "upload"
                           ]
                         },
                         "credit": {
@@ -3805,7 +3809,8 @@
                         "type": "string",
                         "enum": [
                           "photo",
-                          "generated"
+                          "generated",
+                          "upload"
                         ]
                       },
                       "credit": {
@@ -4044,7 +4049,8 @@
                           "type": "string",
                           "enum": [
                             "photo",
-                            "generated"
+                            "generated",
+                            "upload"
                           ]
                         },
                         "credit": {
@@ -6659,7 +6665,8 @@
                                       "type": "string",
                                       "enum": [
                                         "photo",
-                                        "generated"
+                                        "generated",
+                                        "upload"
                                       ]
                                     },
                                     "credit": {
@@ -7270,7 +7277,8 @@
                                     "type": "string",
                                     "enum": [
                                       "photo",
-                                      "generated"
+                                      "generated",
+                                      "upload"
                                     ]
                                   },
                                   "credit": {
@@ -7937,7 +7945,8 @@
                                     "type": "string",
                                     "enum": [
                                       "photo",
-                                      "generated"
+                                      "generated",
+                                      "upload"
                                     ]
                                   },
                                   "credit": {
@@ -10598,7 +10607,8 @@
                       "type": "string",
                       "enum": [
                         "photo",
-                        "generated"
+                        "generated",
+                        "upload"
                       ]
                     },
                     "credit": {
@@ -10909,7 +10919,326 @@
                       "type": "string",
                       "enum": [
                         "photo",
-                        "generated"
+                        "generated",
+                        "upload"
+                      ]
+                    },
+                    "credit": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "openverse"
+                          ]
+                        },
+                        "sourceId": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "title": {
+                          "type": "string",
+                          "maxLength": 300
+                        },
+                        "creator": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 200
+                        },
+                        "license": {
+                          "type": "string",
+                          "enum": [
+                            "cc0",
+                            "pdm",
+                            "by",
+                            "by-sa"
+                          ]
+                        },
+                        "licenseVersion": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 20
+                        },
+                        "licenseUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 500,
+                          "format": "uri"
+                        },
+                        "sourceUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 1000,
+                          "format": "uri"
+                        },
+                        "provider": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceId",
+                        "title",
+                        "creator",
+                        "license",
+                        "licenseVersion",
+                        "licenseUrl",
+                        "sourceUrl",
+                        "provider"
+                      ]
+                    },
+                    "generator": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "openai"
+                          ]
+                        },
+                        "model": {
+                          "type": "string",
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "provider",
+                        "model"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "alt",
+                    "kind",
+                    "credit",
+                    "generator"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/images/upload": {
+      "post": {
+        "tags": [
+          "images"
+        ],
+        "summary": "Upload your own photo",
+        "description": "data is the file in base64 (JPEG, PNG, WebP, AVIF, GIF or TIFF, at most 9 MB). The person must confirm they took the photo or have the right to use it. The server re-encodes it to WebP (at most 1600 px) and drops all metadata, including location. Only its owner can see it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 12000000
+                  },
+                  "alt": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "rightsConfirmed": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "required": [
+                  "data",
+                  "rightsConfirmed"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stored; attach it to a recipe by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "alt": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "photo",
+                        "generated",
+                        "upload"
                       ]
                     },
                     "credit": {

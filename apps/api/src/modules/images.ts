@@ -1,7 +1,9 @@
 import { deflateSync, crc32 } from "node:zlib";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import sharp from "sharp";
 import {
   ImageGenerateSchema,
+  ImageUploadSchema,
   PhotoImportSchema,
   PhotoLicenseSchema,
   PhotoSearchResponseSchema,
@@ -153,23 +155,66 @@ async function generate(apiKey: string, prompt: string): Promise<{ bytes: Buffer
   throw lastError;
 }
 
+// ---------------------------------------------------------------- the person's own photos
+
+/** Phone photos run large; anything bigger than this is refused before decoding. */
+export const MAX_UPLOAD_BYTES = 9_000_000;
+const UPLOAD_FORMATS = new Set(["jpeg", "png", "webp", "avif", "heif", "gif", "tiff"]);
+const unusable = () => new ApiError(422, "photo_unusable", "That file couldn't be read as a photo; try a JPEG or PNG");
+
+/**
+ * Checks the file really is a raster photo and re-encodes it: at most 1600 px on the long side,
+ * WebP, upright, with every bit of metadata (location, camera, owner) dropped.
+ */
+export async function normalizeUpload(input: Buffer): Promise<{ bytes: Buffer; mime: "image/webp" }> {
+  if (input.length === 0) throw unusable();
+  if (input.length > MAX_UPLOAD_BYTES) throw new ApiError(413, "photo_too_large", "That photo is too large; use one under 9 MB");
+  const opts = { limitInputPixels: 50_000_000, failOn: "error" as const };
+  try {
+    const meta = await sharp(input, opts).metadata();
+    if (!meta.format || !UPLOAD_FORMATS.has(meta.format)) throw unusable();
+    const bytes = await sharp(input, opts).rotate().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+    if (bytes.length > MAX_BYTES) throw unusable();
+    return { bytes, mime: "image/webp" };
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw unusable();
+  }
+}
+
+/** Stores the person's own photo. They confirmed they may use it; that time and where it came from are kept. */
+export async function storeUpload(userId: string, input: Buffer, alt: string, via: "app" | "assistant"): Promise<RecipeImage> {
+  const { bytes, mime } = await normalizeUpload(input);
+  return store(userId, { kind: "upload", credit: null, generator: null, bytes, mime }, alt, via);
+}
+
 // ---------------------------------------------------------------- storage
 
-async function store(userId: string, image: Omit<RecipeImage, "id" | "alt"> & { bytes: Buffer; mime: string }, alt: string): Promise<RecipeImage> {
+async function store(
+  userId: string,
+  image: Omit<RecipeImage, "id" | "alt"> & { bytes: Buffer; mime: string },
+  alt: string,
+  uploadVia: "app" | "assistant" | null = null,
+): Promise<RecipeImage> {
   const { rows } = await pool.query<{ n: string }>("select count(*) as n from recipe_images where user_id = $1", [userId]);
   if (Number(rows[0]!.n) >= MAX_IMAGES_PER_USER) {
     throw new ApiError(409, "image_limit", `You have ${MAX_IMAGES_PER_USER} recipe images; remove some photos from recipes and try again tomorrow`);
   }
   const id = crypto.randomUUID();
-  await pool.query("insert into recipe_images (id, user_id, kind, mime, bytes, credit, generator) values ($1, $2, $3, $4, $5, $6, $7)", [
-    id,
-    userId,
-    image.kind,
-    image.mime,
-    image.bytes,
-    image.credit ? JSON.stringify(image.credit) : null,
-    image.generator ? JSON.stringify(image.generator) : null,
-  ]);
+  await pool.query(
+    `insert into recipe_images (id, user_id, kind, mime, bytes, credit, generator, rights_confirmed_at, upload_source)
+     values ($1, $2, $3, $4, $5, $6, $7, case when $8::text is null then null else now() end, $8)`,
+    [
+      id,
+      userId,
+      image.kind,
+      image.mime,
+      image.bytes,
+      image.credit ? JSON.stringify(image.credit) : null,
+      image.generator ? JSON.stringify(image.generator) : null,
+      uploadVia,
+    ],
+  );
   return { id, alt: alt.slice(0, 200), kind: image.kind, credit: image.credit, generator: image.generator };
 }
 
@@ -223,6 +268,7 @@ export const imageRoutes = new OpenAPIHono<AppEnv>();
 imageRoutes.use("/v1/photos/search", rateLimit("photo search", 60, 60));
 imageRoutes.use("/v1/images/import", rateLimit("photo import", 30, 3600));
 imageRoutes.use("/v1/images/generate", rateLimit("image generation", 20, 3600));
+imageRoutes.use("/v1/images/upload", rateLimit("photo upload", 30, 3600));
 
 const ImageResponse = { 201: { description: "Stored; attach it to a recipe by id", content: { "application/json": { schema: RecipeImageSchema } } }, ...ErrorResponses };
 
@@ -291,6 +337,26 @@ imageRoutes.openapi(
       [user.id],
     );
     return c.json(await store(user.id, { kind: "generated", credit: null, generator: { provider: "openai", model }, bytes, mime }, alt), 201);
+  },
+);
+
+imageRoutes.openapi(
+  createRoute({
+    method: "post",
+    path: "/v1/images/upload",
+    tags: ["images"],
+    summary: "Upload your own photo",
+    description:
+      "data is the file in base64 (JPEG, PNG, WebP, AVIF, GIF or TIFF, at most 9 MB). The person must confirm they took the photo or have the right to use it. " +
+      "The server re-encodes it to WebP (at most 1600 px) and drops all metadata, including location. Only its owner can see it.",
+    request: { body: { required: true, content: { "application/json": { schema: ImageUploadSchema } } } },
+    responses: ImageResponse,
+  }),
+  async (c) => {
+    const user = requireUser(c);
+    const { data, alt } = c.req.valid("json");
+    const bytes = Buffer.from(data.replace(/^data:[^,]*,/, ""), "base64");
+    return c.json(await storeUpload(user.id, bytes, alt ?? "", "app"), 201);
   },
 );
 
