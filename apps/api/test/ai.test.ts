@@ -249,4 +249,27 @@ describe("OpenAI errors", () => {
       globalThis.fetch = real;
     }
   });
+
+  it("retry with reasoning off when a model refuses function tools with reasoning", async () => {
+    const { adapterFor } = await import("../src/modules/ai/providers.ts");
+    const real = globalThis.fetch;
+    const bodies: Record<string, unknown>[] = [];
+    globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+      bodies.push(body);
+      if (!("reasoning_effort" in body)) {
+        const message = "Function tools with reasoning_effort are not supported for gpt-6-luna in /v1/chat/completions. To use function tools, use /v1/responses or set reasoning_effort to 'none'.";
+        return new Response(JSON.stringify({ error: { message } }), { status: 400 });
+      }
+      return new Response(JSON.stringify({ model: "gpt-6-luna", choices: [{ message: { content: "Hello" } }], usage: { prompt_tokens: 3, completion_tokens: 1 } }), { status: 200 });
+    }) as typeof fetch;
+    try {
+      const out = await adapterFor("openai", "sk-test").turn({ apiKey: "sk-test", model: "gpt-6-luna", system: "s", conversation: [], input: { type: "message", text: "hi" } });
+      expect(out.text).toBe("Hello");
+      expect(bodies).toHaveLength(2);
+      expect(bodies[1]).toMatchObject({ reasoning_effort: "none" });
+    } finally {
+      globalThis.fetch = real;
+    }
+  });
 });
