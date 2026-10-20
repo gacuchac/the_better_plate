@@ -125,6 +125,8 @@ The **first public pilot** prioritizes a complete, verified **Your Kitchen + off
 
 **Two-pass testing gate (owner decision, 2026-10-19):** before any deploy, serve the full stack locally and pass the API suite and full Playwright journeys with screenshots locally; only then deploy the same commit to the web host and rerun the same Playwright suite there. Production promotion requires both passes green.
 
+**Browser tests by changed files (owner decision, 2026-10-20):** on a PR, CI always runs typecheck, unit and API tests, but runs the Playwright journeys only when the PR touches files behind app flows (`scripts/needs-e2e.sh` lists them: web app, shared packages, browser tests, schema, dependencies, the OpenAPI contract and the API modules the screens and connector call) or carries the `e2e` label. Every push to `dev` (each merge) runs the full Playwright journeys in CI. Agents follow the same rule locally before pushing. A `dev` commit is eligible for production promotion only when that full run is green.
+
 **Branching and environments (owner decision, 2026-10-19):**
 
 | Branch | Role | Receives | Deploys to |
