@@ -92,7 +92,7 @@ export async function listGoals(userId: string): Promise<Goal[]> {
 /** Totals of what was eaten on each day with logged meals between two dates. */
 export async function intakeBetween(userId: string, from: string, to: string): Promise<DayIntake[]> {
   const { rows } = await pool.query(
-    `select ${LOG_COLUMNS} from consumption_events where user_id = $1 and deleted_at is null and local_date between $2 and $3 order by local_date`,
+    `select ${LOG_COLUMNS} from consumption_events where user_id = $1 and profile_id is null and deleted_at is null and local_date between $2 and $3 order by local_date`,
     [userId, from, to],
   );
   const byDate = new Map<string, ReturnType<typeof toLog>[]>();

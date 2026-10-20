@@ -4,6 +4,7 @@ import { z } from "zod";
 
 export { PRIVACY_NOTICE } from "./privacy.ts";
 export * from "./ai.ts";
+export * from "./groups.ts";
 
 export const MAX_INGREDIENTS = 100;
 export const MAX_SYNC_OPS = 100;
@@ -102,6 +103,8 @@ export const RecipeNutritionSchema = z.object({
 
 export const RecipeSchema = RecipeBodySchema.extend({
   id: z.uuid(),
+  /** Set for a group recipe: every member can read it, the group's admins can edit it. */
+  groupId: z.uuid().nullable(),
   version: z.number().int().positive(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -121,13 +124,27 @@ export const PlannedMealBodySchema = z.object({
   /** Recipe title when planned, so the plan stays readable if the recipe is renamed or deleted. */
   title: trimmed(120).min(1),
   servings: z.number().positive().max(100),
+  /** For one of the account's profiles (a child without a login); null or absent for the account itself. */
+  profileId: z.uuid().nullable().optional(),
 });
+
+/**
+ * planned: on the plan. proposed: a group member planned it and an admin has not approved it yet.
+ * declined: an admin did not approve it.
+ */
+export const PlanStatusSchema = z.enum(["planned", "proposed", "declined"]);
 
 export const PlannedMealSchema = PlannedMealBodySchema.extend({
   id: z.uuid(),
   version: z.number().int().positive(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  status: PlanStatusSchema,
+  /** The group whose admin planned it, if any; members cannot change those plans. */
+  groupId: z.uuid().nullable(),
+  /** Who last planned it (an account id), and the name they use in that group. */
+  authorId: z.uuid().nullable(),
+  plannedBy: z.string().nullable(),
 });
 
 export const MealLogBodySchema = z.object({
@@ -141,6 +158,8 @@ export const MealLogBodySchema = z.object({
   slot: MealSlotSchema,
   localDate: LocalDateSchema,
   eatenAt: z.iso.datetime({ offset: true }),
+  /** Eaten by one of the account's profiles; null or absent for the account itself. */
+  profileId: z.uuid().nullable().optional(),
 });
 
 export const MealLogSchema = MealLogBodySchema.extend({
@@ -150,6 +169,91 @@ export const MealLogSchema = MealLogBodySchema.extend({
   nutrition: RecipeNutritionSchema,
   /** perServing × servings eaten; partial and unknown statuses carry through. */
   eaten: z.array(NutrientTotalSchema),
+});
+
+// ---------- food preferences and feedback: only what people tell us ----------
+
+/**
+ * The nine major food allergens in US law (FALCPA, FASTER Act). Allergies are self-reported; the
+ * app never infers, diagnoses or tests for them. Kept equal to ALLERGENS in @betterplate/nutrition.
+ */
+export const AllergenSchema = z.enum(["milk", "egg", "fish", "shellfish", "tree_nuts", "peanut", "wheat", "soy", "sesame"]);
+export const FoodIdSchema = z.string().regex(/^fdc:\d{1,9}$/, "foodId must look like fdc:<id>");
+export const MAX_PREFERENCE_FOODS = 200;
+
+export const FoodPreferencesBodySchema = z
+  .object({
+    /** listed: the allergies below; none: told us they have none; prefer_not: chose not to say. */
+    allergyAnswer: z.enum(["listed", "none", "prefer_not"]),
+    allergens: z.array(AllergenSchema).max(9),
+    likes: z.array(FoodIdSchema).max(MAX_PREFERENCE_FOODS),
+    dislikes: z.array(FoodIdSchema).max(MAX_PREFERENCE_FOODS),
+    notes: trimmed(1000).default(""),
+    /** For one of the account's profiles; null or absent for the account itself. */
+    profileId: z.uuid().nullable().optional(),
+  })
+  .refine((p) => p.allergyAnswer === "listed" || p.allergens.length === 0, { message: "List allergens only with allergyAnswer \"listed\"", path: ["allergens"] })
+  .refine((p) => p.allergyAnswer !== "listed" || p.allergens.length > 0, { message: "Pick at least one allergen, or answer \"none\"", path: ["allergens"] });
+
+/** id is the person: the account's own id, or the profile's id. */
+export const FoodPreferencesSchema = z.object({
+  id: z.uuid(),
+  allergyAnswer: z.enum(["listed", "none", "prefer_not"]),
+  allergens: z.array(AllergenSchema),
+  likes: z.array(FoodIdSchema),
+  dislikes: z.array(FoodIdSchema),
+  notes: z.string(),
+  profileId: z.uuid().nullable(),
+  version: z.number().int().positive(),
+  updatedAt: z.string(),
+});
+
+/** After eating: liked it or not, a comment, and the ingredients they did not like. id is the eaten log's id. */
+export const MealFeedbackBodySchema = z.object({
+  rating: z.enum(["liked", "disliked"]).nullable(),
+  comment: trimmed(1000).default(""),
+  dislikedFoodIds: z.array(FoodIdSchema).max(100).default([]),
+});
+
+export const MealFeedbackSchema = MealFeedbackBodySchema.extend({
+  id: z.uuid(),
+  profileId: z.uuid().nullable(),
+  version: z.number().int().positive(),
+  updatedAt: z.string(),
+});
+
+/** A child or other person without a login, owned by the account that created it. */
+export const ProfileSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  version: z.number().int().positive(),
+  createdAt: z.string(),
+});
+
+// ---------- shopping list: what to buy for planned meals ----------
+
+export const ShoppingItemSchema = z.object({
+  foodId: z.string(),
+  description: z.string(),
+  category: z.string().nullable(),
+  /** Grams to buy, unrounded; null when no amount could be worked out. */
+  grams: z.number().nullable(),
+  unresolved: z.number().int(),
+  oil: z.boolean(),
+  /** Listed cooked in the recipe; bought raw, so the weight to buy differs. */
+  preparedForm: z.boolean(),
+  recipes: z.array(z.string()),
+});
+
+export const ShoppingListSchema = z.object({
+  from: LocalDateSchema,
+  to: LocalDateSchema,
+  items: z.array(ShoppingItemSchema),
+  plans: z.number().int(),
+  missing: z.array(z.object({ planId: z.uuid(), date: LocalDateSchema, title: z.string() })),
+  unknownFoods: z.array(z.string()),
+  /** Plans waiting for an admin's approval, not included in the list. */
+  awaitingApproval: z.number().int(),
 });
 
 // ---------- goals: the person's own consumption goals (never body data) ----------
@@ -254,6 +358,22 @@ export const SyncOperationSchema = z.discriminatedUnion("type", [
     entityId: z.uuid(),
     baseVersion: z.number().int().positive().nullable(),
   }),
+  /** entityId is the person: the account's own id, or one of its profiles' ids (with body.profileId). */
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("prefs.put"),
+    entityId: z.uuid(),
+    baseVersion: z.number().int().positive().nullable(),
+    body: FoodPreferencesBodySchema,
+  }),
+  /** entityId is the eaten log's id. */
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("feedback.put"),
+    entityId: z.uuid(),
+    baseVersion: z.number().int().positive().nullable(),
+    body: MealFeedbackBodySchema,
+  }),
 ]);
 
 export const SyncBatchRequestSchema = z.object({
@@ -275,6 +395,10 @@ export const SyncResultSchema = z.object({
   serverPlannedMeal: PlannedMealSchema.nullable().optional(),
   /** Current server copy of a goal on conflict (null if deleted). */
   serverGoal: GoalSchema.nullable().optional(),
+  /** Current server copy of preferences on conflict. */
+  serverPreferences: FoodPreferencesSchema.nullable().optional(),
+  /** Current server copy of meal feedback on conflict. */
+  serverFeedback: MealFeedbackSchema.nullable().optional(),
   error: z.object({ code: z.string(), message: z.string() }).optional(),
 });
 
@@ -284,7 +408,7 @@ export const SyncBatchResponseSchema = z.object({
 });
 
 export const SyncChangeSchema = z.object({
-  entity: z.enum(["recipe", "planned_meal", "meal_log", "goal"]),
+  entity: z.enum(["recipe", "planned_meal", "meal_log", "goal", "preferences", "meal_feedback", "profile"]),
   entityId: z.uuid(),
   seq: z.string(),
   deleted: z.boolean(),
@@ -292,6 +416,9 @@ export const SyncChangeSchema = z.object({
   plannedMeal: PlannedMealSchema.nullable().optional(),
   mealLog: MealLogSchema.nullable().optional(),
   goal: GoalSchema.nullable().optional(),
+  preferences: FoodPreferencesSchema.nullable().optional(),
+  feedback: MealFeedbackSchema.nullable().optional(),
+  profile: ProfileSchema.nullable().optional(),
 });
 
 export const SyncChangesResponseSchema = z.object({
@@ -377,5 +504,13 @@ export type SyncBatchResponse = z.infer<typeof SyncBatchResponseSchema>;
 export type SyncChange = z.infer<typeof SyncChangeSchema>;
 export type SyncChangesResponse = z.infer<typeof SyncChangesResponseSchema>;
 export type ShareCreate = z.input<typeof ShareCreateSchema>;
+export type Allergen = z.infer<typeof AllergenSchema>;
+export type PlanStatus = z.infer<typeof PlanStatusSchema>;
+export type FoodPreferencesBody = z.input<typeof FoodPreferencesBodySchema>;
+export type FoodPreferences = z.infer<typeof FoodPreferencesSchema>;
+export type MealFeedbackBody = z.infer<typeof MealFeedbackBodySchema>;
+export type MealFeedback = z.infer<typeof MealFeedbackSchema>;
+export type Profile = z.infer<typeof ProfileSchema>;
+export type ShoppingList = z.infer<typeof ShoppingListSchema>;
 export type SharedRecipe = z.infer<typeof SharedRecipeSchema>;
 export type Share = z.infer<typeof ShareSchema>;

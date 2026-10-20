@@ -12,10 +12,16 @@
 `packages/nutrition/src/calculate.test.ts` uses synthetic round numbers labeled `TEST FIXTURE`; they are never loaded into the catalog.
 
 ## Not yet sourced
-Retention and yield factors, cooking temperatures and safety guidance, Daily Values/DRIs, nutrient education, allergen and kosher information, food images (except recipe photos the person chooses; see below). None are shown in the app until imported with sources.
+Retention and yield factors, cooking temperatures and safety guidance, Daily Values/DRIs, nutrient education, kosher information, allergen statements from product labels, food images (except recipe photos the person chooses; see below). None are shown in the app until imported with sources.
 
 ## Recipe photos (ADR-006)
 
 - **Openly licensed photos** come from Openverse search. Only `cc0`, `pdm`, `by` and `by-sa` are accepted; the server re-reads the license from Openverse by photo id when copying and stores title, creator, license (with version and URL), source page and provider. The credit is shown under the photo wherever it appears; the server overwrites any credit a client sends.
 - **Generated images** are made with the person's own OpenAI key (newest available GPT image model) and stored with the provider and model; they are always labelled "AI-generated … not an exact depiction".
 - The person chooses the photo (or the companion does, visibly and undoably); nothing checks automatically that a photo shows the right food, so the credit names the original title.
+
+## Allergen tags (ADR-009)
+
+- **What:** each catalog food is tagged with the FDA's nine major food allergens (milk, egg, fish, crustacean shellfish, tree nuts, peanuts, wheat, soybeans, sesame) by versioned name and category rules in `packages/nutrition/src/allergens.ts` (`allergen-rules-1`). Source of the allergen list: U.S. FDA, "Food Allergies: What You Need to Know", https://www.fda.gov/food/food-labeling-nutrition/food-allergies (FALCPA and the FASTER Act).
+- **How checked:** the rules were run over all 7,793 SR Legacy names and reviewed for false positives and misses (e.g. coconut is not tagged as a tree nut, water chestnuts are not nuts, buckwheat and rice flour are not wheat). Foods in mixed categories (baked goods, sweets, fast food, soups and sauces, meals, baby food, snacks) are marked "may contain others".
+- **Limits:** USDA names are not ingredient statements or labels. Tags drive alerts only; they are never shown as a guarantee, and the person always decides.

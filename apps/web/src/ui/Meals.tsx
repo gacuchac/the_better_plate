@@ -2,12 +2,13 @@ import { useMemo, useState } from "react";
 import { type DayTotal } from "@betterplate/nutrition";
 import { formatQty, nutrientName, t as translate, useT } from "../i18n.ts";
 import { MACROS } from "./RecipeEditor.tsx";
-import type { LocalLog, LocalPlan } from "../localdb.ts";
+import type { LocalFeedback, LocalLog, LocalPlan } from "../localdb.ts";
 import { addDays, dayName, formatDay, localDate, logEaten, slotLabel, summarizeDay, type DaySummary } from "../meals.ts";
 import { useApp } from "../store.tsx";
 import { EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
-import { LogSheet, PlanSheet } from "./MealSheets.tsx";
+import { FeedbackSheet, LogSheet, PlanSheet } from "./MealSheets.tsx";
+import { isAdminOf, SubjectChips, useSubject, type Subject } from "./People.tsx";
 import { DailyValueNote, NutrientLine } from "./Nutrition.tsx";
 
 function macroText(t: DayTotal | undefined) {
@@ -17,8 +18,13 @@ function macroText(t: DayTotal | undefined) {
 }
 
 export function Meals({ date: routeDate }: { date?: string }) {
-  const { catalog, plans, logs, recipes } = useApp();
+  const { catalog, allPlans, allLogs, recipes, profiles } = useApp();
   const t = useT();
+  const [subject, setSubject] = useSubject();
+  // One person at a time: the account's own meals, or a profile's, never mixed in one total.
+  const plans = useMemo(() => allPlans.filter((p) => (p.body.profileId ?? null) === subject), [allPlans, subject]);
+  const logs = useMemo(() => allLogs.filter((l) => (l.body.profileId ?? null) === subject), [allLogs, subject]);
+  const who = profiles.find((p) => p.id === subject)?.name ?? null;
   const today = localDate();
   const date = routeDate ?? today;
   const [range, setRange] = useState<"day" | "week">("day");
@@ -49,6 +55,7 @@ export function Meals({ date: routeDate }: { date?: string }) {
           <Icon name="forward" />
         </button>
       </div>
+      <SubjectChips value={subject} onChange={setSubject} />
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
         <div className="segmented" role="tablist" aria-label={t("meals.range")}>
           <button type="button" role="tab" aria-selected={range === "day"} onClick={() => setRange("day")}>
@@ -62,6 +69,7 @@ export function Meals({ date: routeDate }: { date?: string }) {
 
       {range === "day" ? (
         <>
+          {who && <p className="hint" data-testid="meals-for">{t("people.mealsFor", { name: who })}</p>}
           <EatenCard day={day} today={today} onDetails={() => setDetails(true)} />
           <PlannedCard day={day} recipeFor={recipeFor} onLog={setLogging} />
           <div className="sheet-actions">
@@ -87,11 +95,12 @@ export function Meals({ date: routeDate }: { date?: string }) {
             initialServings={logging.body.servings}
             initialSlot={logging.body.slot}
             initialDate={logging.body.date}
+            profileId={subject}
             onClose={() => setLogging(null)}
           />
         ) : null;
       })()}
-      {planning && <PickRecipeToPlan date={date} onClose={() => setPlanning(false)} />}
+      {planning && <PickRecipeToPlan date={date} subject={subject} onClose={() => setPlanning(false)} />}
       {details && day.totals && (
         <Sheet title={t("meals.whatYouAte", { day: dayName(date, today) })} onClose={() => setDetails(false)}>
           <p className="hint">{t("meals.sumHint")}</p>
@@ -120,8 +129,9 @@ function dayBadge(day: DaySummary, today: string): string | null {
 }
 
 function EatenCard({ day, today, onDetails }: { day: DaySummary; today: string; onDetails: () => void }) {
-  const { engine, catalog } = useApp();
+  const { engine, catalog, feedback } = useApp();
   const t = useT();
+  const [rating, setRating] = useState<LocalLog | null>(null);
   const badge = dayBadge(day, today);
   const foods = catalog.status === "ready" ? catalog.foods : new Map();
   const defs = catalog.status === "ready" ? catalog.bundle.nutrients : [];
@@ -136,7 +146,14 @@ function EatenCard({ day, today, onDetails }: { day: DaySummary; today: string; 
       ) : (
         <>
           {day.logs.map((log) => (
-            <LogRow key={log.id} log={log} kcal={logEaten(log, foods, defs).find((t) => t.key === "energy_kcal")} onRemove={() => void engine?.deleteLog(log.id)} />
+            <LogRow
+              key={log.id}
+              log={log}
+              feedback={feedback.find((f) => f.id === log.id)}
+              kcal={logEaten(log, foods, defs).find((t) => t.key === "energy_kcal")}
+              onRemove={() => void engine?.deleteLog(log.id)}
+              onFeedback={() => setRating(log)}
+            />
           ))}
           <button type="button" className="summary-card card" onClick={onDetails} style={{ textAlign: "left", width: "100%", cursor: "pointer", font: "inherit" }} data-testid="day-totals">
             <span className="card-head" style={{ marginBottom: 0 }}>
@@ -159,11 +176,24 @@ function EatenCard({ day, today, onDetails }: { day: DaySummary; today: string; 
       <p className="fine" style={{ marginTop: 12 }}>
         {t("meals.totalsFine")}
       </p>
+      {rating && <FeedbackSheet log={rating} onClose={() => setRating(null)} />}
     </section>
   );
 }
 
-function LogRow({ log, kcal, onRemove }: { log: LocalLog; kcal: { amount: number | null; status: string } | undefined; onRemove: () => void }) {
+function LogRow({
+  log,
+  feedback,
+  kcal,
+  onRemove,
+  onFeedback,
+}: {
+  log: LocalLog;
+  feedback: LocalFeedback | undefined;
+  kcal: { amount: number | null; status: string } | undefined;
+  onRemove: () => void;
+  onFeedback: () => void;
+}) {
   const t = useT();
   const servings = t("common.servings", { n: log.body.servings });
   const state = t(log.state === "synced" ? "sync.synced" : log.state === "rejected" ? "sync.attention" : "sync.savedLocal");
@@ -175,10 +205,19 @@ function LogRow({ log, kcal, onRemove }: { log: LocalLog; kcal: { amount: number
           {slotLabel(log.body.slot)} · {servings}
           {kcal?.amount != null ? ` · ${kcal.status === "partial" ? `${t("nutrition.atLeast")} ` : ""}${Math.round(kcal.amount)} kcal` : ""}
         </div>
+        {feedback && (
+          <div className="meal-meta" data-testid="feedback-summary">
+            {feedback.body.rating === "liked" ? t("feedback.liked") : feedback.body.rating === "disliked" ? t("feedback.disliked") : t("feedback.noted")}
+            {feedback.body.comment ? `: “${feedback.body.comment}”` : ""}
+          </div>
+        )}
         {log.state === "rejected" && <div className="meal-meta error">{log.rejection}</div>}
       </div>
       <div className="meal-actions">
         <span className={`state state-${log.state}`}>{state}</span>
+        <button type="button" className="btn-link" onClick={onFeedback} aria-label={t("feedback.howWasIt", { title: log.body.recipe.title })}>
+          {feedback ? t("feedback.edit") : t("feedback.rate")}
+        </button>
         <button type="button" className="icon-btn" aria-label={t("meals.removeEaten", { title: log.body.recipe.title })} onClick={onRemove}>
           <Icon name="close" />
         </button>
@@ -188,7 +227,7 @@ function LogRow({ log, kcal, onRemove }: { log: LocalLog; kcal: { amount: number
 }
 
 function PlannedCard({ day, recipeFor, onLog }: { day: DaySummary; recipeFor: (p: LocalPlan) => { id: string } | undefined; onLog: (p: LocalPlan) => void }) {
-  const { engine } = useApp();
+  const { engine, groups } = useApp();
   const t = useT();
   return (
     <section className="card card-dashed" aria-labelledby="planned-title" data-testid="planned-card">
@@ -199,6 +238,9 @@ function PlannedCard({ day, recipeFor, onLog }: { day: DaySummary; recipeFor: (p
       {day.plans.map((plan) => {
         const done = !day.openPlans.includes(plan);
         const recipe = recipeFor(plan);
+        // Planned by a group's admin: only that group's admins change it.
+        const managed = !!plan.meta?.groupId && !isAdminOf(groups, plan.meta.groupId);
+        const status = plan.meta?.status;
         return (
           <div key={plan.id} className="meal-row" data-testid="planned-row">
             <div>
@@ -207,6 +249,14 @@ function PlannedCard({ day, recipeFor, onLog }: { day: DaySummary; recipeFor: (p
                 {slotLabel(plan.body.slot)} · {t("common.servings", { n: plan.body.servings })}
                 {!recipe && ` · ${t("meals.recipeGone")}`}
               </div>
+              {(plan.meta?.groupId && plan.meta.plannedBy) || status === "proposed" || status === "declined" ? (
+                <div className="meal-badges">
+                  {plan.meta?.groupId && plan.meta.plannedBy && <span className="badge badge-sage" data-testid="planned-by">{t("plan.plannedBy", { name: plan.meta.plannedBy })}</span>}
+                  {status === "proposed" && <span className="badge" data-testid="plan-proposed">{t("plan.awaiting")}</span>}
+                  {status === "declined" && <span className="badge" data-testid="plan-declined">{t("plan.declined")}</span>}
+                </div>
+              ) : null}
+              {plan.state === "rejected" && <div className="meal-meta error">{plan.rejection}</div>}
               {plan.state === "conflict" && (
                 <div className="banner banner-warn" role="alert" style={{ marginTop: 8 }}>
                   <p>{plan.conflictServer ? t("meals.planConflict", { title: plan.conflictServer.title, date: plan.conflictServer.date }) : t("meals.planConflictRemoved")}</p>
@@ -231,9 +281,11 @@ function PlannedCard({ day, recipeFor, onLog }: { day: DaySummary; recipeFor: (p
                   {t("meals.iAteThis")}
                 </button>
               )}
-              <button type="button" className="icon-btn" aria-label={t("meals.removePlan", { title: plan.body.title })} onClick={() => void engine?.deletePlan(plan.id)}>
-                <Icon name="close" />
-              </button>
+              {!managed && (
+                <button type="button" className="icon-btn" aria-label={t("meals.removePlan", { title: plan.body.title })} onClick={() => void engine?.deletePlan(plan.id)}>
+                  <Icon name="close" />
+                </button>
+              )}
             </div>
           </div>
         );
@@ -280,12 +332,12 @@ function WeekList({ week, today, onPick }: { week: DaySummary[]; today: string; 
   );
 }
 
-function PickRecipeToPlan({ date, onClose }: { date: string; onClose: () => void }) {
+function PickRecipeToPlan({ date, subject, onClose }: { date: string; subject: Subject; onClose: () => void }) {
   const { recipes } = useApp();
   const t = useT();
   const [picked, setPicked] = useState<string | null>(null);
   const recipe = recipes.find((r) => r.id === picked);
-  if (recipe) return <PlanSheet recipeId={recipe.id} title={recipe.body.title} initialDate={date} onClose={onClose} />;
+  if (recipe) return <PlanSheet recipeId={recipe.id} title={recipe.body.title} initialDate={date} profileId={subject} onClose={onClose} />;
   return (
     <Sheet title={t("meals.planMeal")} onClose={onClose}>
       {recipes.length === 0 ? (

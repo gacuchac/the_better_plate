@@ -235,7 +235,7 @@ const TOOLS: { [N in ConnectorTool]: Impl<N> } = {
     const r = await recipeOrThrow(userId, recipeId);
     // Fulfils an open plan for the same recipe and meal that day, if there is one.
     const { rows: plans } = await pool.query<{ id: string }>(
-      `select p.id from planned_meals p where p.user_id = $1 and p.deleted_at is null and p.local_date = $2 and p.recipe_id = $3 and p.slot = $4
+      `select p.id from planned_meals p where p.user_id = $1 and p.profile_id is null and p.deleted_at is null and p.local_date = $2 and p.recipe_id = $3 and p.slot = $4
          and not exists (select 1 from consumption_events e where e.planned_meal_id = p.id and e.deleted_at is null) limit 1`,
       [userId, date, recipeId, slot],
     );
@@ -258,8 +258,8 @@ const TOOLS: { [N in ConnectorTool]: Impl<N> } = {
 
   async get_day({ date }, userId) {
     const [plans, logs] = await Promise.all([
-      pool.query(`select ${PLAN_COLUMNS} from planned_meals where user_id = $1 and deleted_at is null and local_date = $2 order by slot`, [userId, date]),
-      pool.query(`select ${LOG_COLUMNS} from consumption_events where user_id = $1 and deleted_at is null and local_date = $2 order by eaten_at`, [userId, date]),
+      pool.query(`select ${PLAN_COLUMNS} from planned_meals where user_id = $1 and profile_id is null and deleted_at is null and local_date = $2 order by slot`, [userId, date]),
+      pool.query(`select ${LOG_COLUMNS} from consumption_events where user_id = $1 and profile_id is null and deleted_at is null and local_date = $2 order by eaten_at`, [userId, date]),
     ]);
     const eaten = logs.rows.map((r) => toLog(r as never));
     const totals = eaten.length ? sumMeals(eaten.map((l) => l.eaten)) : null;

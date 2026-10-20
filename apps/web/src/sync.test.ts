@@ -56,7 +56,7 @@ function fakeServer() {
           } else {
             if (op.type !== "recipe.put") throw new Error(`unexpected ${op.type}`);
             const version = (cur?.version ?? 0) + 1;
-            store.set(op.entityId, { id: op.entityId, ...op.body, version, createdAt: "", updatedAt: "", nutrition: null });
+            store.set(op.entityId, { id: op.entityId, ...op.body, groupId: null, version, createdAt: "", updatedAt: "", nutrition: null });
             log.push({ seq: ++seq, id: op.entityId });
             r = { opId: op.opId, entityId: op.entityId, status: "applied", replayed: false, version };
           }

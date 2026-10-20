@@ -1,8 +1,24 @@
-import type { Goal, GoalBody, MealLog, MealLogBody, PlannedMeal, PlannedMealBody, Recipe, RecipeBody, SyncOperation, SyncResult } from "@betterplate/contracts";
+import type {
+  FoodPreferences,
+  FoodPreferencesBody,
+  Goal,
+  GoalBody,
+  MealFeedback,
+  MealFeedbackBody,
+  MealLog,
+  MealLogBody,
+  PlannedMeal,
+  PlannedMealBody,
+  Recipe,
+  RecipeBody,
+  SyncOperation,
+  SyncResult,
+} from "@betterplate/contracts";
 import { MAX_SYNC_OPS } from "@betterplate/contracts";
 import { track } from "./activity.ts";
 import { ApiRequestError, NetworkError, api } from "./api.ts";
-import type { LocalGoal, LocalLog, LocalPlan, LocalRecipe, OutboxOp, UserDatabase } from "./localdb.ts";
+import type { IDBPTransaction, StoreNames } from "idb";
+import type { LocalFeedback, LocalGoal, LocalLog, LocalPlan, LocalPreferences, LocalProfile, LocalRecipe, OutboxOp, UserDatabase, UserDB } from "./localdb.ts";
 
 /**
  * Status words shown to people (PRODUCT.md §6): never claim "Synced" before the server
@@ -74,6 +90,7 @@ export class SyncEngine {
       state: existing?.state === "conflict" ? "conflict" : "pending",
       conflictServer: existing?.state === "conflict" ? existing.conflictServer : undefined,
       updatedAt: now(),
+      groupId: existing?.groupId ?? null,
     };
     await tx.objectStore("recipes").put(record);
     await tx.done;
@@ -107,11 +124,22 @@ export class SyncEngine {
 
   // ---------- meals: plans (editable) and eaten logs (create-only) ----------
 
-  async listPlans(): Promise<LocalPlan[]> {
+  /** Plans for one person in this kitchen: the account itself (null) or one of its profiles. */
+  async listPlans(profileId: string | null = null): Promise<LocalPlan[]> {
+    return (await this.listAllPlans()).filter((p) => (p.body.profileId ?? null) === profileId);
+  }
+
+  /** Every plan in this kitchen, the account's own and its profiles'. */
+  async listAllPlans(): Promise<LocalPlan[]> {
     return (await this.db.getAll("plans")).filter((p) => !p.deleted);
   }
 
-  async listLogs(): Promise<LocalLog[]> {
+  /** Food eaten by one person in this kitchen; never mixes a profile's meals into the account's. */
+  async listLogs(profileId: string | null = null): Promise<LocalLog[]> {
+    return (await this.listAllLogs()).filter((l) => (l.body.profileId ?? null) === profileId);
+  }
+
+  async listAllLogs(): Promise<LocalLog[]> {
     return (await this.db.getAll("logs")).filter((l) => !l.deleted);
   }
 
@@ -131,6 +159,7 @@ export class SyncEngine {
       state: existing?.state === "conflict" ? "conflict" : "pending",
       conflictServer: existing?.state === "conflict" ? existing.conflictServer : undefined,
       updatedAt: now(),
+      meta: existing?.meta,
     });
     await tx.done;
     this.changed();
@@ -167,12 +196,14 @@ export class SyncEngine {
   /** Retracts a log ("I didn't eat this"). An unsent log is simply dropped. */
   async deleteLog(id: string): Promise<void> {
     track("Removed a meal from eaten");
-    const tx = this.db.transaction(["logs", "outbox"], "readwrite");
+    const tx = this.db.transaction(["logs", "feedback", "outbox"], "readwrite");
     const existing = await tx.objectStore("logs").get(id);
     const ops = await tx.objectStore("outbox").index("byEntity").getAll(id);
+    await tx.objectStore("feedback").delete(id);
     const unsentCreate = ops.find((o) => o.type === "log.create" && !this.inFlight.has(o.opId));
     if (unsentCreate) {
-      await tx.objectStore("outbox").delete(unsentCreate.opId);
+      // Never reached the server: the log and anything said about it go together.
+      for (const op of ops) if (!this.inFlight.has(op.opId)) await tx.objectStore("outbox").delete(op.opId);
       await tx.objectStore("logs").delete(id);
     } else if (existing) {
       await tx.objectStore("outbox").put(this.op(id, "log.delete", null));
@@ -271,6 +302,101 @@ export class SyncEngine {
     this.schedule();
   }
 
+  // ---------- preferences and meal feedback (what people tell us, versioned) ----------
+
+  /** Everyone's preferences in this kitchen: the account's own (id = account id) and its profiles'. */
+  async listPreferences(): Promise<LocalPreferences[]> {
+    return this.db.getAll("prefs");
+  }
+
+  /** Saves what a person told us; subjectId is the account's id, or a profile's id with body.profileId. */
+  async savePreferences(subjectId: string, body: FoodPreferencesBody): Promise<void> {
+    await this.putVersioned("prefs", "prefs.put", subjectId, body);
+    track("Saved food preferences");
+    this.changed();
+  }
+
+  async listFeedback(): Promise<LocalFeedback[]> {
+    return this.db.getAll("feedback");
+  }
+
+  /** How a logged meal went. One record per eaten log, editable. */
+  async saveFeedback(logId: string, body: MealFeedbackBody): Promise<void> {
+    await this.putVersioned("feedback", "feedback.put", logId, body);
+    track("Said how a meal went");
+    this.changed();
+  }
+
+  async resolveVersionedConflict(store: "prefs" | "feedback", id: string, choice: "mine" | "cloud"): Promise<void> {
+    const local = await this.db.get(store, id);
+    if (!local || local.state !== "conflict") return;
+    const server = local.conflictServer ?? null;
+    if (choice === "mine") {
+      await this.db.put(store, { ...local, serverVersion: server?.version ?? null, state: "pending", conflictServer: undefined } as never);
+      await this.putVersioned(store, store === "prefs" ? "prefs.put" : "feedback.put", id, local.body);
+      this.changed();
+      return;
+    }
+    const tx = this.db.transaction([store, "outbox"], "readwrite");
+    const kind = store === "prefs" ? "prefs.put" : "feedback.put";
+    for (const op of await tx.objectStore("outbox").index("byEntity").getAll(id)) if (op.type === kind) await tx.objectStore("outbox").delete(op.opId);
+    if (server) await tx.objectStore(store).put((store === "prefs" ? prefsFromServer(server as FoodPreferences) : feedbackFromServer(server as MealFeedback)) as never);
+    else await tx.objectStore(store).delete(id);
+    await tx.done;
+    this.emit();
+    this.schedule();
+  }
+
+  private async putVersioned(store: "prefs" | "feedback", type: "prefs.put" | "feedback.put", id: string, body: FoodPreferencesBody | MealFeedbackBody) {
+    const tx = this.db.transaction([store, "outbox"], "readwrite");
+    const existing = (await tx.objectStore(store).get(id)) as LocalPreferences | LocalFeedback | undefined;
+    // Feedback shares its id with the eaten log: coalesce only this kind of operation.
+    for (const op of await tx.objectStore("outbox").index("byEntity").getAll(id)) {
+      if (op.type === type && !this.inFlight.has(op.opId)) await tx.objectStore("outbox").delete(op.opId);
+    }
+    const base = existing?.serverVersion ?? null;
+    await tx.objectStore("outbox").put(this.op(id, type, base, body));
+    await tx.objectStore(store).put({
+      id,
+      body,
+      serverVersion: base,
+      state: existing?.state === "conflict" ? "conflict" : "pending",
+      conflictServer: existing?.state === "conflict" ? existing.conflictServer : undefined,
+      updatedAt: now(),
+    } as never);
+    await tx.done;
+  }
+
+  // ---------- profiles and groups ----------
+
+  /** People without a login that this account looks after (created online, kept here for offline use). */
+  async listProfiles(): Promise<LocalProfile[]> {
+    return (await this.db.getAll("profiles")).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  /** Keeps a profile the server just created, so it shows before the next pull. */
+  async rememberProfile(profile: LocalProfile): Promise<void> {
+    await this.db.put("profiles", profile);
+    this.emit();
+  }
+
+  /**
+   * Drops copies of group recipes for groups this account is no longer in (it left, was removed,
+   * or the group ended). The server stops sending them, so the device has to let them go.
+   */
+  async forgetGroupRecipes(groupIds: Set<string>): Promise<void> {
+    const tx = this.db.transaction("recipes", "readwrite");
+    let changed = false;
+    for (const r of await tx.store.getAll()) {
+      if (r.groupId && !groupIds.has(r.groupId) && r.state === "synced") {
+        await tx.store.delete(r.id);
+        changed = true;
+      }
+    }
+    await tx.done;
+    if (changed) this.emit();
+  }
+
   private changed() {
     this.setStatus("saved-local");
     this.schedule();
@@ -367,7 +493,9 @@ export class SyncEngine {
         (await this.db.getAll("recipes")).some((r) => needs(r.state)) ||
         (await this.db.getAll("plans")).some((p) => needs(p.state)) ||
         (await this.db.getAll("logs")).some((l) => needs(l.state)) ||
-        (await this.db.getAll("goals")).some((g) => needs(g.state));
+        (await this.db.getAll("goals")).some((g) => needs(g.state)) ||
+        (await this.db.getAll("prefs")).some((p) => needs(p.state)) ||
+        (await this.db.getAll("feedback")).some((f) => needs(f.state));
       this.lastSyncedAt = now();
       this.setStatus(attention ? "attention" : pending ? "saved-local" : "synced");
     } catch (err) {
@@ -403,12 +531,13 @@ export class SyncEngine {
   }
 
   private async applyResult(result: SyncResult) {
-    const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "outbox"], "readwrite");
+    const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "prefs", "feedback", "outbox"], "readwrite");
     const outbox = tx.objectStore("outbox");
     const sent = await outbox.get(result.opId);
     await outbox.delete(result.opId);
-    const later = await outbox.index("byEntity").getAll(result.entityId);
     const kind = sent?.type.split(".")[0] ?? "recipe";
+    // Later operations on the same record (feedback and its eaten log share an id, so match the kind).
+    const later = (await outbox.index("byEntity").getAll(result.entityId)).filter((o) => o.type.split(".")[0] === kind);
 
     if (kind === "log") {
       const logs = tx.objectStore("logs");
@@ -425,23 +554,30 @@ export class SyncEngine {
       return;
     }
 
-    // Recipes, plans and goals share versioned semantics.
-    const store = kind === "plan" ? tx.objectStore("plans") : kind === "goal" ? tx.objectStore("goals") : tx.objectStore("recipes");
-    const local = (await store.get(result.entityId)) as LocalRecipe | LocalPlan | LocalGoal | undefined;
+    // Recipes, plans, goals, preferences and feedback share versioned semantics.
+    const stores = { plan: "plans", goal: "goals", prefs: "prefs", feedback: "feedback", recipe: "recipes" } as const;
+    const store = tx.objectStore(stores[kind as keyof typeof stores] ?? "recipes");
+    const local = (await store.get(result.entityId)) as LocalRecipe | LocalPlan | LocalGoal | LocalPreferences | LocalFeedback | undefined;
     if (result.status === "applied") {
       // Later local edits were made on top of this content: rebase them on the new version.
       for (const op of later) await outbox.put({ ...op, baseVersion: result.version });
       if (local) {
-        if (local.deleted && later.length === 0) await store.delete(local.id);
+        if ("deleted" in local && local.deleted && later.length === 0) await store.delete(local.id);
         else await store.put({ ...local, serverVersion: result.version, state: later.length ? "pending" : "synced" } as never);
       }
     } else if (result.status === "conflict") {
       for (const op of later) await outbox.delete(op.opId);
-      const server = kind === "plan" ? (result.serverPlannedMeal ?? null) : kind === "goal" ? (result.serverGoal ?? null) : (result.server ?? null);
+      const server =
+        kind === "plan" ? (result.serverPlannedMeal ?? null)
+        : kind === "goal" ? (result.serverGoal ?? null)
+        : kind === "prefs" ? (result.serverPreferences ?? null)
+        : kind === "feedback" ? (result.serverFeedback ?? null)
+        : (result.server ?? null);
       if (local) await store.put({ ...local, deleted: false, state: "conflict", conflictServer: server } as never);
     } else if (result.status === "rejected") {
       for (const op of later) await outbox.delete(op.opId);
-      if (local) await store.put({ ...local, state: "rejected", rejection: result.error?.message ?? "Rejected" } as never);
+      // A refused removal (say, a plan the group manages) brings the record back into view.
+      if (local) await store.put({ ...local, deleted: false, state: "rejected", rejection: result.error?.message ?? "Rejected" } as never);
     }
     await tx.done;
   }
@@ -451,7 +587,7 @@ export class SyncEngine {
     let cursor = ((await this.db.get("meta", "cursor")) as string | undefined) ?? "0";
     for (let guard = 0; guard < 100; guard++) {
       const page = await this.client.changes(cursor);
-      const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "meta"], "readwrite");
+      const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "prefs", "feedback", "profiles", "outbox", "meta"], "readwrite");
       if (page.changes.length) changed = true;
       for (const change of page.changes) {
         if (change.entity === "recipe") {
@@ -470,6 +606,22 @@ export class SyncEngine {
           if (local && local.state !== "synced") continue;
           if (change.deleted || !change.goal) await tx.objectStore("goals").delete(change.entityId);
           else await tx.objectStore("goals").put(goalFromServer(change.goal));
+        } else if (change.entity === "preferences") {
+          const local = await tx.objectStore("prefs").get(change.entityId);
+          if (local && local.state !== "synced") continue;
+          if (change.deleted || !change.preferences) await tx.objectStore("prefs").delete(change.entityId);
+          else await tx.objectStore("prefs").put(prefsFromServer(change.preferences));
+        } else if (change.entity === "meal_feedback") {
+          const local = await tx.objectStore("feedback").get(change.entityId);
+          if (local && local.state !== "synced") continue;
+          if (change.deleted || !change.feedback) await tx.objectStore("feedback").delete(change.entityId);
+          else await tx.objectStore("feedback").put(feedbackFromServer(change.feedback));
+        } else if (change.entity === "profile") {
+          if (change.deleted || !change.profile) {
+            // The profile was deleted with everything recorded for it; nothing of it stays here.
+            await tx.objectStore("profiles").delete(change.entityId);
+            await this.purgeProfile(tx, change.entityId);
+          } else await tx.objectStore("profiles").put(change.profile);
         } else {
           const local = await tx.objectStore("logs").get(change.entityId);
           if (local && local.state !== "synced") continue;
@@ -485,13 +637,28 @@ export class SyncEngine {
     if (emitAlways || changed) this.emit();
   }
 
+  private async purgeProfile(tx: IDBPTransaction<UserDB, StoreNames<UserDB>[], "readwrite">, profileId: string) {
+    const gone = new Set<string>([profileId]);
+    for (const p of await tx.objectStore("plans").getAll()) if (p.body.profileId === profileId) gone.add(p.id) && (await tx.objectStore("plans").delete(p.id));
+    for (const l of await tx.objectStore("logs").getAll()) {
+      if (l.body.profileId !== profileId) continue;
+      gone.add(l.id);
+      await tx.objectStore("logs").delete(l.id);
+      await tx.objectStore("feedback").delete(l.id);
+    }
+    await tx.objectStore("prefs").delete(profileId);
+    for (const op of await tx.objectStore("outbox").getAll()) if (gone.has(op.entityId)) await tx.objectStore("outbox").delete(op.opId);
+  }
+
   /** Unsynced work as a downloadable JSON document (for export before sign-out). */
   async exportUnsynced() {
     const recipes = (await this.db.getAll("recipes")).filter((r) => r.state !== "synced");
     const plannedMeals = (await this.db.getAll("plans")).filter((p) => p.state !== "synced");
     const eatenMeals = (await this.db.getAll("logs")).filter((l) => l.state !== "synced");
     const goals = (await this.db.getAll("goals")).filter((g) => g.state !== "synced");
-    return { exportedAt: now(), format: "betterplate.unsynced/3", recipes, plannedMeals, eatenMeals, goals };
+    const foodPreferences = (await this.db.getAll("prefs")).filter((p) => p.state !== "synced");
+    const mealFeedback = (await this.db.getAll("feedback")).filter((f) => f.state !== "synced");
+    return { exportedAt: now(), format: "betterplate.unsynced/4", recipes, plannedMeals, eatenMeals, goals, foodPreferences, mealFeedback };
   }
 }
 
@@ -502,11 +669,22 @@ export function fromServer(r: Recipe): LocalRecipe {
     serverVersion: r.version,
     state: "synced",
     updatedAt: r.updatedAt,
+    groupId: r.groupId ?? null,
   };
 }
 
 export function planFromServer(p: PlannedMeal): LocalPlan {
-  const { id, version, createdAt: _c, updatedAt, ...body } = p;
+  const { id, version, createdAt: _c, updatedAt, status, groupId, authorId: _a, plannedBy, ...body } = p;
+  return { id, body, serverVersion: version, state: "synced", updatedAt, meta: { status, groupId, plannedBy } };
+}
+
+export function prefsFromServer(p: FoodPreferences): LocalPreferences {
+  const { id, version, updatedAt, ...body } = p;
+  return { id, body, serverVersion: version, state: "synced", updatedAt };
+}
+
+export function feedbackFromServer(f: MealFeedback): LocalFeedback {
+  const { id, version, updatedAt, profileId: _p, ...body } = f;
   return { id, body, serverVersion: version, state: "synced", updatedAt };
 }
 
@@ -529,6 +707,10 @@ function toWire(o: OutboxOp): SyncOperation {
       return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion, body: o.body as PlannedMealBody };
     case "goal.put":
       return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion, body: o.body as GoalBody };
+    case "prefs.put":
+      return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion, body: o.body as Extract<SyncOperation, { type: "prefs.put" }>["body"] };
+    case "feedback.put":
+      return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion, body: o.body as Extract<SyncOperation, { type: "feedback.put" }>["body"] };
     case "recipe.delete":
     case "plan.delete":
     case "goal.delete":

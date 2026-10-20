@@ -2,6 +2,19 @@
 
 Evidence folders are git-ignored (public repo, see preflight N2). Rerun `pnpm verify` to regenerate them; CI uploads the same folder as a 7-day artifact.
 
+## Groups, preferences and shopping list, local pass: 2026-10-20, branch `claude/project-thread-7fzkz5`
+Command: `pnpm test` then `pnpm e2e`.
+
+| Suite | Result |
+|---|---|
+| Typecheck (all workspace packages) | pass |
+| Nutrition unit tests incl. allergen rules on real catalog names and shopping list | 81 / 81 pass |
+| Web unit tests: sync engine (incl. preferences, feedback, profiles, group recipes), interface strings | 27 / 27 pass |
+| API integration tests (real PostgreSQL 16) incl. `groups.test.ts` (14) | 113 / 113 pass |
+| Playwright, desktop + mobile (incl. `people.spec.ts` and the a11y audit of the new screens) | 48 / 48 pass |
+
+Evidence: `artifacts/qa/groups/full1/local/` (full suite) and `artifacts/qa/groups/people2/local/` (new journeys). Screenshots inspected: allergy prompt, preferences form, recipe allergen alert, plan with alert, meal feedback, shopping list (desktop, mobile), group start, owner view, invite preview, admin plan with alert, admin week, member's managed plan, member proposal, approval, parent's view of the child's meals, group shopping list. Fixed after review: grams shown as "30.0 g" (now "30 g"); plan dates in the admin week now include the month.
+
 ## Spanish interface, local pass: 2026-10-19, `dev` ff01f15 plus the Spanish change
 Command: `pnpm test` then `pnpm e2e`.
 

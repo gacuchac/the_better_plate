@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { RecipeBodySchema, type RecipeBody, type RecipeIngredientInput } from "@betterplate/contracts";
 import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
+import { api, ApiRequestError } from "../api.ts";
 import { useApp } from "../store.tsx";
 import { EmptyState, navigate, Sheet } from "./common.tsx";
 import { FoodPicker } from "./FoodPicker.tsx";
 import { Icon } from "./icons.tsx";
 import { LogSheet, PlanSheet } from "./MealSheets.tsx";
+import { AllergenAlert, isAdminOf, listedAllergens, RecipeAllergens } from "./People.tsx";
 import { NutritionPanel } from "./Nutrition.tsx";
 import { ShareSheet } from "./Share.tsx";
 import { describeRecipe, PhotoSheet, RecipePhoto } from "./Photos.tsx";
@@ -26,7 +28,7 @@ function unitValue(i: RecipeIngredientInput) {
 }
 
 export function RecipeEditor({ id }: { id: string }) {
-  const { engine, catalog, online } = useApp();
+  const { engine, catalog, online, groups, preferences, account } = useApp();
   const t = useT();
   const [loaded, setLoaded] = useState<LocalRecipe | null | undefined>(undefined);
   const [draft, setDraft] = useState<RecipeBody>(blank);
@@ -34,7 +36,7 @@ export function RecipeEditor({ id }: { id: string }) {
   const [picking, setPicking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "photo" | null>(null);
+  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "photo" | "group" | null>(null);
 
   useEffect(() => {
     if (!engine) return;
@@ -55,6 +57,13 @@ export function RecipeEditor({ id }: { id: string }) {
 
   if (!engine || catalog.status === "loading" || loaded === undefined) return <p className="hint pad">{t("common.loading")}</p>;
   if (catalog.status === "unavailable") return <EmptyState title={t("catalog.notOnDevice")}>{t("catalog.unavailable")}</EmptyState>;
+
+  // A group's recipe: every member reads it, only the group's admins change it.
+  const groupId = loaded?.groupId ?? null;
+  const group = groups?.find((g) => g.id === groupId);
+  const readOnly = !!groupId && !isAdminOf(groups, groupId);
+  const adminGroups = (groups ?? []).filter((g) => isAdminOf(groups, g.id));
+  const myAllergies = listedAllergens(preferences.find((p) => p.id === account?.id)?.body);
 
   const update = (patch: Partial<RecipeBody>) => {
     setDraft((d) => ({ ...d, ...patch }));
@@ -113,8 +122,14 @@ export function RecipeEditor({ id }: { id: string }) {
           {t("editor.rejected", { reason: loaded.rejection ?? "" })}
         </p>
       )}
+      {groupId && (
+        <p className="banner banner-info" data-testid="group-recipe-banner">
+          {readOnly ? t("groups.recipeReadOnly", { group: group?.name ?? t("groups.groupRecipe") }) : t("groups.recipeShared", { group: group?.name ?? t("groups.groupRecipe") })}
+        </p>
+      )}
       <div className="editor-grid">
         <section className="editor-main" aria-label={t("editor.region")}>
+          <fieldset className="plain" disabled={readOnly}>
           <label htmlFor="title" className="sr-only">
             {t("editor.name")}
           </label>
@@ -267,9 +282,13 @@ export function RecipeEditor({ id }: { id: string }) {
             })}
           </ul>
 
+          <RecipeAllergens recipe={draft} foods={foods} />
+          <AllergenAlert recipe={draft} listed={myAllergies} name={null} foods={foods} />
+
           <label htmlFor="method">{t("editor.method")}</label>
           <textarea id="method" rows={5} value={draft.method} placeholder={t("editor.methodPlaceholder")} onChange={(e) => update({ method: e.target.value })} />
 
+          </fieldset>
           {errors.length > 0 && (
             <ul className="error" role="alert">
               {errors.map((e) => (
@@ -282,9 +301,16 @@ export function RecipeEditor({ id }: { id: string }) {
               <button type="button" className="btn-soft" onClick={() => setSheet("share")} disabled={dirty}>
                 <Icon name="share" size={18} /> {t("share.title")}
               </button>
-              <button type="button" className="btn-link danger" onClick={() => void remove()}>
-                {t("editor.delete")}
-              </button>
+              {!groupId && adminGroups.length > 0 && loaded.serverVersion !== null && (
+                <button type="button" className="btn-soft" onClick={() => setSheet("group")} disabled={dirty || !online}>
+                  <Icon name="people" size={18} /> {t("groups.shareWithGroup")}
+                </button>
+              )}
+              {!readOnly && (
+                <button type="button" className="btn-link danger" onClick={() => void remove()}>
+                  {t("editor.delete")}
+                </button>
+              )}
             </div>
           )}
           {message && (
@@ -332,6 +358,32 @@ export function RecipeEditor({ id }: { id: string }) {
       )}
       {sheet === "plan" && loaded && <PlanSheet recipeId={id} title={loaded.body.title} onClose={() => setSheet(null)} />}
       {sheet === "share" && loaded && <ShareSheet recipe={loaded} onClose={() => setSheet(null)} />}
+      {sheet === "group" && loaded && (
+        <Sheet title={t("groups.shareWithGroup")} onClose={() => setSheet(null)}>
+          <p className="hint">{t("groups.shareWithGroupHint")}</p>
+          <ul className="food-results">
+            {adminGroups.map((g) => (
+              <li key={g.id}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    void api.shareRecipeWithGroup(g.id, id).then(
+                      (copy) => {
+                        setSheet(null);
+                        setMessage(t("groups.sharedWith", { group: g.name }));
+                        void engine.syncNow().then(() => navigate(`/recipe/${copy.id}`));
+                      },
+                      (err) => setMessage(err instanceof ApiRequestError ? err.message : t("groups.offline")),
+                    )
+                  }
+                >
+                  <span>{g.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Sheet>
+      )}
       {sheet === "log" && loaded && <LogSheet recipeId={id} recipe={loaded.body} onClose={() => setSheet(null)} />}
       {picking && (
         <Sheet title={t("editor.addIngredient")} onClose={() => setPicking(false)}>

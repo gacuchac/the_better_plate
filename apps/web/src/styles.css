@@ -558,3 +558,34 @@ body.companion-open .report-btn { display: none; }
 .totals-table th[scope="row"], .totals-table thead th:first-child { text-align: left; font-weight: 500; }
 .totals-table thead th { font-size: 0.8125rem; color: var(--ink-3); font-weight: 600; }
 .totals-table tr:last-child th, .totals-table tr:last-child td { border-bottom: 0; }
+
+/* ---------- people, preferences, groups and shopping ---------- */
+fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:disabled select { background: var(--bg); }
+.field-legend { font-weight: 600; margin: 16px 0 8px; padding: 0; }
+.subject-row { margin: 0 0 16px; }
+.subject-row button { display: inline-flex; align-items: center; gap: 6px; }
+.allergen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0 12px; margin-top: 8px; }
+.tag-list { list-style: none; padding: 0; margin: 4px 0 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 12px; border-radius: 999px; background: var(--sage-soft); color: var(--sage-ink); font-size: 0.875rem; font-weight: 550; max-width: 100%; }
+.tag span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pref-foods h3 { margin: 0; font-size: 1rem; }
+.allergen-line { margin: 12px 0; }
+.allergen-line .hint, .allergen-line .fine { margin: 4px 0; }
+.ask-card { display: grid; gap: 4px; text-decoration: none; color: inherit; border-color: var(--sage); margin-bottom: 16px; }
+.quick-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.quick-links a { text-decoration: none; }
+.recipe-group { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; color: var(--sage-ink); }
+.meal-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.member-week { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+.member-week h3 { margin: 0; font-size: 1rem; }
+.invites { margin-top: 12px; }
+.invites summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.invites ul { list-style: none; padding: 0; margin: 0; }
+.shopping-list { list-style: none; padding: 0; margin: 8px 0 16px; }
+.shop-category { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); margin: 16px 0 0; }
+.shop-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); padding: 4px 0; margin: 0; }
+.shop-item.done .shop-name, .shop-item.done .shop-amount { text-decoration: line-through; color: var(--ink-3); }
+.shop-name { display: grid; gap: 2px; overflow-wrap: anywhere; }
+.shop-name small { color: var(--ink-3); font-weight: 400; font-size: 0.8125rem; }
+.shop-amount { font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }

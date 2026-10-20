@@ -1,3 +1,16 @@
+import type {
+  AllergenAlert,
+  FoodPreferences,
+  FoodPreferencesBody,
+  GroupDetail,
+  GroupInvite,
+  GroupSummary,
+  InvitePreview,
+  MealFeedback,
+  MealLog,
+  PlannedMeal,
+  ShoppingList,
+} from "@betterplate/contracts";
 import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
@@ -89,6 +102,26 @@ export interface ConnectedApp {
   createdAt?: string;
 }
 
+/** One member's week as a group's admins see it. */
+export interface GroupMemberMeals {
+  memberId: string;
+  name: string;
+  kind: "person" | "profile";
+  preferences: FoodPreferences | null;
+  planned: PlannedMeal[];
+  eaten: MealLog[];
+  feedback: MealFeedback[];
+}
+
+export interface GroupPlanInput {
+  date: string;
+  slot: "breakfast" | "lunch" | "dinner" | "snack";
+  recipeId: string;
+  servings: number;
+}
+
+const ifMatch = (version: number) => ({ "if-match": `"v${version}"` });
+
 export const api = {
   me: () => request<Me>("/v1/me"),
   signInMethods: () => request<{ methods: ("email_code" | "google")[] }>("/v1/sign-in-methods"),
@@ -127,5 +160,35 @@ export const api = {
     request<{ redirect: boolean; url: string }>("/v1/auth/oauth2/consent", { method: "POST", json: { accept, oauth_query: oauthQuery } }),
   connectedApps: () => request<ConnectedApp[]>("/v1/auth/oauth2/get-consents", { cache: "no-store" }),
   disconnectApp: (id: string) => request<unknown>("/v1/auth/oauth2/delete-consent", { method: "POST", json: { id } }),
+  // Groups: online screens; what they plan reaches members' kitchens through sync.
+  groups: () => request<{ groups: GroupSummary[] }>("/v1/groups", { cache: "no-store" }),
+  group: (id: string) => request<GroupDetail>(`/v1/groups/${id}`, { cache: "no-store" }),
+  createGroup: (name: string, myName: string) => request<GroupDetail>("/v1/groups", { method: "POST", json: { name, myName } }),
+  renameGroup: (id: string, name: string) => request<GroupDetail>(`/v1/groups/${id}`, { method: "PUT", json: { name } }),
+  endGroup: (id: string) => request<void>(`/v1/groups/${id}`, { method: "DELETE" }),
+  createInvite: (groupId: string, role: "admin" | "member") => request<GroupInvite>(`/v1/groups/${groupId}/invites`, { method: "POST", json: { role } }),
+  revokeInvite: (groupId: string, inviteId: string) => request<void>(`/v1/groups/${groupId}/invites/${inviteId}`, { method: "DELETE" }),
+  invite: (token: string) => request<InvitePreview>(`/v1/invites/${token}`, { cache: "no-store" }),
+  acceptInvite: (token: string, myName: string) => request<GroupDetail>(`/v1/invites/${token}/accept`, { method: "POST", json: { myName } }),
+  setMemberRole: (groupId: string, memberId: string, role: "admin" | "member") => request<GroupDetail>(`/v1/groups/${groupId}/members/${memberId}`, { method: "PUT", json: { role } }),
+  removeMember: (groupId: string, memberId: string) => request<void>(`/v1/groups/${groupId}/members/${memberId}`, { method: "DELETE" }),
+  addProfile: (groupId: string, name: string, id = crypto.randomUUID()) => request<GroupDetail>(`/v1/groups/${groupId}/profiles`, { method: "POST", json: { id, name } }),
+  addExistingProfile: (groupId: string, profileId: string) => request<GroupDetail>(`/v1/groups/${groupId}/members`, { method: "POST", json: { profileId } }),
+  deleteProfile: (id: string) => request<void>(`/v1/profiles/${id}`, { method: "DELETE" }),
+  setMemberPreferences: (groupId: string, memberId: string, body: FoodPreferencesBody) =>
+    request<FoodPreferences>(`/v1/groups/${groupId}/members/${memberId}/preferences`, { method: "PUT", json: body }),
+  groupMeals: (groupId: string, from: string, to: string) =>
+    request<{ from: string; to: string; members: GroupMemberMeals[] }>(`/v1/groups/${groupId}/meals?from=${from}&to=${to}`, { cache: "no-store" }),
+  planForMember: (groupId: string, memberId: string, body: GroupPlanInput) =>
+    request<{ plan: PlannedMeal; alert: AllergenAlert }>(`/v1/groups/${groupId}/plans`, { method: "POST", json: { memberId, ...body } }),
+  removeGroupPlan: (groupId: string, planId: string, version: number) => request<void>(`/v1/groups/${groupId}/plans/${planId}`, { method: "DELETE", headers: ifMatch(version) }),
+  approvePlan: (groupId: string, planId: string) => request<PlannedMeal>(`/v1/groups/${groupId}/plans/${planId}/approve`, { method: "POST" }),
+  declinePlan: (groupId: string, planId: string) => request<PlannedMeal>(`/v1/groups/${groupId}/plans/${planId}/decline`, { method: "POST" }),
+  groupRecipes: (groupId: string) => request<{ recipes: Recipe[] }>(`/v1/groups/${groupId}/recipes`, { cache: "no-store" }),
+  shareRecipeWithGroup: (groupId: string, recipeId: string) => request<Recipe>(`/v1/groups/${groupId}/recipes`, { method: "POST", json: { recipeId } }),
+  shoppingList: (from: string, to: string, scope: { profileId?: string; groupId?: string } = {}) => {
+    const q = new URLSearchParams({ from, to, ...scope });
+    return request<ShoppingList>(`/v1/shopping-list?${q}`, { cache: "no-store" });
+  },
   feedback: (report: FeedbackReport) => request<{ id: string; receivedAt: string; duplicate: boolean }>("/v1/feedback", { method: "POST", json: report }),
 };

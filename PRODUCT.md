@@ -11,7 +11,7 @@ This file defines **what must be true for the product**, not which framework, cl
 - **Cooking confidence:** non-AI curated cooking instructions and cooking-method education, appropriate safety temperatures, method-specific preparation, oil added versus retained versus consumed, yield/retention uncertainties, and step-by-step accessible cooking UX.
 - **Optional AI:** user-supplied OpenAI/Claude API access for companion navigation, recommendations and reviewable recipe edits; independent nutrition/safety engines remain authoritative. Photorealistic image generation only through a capable provider, with clear labeling.
 - **Excellent experience:** bright, restrained, editorial-quality real or photorealistic food imagery, no cartoons, accessible and nonjudgmental copy, progressive disclosure, and core journeys normally within three screen transitions.
-- **Privacy-minimal free launch:** email, optional display name, planned and explicitly logged consumed meals; only essential security, consent and operational metadata. No mandatory phone, address, clinical history, demographics, checkout, subscription or in-app chef operations at initial public launch.
+- **Privacy-minimal free launch:** email, optional display name, planned and explicitly logged consumed meals, and what people choose to tell us about food (self-reported allergies, likes, dislikes, meal feedback); group memberships with a chosen display name; child profiles with a name only; only essential security, consent and operational metadata. No mandatory phone, address, clinical history, demographics, checkout, subscription or in-app chef operations at initial public launch.
 - **Progressive release:** chef messaging, inquiries, quotes, ordering, checkout and delivery are privately developed/tested modules, publicly OFF until separately approved, with both backend and frontend enforcement. Recipe UUID sharing and native handoff work publicly at launch.
 - **QA and feedback:** a report-issue affordance on every screen, privacy-reviewed optional screenshot and readable recent activity, correlation IDs, full QA screenshot/trace evidence at milestones, automated API validation and full release regression.
 - **Operations:** independently deployable documented backend API usable by multiple clients; modular monolith, fully managed infrastructure with no user-operated server maintenance, low cost, secure data handling, tested backups and recovery.
@@ -33,6 +33,10 @@ This file defines **what must be true for the product**, not which framework, cl
 | Follow instructions | Recipe → Cook → method-specific steps, timers, safety | Yes for cached recipes | Public |
 | Share recipe | Recipe → review redacted snapshot → publish UUID / native share | Publishing needs internet | Public |
 | AI modification | Recipe → Companion overlay → preview diff → approve | No | Public optional BYOK |
+| Answer allergies, likes and dislikes | Your Kitchen prompt → preferences → save | Yes; sync later | Public |
+| Say how a meal went | Meals → eaten meal → How was it? → save (optionally add disliked ingredients to dislikes) | Yes; sync later | Public |
+| Shop for the week | Your Kitchen → Shopping list (own or a profile's offline; a group's online) | Own list yes | Public |
+| Plan for a group member | Group → member → Plan (allergy alert, never a block) | No; reaches the member by sync | Public |
 | Report issue | Anywhere → issue sheet prefilled with activity → preview screenshot → submit | Queue offline until approved sync | Public |
 | Chef quote/order | Recipe → controlled inquiry → quote → payment/order | No | Internal staging only until release gates |
 
@@ -47,7 +51,7 @@ This file defines **what must be true for the product**, not which framework, cl
 ## 2. Functional domains and contracts
 
 ### 2.1. Identity and privacy
-Email verification, authentication and recovery through vetted provider compatible with selected hosting; passkeys/OIDC as feasible, admin MFA mandatory. Session revocation, safe CSRF/cookies/CORS, per-record ownership, rate limiting, deletion/export, privacy notice versions and consent events. No phone/address fields public; no collecting data for future disabled capabilities. Clear local account data on logout/account changes. Exclude children under 13; adults-only product policy, no unnecessary date-of-birth capture.
+Email verification, authentication and recovery through vetted provider compatible with selected hosting; passkeys/OIDC as feasible, admin MFA mandatory. Session revocation, safe CSRF/cookies/CORS, per-record ownership, rate limiting, deletion/export, privacy notice versions and consent events. No phone/address fields public; no collecting data for future disabled capabilities. Clear local account data on logout/account changes. Exclude children under 13 as account holders; adults-only product policy, no unnecessary date-of-birth capture. Children may appear only as parent-owned profiles (§2.12) with a name and no login, age or birthdate.
 
 ### 2.2. Food Knowledge Base
 Official USDA ingestion of normalized food records with canonical external IDs, food type and state, nutrient IDs, per-100g unit, portions and density, source/version/URL/retrieval date, completeness and missing flags, allergen uncertainty and kosher-status non-certification. Start with 100–200 packaged, versioned starter foods, selectively expand to 300–500 curated foods, then user-demand catalog. Source data must be properly imported; do not use invented nutrient figures outside labeled test fixtures. Source manifests and delta updates. Search index, offline favorites/recent caches, online-only missing items, batch lookup.
@@ -75,6 +79,14 @@ Revocable read-only recipe snapshots with unguessable UUID public link, scoped s
 
 ### 2.10. Chef module, private future capability
 Implement modular interfaces and staging-tested customer inquiry, chef messaging, quote, preparation scheduling, order/payment/refunds, delivery and staff console behind default-OFF flags. Public users initially have only external link sharing. Future opt-in data (delivery address/phone/payment) must be collected just-in-time after legal/privacy/operational approval, not in current accounts. Strong server enforcement of OFF, staged allowlist, two-person approval for regulated/high-impact features, audit logs, kill switch, and rollback obligations. Use fake providers and test data for unreleased systems.
+
+### 2.12. Groups, profiles, food preferences and shopping list (owner decisions 2026-10-20)
+- **Groups:** a family or a nutritionist with clients. One owner, any number of admins, members. Owner and admins plan meals for members, create and edit group recipes, and see members' plans, eaten meals, meal feedback and preferences. Members see what is planned for them and cannot change or remove it; meals they plan for themselves wait for an admin's approval (approve/decline). A person can be in several groups. Only the owner removes others or ends the group; admins cannot remove the owner; anyone can leave. Joining is by single-use, expiring invite links. Members see each other's chosen group names, never emails. Leaving keeps plans as the person's own; ending a group returns group recipes to their creators.
+- **Profiles:** children (or anyone without a login) are profiles owned by the parent's account: a name only, no email, login, age or birthdate. Their plans, eaten meals, preferences and feedback live in the parent's kitchen and never mix into the parent's own totals. Deleting a profile deletes everything recorded for it.
+- **Food preferences:** the app always asks about allergies and records the answer as given: listed allergens (the FDA's nine major allergens), "no allergies", or "rather not say". Plus liked and disliked catalog foods and notes. Never inferred, diagnosed or treated as medical data.
+- **Allergen alerts:** recipe ingredients are tagged from catalog names with versioned, sourced rules (FDA major allergens); prepared or mixed foods are marked "may contain others". When a recipe has an allergen the person listed, the app alerts and never blocks. Tags are not label checks and say so.
+- **Meal feedback:** after eating: liked or not, a comment, ingredients not liked (optionally added to dislikes). Visible to the group's admins.
+- **Shopping list:** for a week (≤31 days): recipe amounts in grams scaled to servings planned, grouped by catalog category, cooking oil counted as added, cooked-form foods flagged; per person, per profile, and per group (admins). Plans waiting for approval are excluded. Instacart or other store integration is a later capability.
 
 ### 2.11. Feedback, support and observability
 Persistent report button on every public and admin screen, including error states. Allow bug, general feedback, suggestion. Show prepopulated user-readable event sequence (e.g. opened favorites → salmon recipe → swapped broccoli for cauliflower → save failed) without raw keystrokes, health logs, secrets or unintended content. Optional user-approved screenshot with privacy mask/preview/remove. Send correlation ID, sanitized stack/exception, app/build version, route and device class. Support offline queued reports and admin triage statuses. Traces, rate/latency metrics, errors and resource budgets with data minimization.
@@ -135,6 +147,7 @@ All routes have authorization, anti-abuse limits, predictable structured errors,
 - Education: `evidence_sources`, `evidence_claims`, `recommendation_rules`, `educational_content`.
 - AI: encrypted `ai_credentials`, `ai_threads`, `ai_proposals`, `ai_usage`, `generated_images`.
 - Sharing: `share_snapshots`, `share_revisions`, `share_revocations`.
+- People: `profiles`, `groups`, `group_members`, `group_invites`, `food_preferences`, `meal_feedback`.
 - Operations: `feedback_reports`, `activity_summaries`, `audit_events`, `feature_flags`, `flag_approvals`.
 - Unreleased chef: `chef_inquiries`, `chef_messages`, `chef_quotes`, `chef_orders`, `chef_fulfillment`, `chef_payments`, `chef_delivery`; isolated, protected and never accessed by public OFF flow.
 

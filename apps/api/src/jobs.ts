@@ -18,9 +18,10 @@ export async function runMaintenance(): Promise<{ syncOperations: number; sessio
       // Expired sign-in sessions hold an IP address and browser description; keep them no longer than needed.
       const sessions = await client.query(`delete from "sessions" where "expiresAt" < now()`);
       // Recipe images no live recipe or live share link uses, after a week (revisions keep only the reference).
+      // Any live recipe counts: a group recipe may carry a photo another admin added.
       const images = await client.query(
         `delete from recipe_images i where created_at < now() - interval '7 days'
-           and not exists (select 1 from recipes r where r.user_id = i.user_id and r.deleted_at is null and r.body->'image'->>'id' = i.id::text)
+           and not exists (select 1 from recipes r where r.deleted_at is null and r.body->'image'->>'id' = i.id::text)
            and not exists (select 1 from share_snapshots s where s.user_id = i.user_id and s.revoked_at is null
                              and (s.expires_at is null or s.expires_at > now()) and s.snapshot->'image'->>'id' = i.id::text)`,
       );

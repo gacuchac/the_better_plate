@@ -1,5 +1,22 @@
 import { deleteDB, openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { Goal, GoalBody, MealLogBody, PlannedMeal, PlannedMealBody, Recipe, RecipeBody, RecipeNutritionDto, SyncOperation } from "@betterplate/contracts";
+import type {
+  FoodPreferences,
+  FoodPreferencesBody,
+  Goal,
+  GoalBody,
+  GroupSummary,
+  MealFeedback,
+  MealFeedbackBody,
+  MealLogBody,
+  PlannedMeal,
+  PlannedMealBody,
+  PlanStatus,
+  Profile,
+  Recipe,
+  RecipeBody,
+  RecipeNutritionDto,
+  SyncOperation,
+} from "@betterplate/contracts";
 import type { CatalogBundle } from "./api.ts";
 
 /**
@@ -22,6 +39,15 @@ export interface LocalRecipe {
   /** Deleted on this device; kept as a marker until the server acknowledges. */
   deleted?: boolean;
   updatedAt: string;
+  /** A group's recipe: members read it, the group's admins edit it. */
+  groupId?: string | null;
+}
+
+/** What the server says about a plan beyond its body: who planned it and whether it is approved. */
+export interface PlanMeta {
+  status: PlanStatus;
+  groupId: string | null;
+  plannedBy: string | null;
 }
 
 export interface LocalPlan {
@@ -33,6 +59,8 @@ export interface LocalPlan {
   rejection?: string;
   deleted?: boolean;
   updatedAt: string;
+  /** Known once the server has the plan; absent for a plan only on this device. */
+  meta?: PlanMeta;
 }
 
 /** A consumption goal the person set; versioned like plans. */
@@ -59,24 +87,54 @@ export interface LocalLog {
   createdAt: string;
 }
 
+/** Allergies, likes and dislikes as a person told us; id is the account's own id or a profile's. */
+export interface LocalPreferences {
+  id: string;
+  body: FoodPreferencesBody;
+  serverVersion: number | null;
+  state: RecipeSyncState;
+  conflictServer?: FoodPreferences | null;
+  rejection?: string;
+  updatedAt: string;
+}
+
+/** How a logged meal went; id is the eaten log's id. */
+export interface LocalFeedback {
+  id: string;
+  body: MealFeedbackBody;
+  serverVersion: number | null;
+  state: RecipeSyncState;
+  conflictServer?: MealFeedback | null;
+  rejection?: string;
+  updatedAt: string;
+}
+
+export type LocalProfile = Profile;
+
 export interface OutboxOp {
   opId: string;
   entityId: string;
   type: SyncOperation["type"];
   baseVersion: number | null;
-  body?: RecipeBody | PlannedMealBody | MealLogBody | GoalBody;
+  body?: RecipeBody | PlannedMealBody | MealLogBody | GoalBody | FoodPreferencesBody | MealFeedbackBody;
   createdAt: string;
   seq: number;
 }
 
-interface UserDB extends DBSchema {
+export interface UserDB extends DBSchema {
   recipes: { key: string; value: LocalRecipe; indexes: { byUpdated: string } };
   plans: { key: string; value: LocalPlan };
   logs: { key: string; value: LocalLog };
   goals: { key: string; value: LocalGoal };
+  prefs: { key: string; value: LocalPreferences };
+  feedback: { key: string; value: LocalFeedback };
+  profiles: { key: string; value: LocalProfile };
   outbox: { key: string; value: OutboxOp; indexes: { byEntity: string; bySeq: number } };
   meta: { key: string; value: unknown };
 }
+
+/** The groups this account is in, as last seen online (kept in the meta store). */
+export type CachedGroups = GroupSummary[];
 
 interface CatalogDB extends DBSchema {
   catalog: { key: string; value: CatalogBundle };
@@ -93,7 +151,7 @@ const seenKey = (userId: string) => `bp.db-seen.${userId}`;
  * it comes back empty, the browser evicted it; onEvicted lets the app tell the person.
  */
 export function openUserDb(userId: string, onEvicted?: () => void): Promise<UserDatabase> {
-  return openDB<UserDB>(userDbName(userId), 3, {
+  return openDB<UserDB>(userDbName(userId), 4, {
     upgrade(db, oldVersion) {
       if (oldVersion === 0) {
         try {
@@ -115,6 +173,11 @@ export function openUserDb(userId: string, onEvicted?: () => void): Promise<User
         db.createObjectStore("logs", { keyPath: "id" });
       }
       if (oldVersion < 3) db.createObjectStore("goals", { keyPath: "id" });
+      if (oldVersion < 4) {
+        db.createObjectStore("prefs", { keyPath: "id" });
+        db.createObjectStore("feedback", { keyPath: "id" });
+        db.createObjectStore("profiles", { keyPath: "id" });
+      }
     },
   });
 }
