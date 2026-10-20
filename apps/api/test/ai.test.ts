@@ -229,3 +229,24 @@ describe("included companion (owner's key, capped)", () => {
     expect((await refused.json()).error.code).toBe("not_connected");
   });
 });
+
+describe("OpenAI errors", () => {
+  it("say why OpenAI refused a key, without any key text", async () => {
+    const { openaiFetch } = await import("../src/modules/ai/providers.ts");
+    const real = globalThis.fetch;
+    const reply = (status: number, message: string) => (async () => new Response(JSON.stringify({ error: { message } }), { status })) as typeof fetch;
+    try {
+      globalThis.fetch = reply(401, "Incorrect API key provided: sk-proj-abcd****************************wxyz. You can find your API key at https://platform.openai.com/account/api-keys.");
+      const wrong = await openaiFetch("sk-test", "/models").catch((e: unknown) => e as { code: string; message: string });
+      expect(wrong).toMatchObject({ code: "ai_key_invalid" });
+      expect(wrong.message).toMatch(/^OpenAI did not accept this API key \(401: Incorrect API key provided: \[key\]/);
+      expect(wrong.message).not.toContain("wxyz");
+
+      globalThis.fetch = reply(403, "You have insufficient permissions for this operation. Missing scopes: model.request.");
+      const scoped = await openaiFetch("sk-test", "/chat/completions", {}).catch((e: unknown) => e as { message: string });
+      expect(scoped.message).toContain("403: You have insufficient permissions for this operation. Missing scopes: model.request.");
+    } finally {
+      globalThis.fetch = real;
+    }
+  });
+});

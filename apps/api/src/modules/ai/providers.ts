@@ -128,7 +128,13 @@ export async function openaiFetch(apiKey: string, path: string, body?: unknown):
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (res.ok) return data;
   const message = redact(String((data.error as { message?: string } | undefined)?.message ?? res.statusText)).slice(0, 300);
-  if (res.status === 401 || res.status === 403) throw new ApiError(400, "ai_key_invalid", "OpenAI did not accept this API key");
+  if (res.status === 401 || res.status === 403) {
+    // OpenAI's own reason (wrong key, missing permission, project without access) with any key
+    // text removed, so the person and the logs can tell which one it is.
+    const reason = message.replace(/\b(sk|rk)-\S+/g, "[key]");
+    console.warn(JSON.stringify({ level: "warn", msg: "openai_rejected_key", status: res.status, path, reason }));
+    throw new ApiError(400, "ai_key_invalid", `OpenAI did not accept this API key (${res.status}: ${reason})`);
+  }
   if (res.status === 404) throw new ApiError(400, "ai_model_unavailable", "This model isn't available to your OpenAI key");
   if (res.status === 429) throw new ApiError(429, "ai_provider_rate_limited", "OpenAI is rate limiting your key or it has no credit left");
   if (res.status === 400) throw new ApiError(422, "ai_provider_rejected", message);
