@@ -18,7 +18,7 @@ describe("interface strings", () => {
 
   it("every key is used by the app", () => {
     const dir = join(import.meta.dirname, "ui");
-    const source = [...readdirSync(dir).map((f) => join(dir, f)), join(import.meta.dirname, "meals.ts"), join(import.meta.dirname, "agent.ts"), join(import.meta.dirname, "i18n.ts")]
+    const source = [...readdirSync(dir).map((f) => join(dir, f)), join(import.meta.dirname, "meals.ts"), join(import.meta.dirname, "agent.ts"), join(import.meta.dirname, "goals.ts"), join(import.meta.dirname, "i18n.ts")]
       .map((f) => readFileSync(f, "utf8"))
       .join("\n");
     const unused = Object.keys(en).filter((k) => !source.includes(`"${k}"`));

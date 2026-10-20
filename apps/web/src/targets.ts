@@ -1,62 +1,52 @@
-import { useSyncExternalStore } from "react";
 import type { DailyValue } from "@betterplate/nutrition";
+import type { SyncEngine } from "./sync.ts";
+import { localDate } from "./meals.ts";
 
 /**
- * Daily targets the person types in themselves (e.g. protein 155 g). The app never computes
- * them from body data and never suggests values. Kept only on this device, per account, and
- * removed when the account signs out.
+ * Daily targets from before goals were stored on the server (kept per account in localStorage).
+ * They move into daily goals once, then leave the device. Nutrients people usually limit become
+ * "at most" goals, everything else "at least"; the person can change either on the Goals screen.
  */
 const key = (accountId: string) => `bp.targets.${accountId}`;
-const listeners = new Set<() => void>();
-const cache = new Map<string, DailyValue[]>();
-const EMPTY: DailyValue[] = [];
-
-function read(accountId: string): DailyValue[] {
-  const hit = cache.get(accountId);
-  if (hit) return hit;
-  let parsed: DailyValue[] = EMPTY;
-  try {
-    const raw = JSON.parse(localStorage.getItem(key(accountId)) ?? "[]") as unknown;
-    if (Array.isArray(raw)) parsed = raw.filter(isTarget);
-  } catch {
-    // Unreadable or blocked storage: no targets.
-  }
-  cache.set(accountId, parsed);
-  return parsed;
-}
+const LIMITED = new Set(["sodium", "fat_saturated", "sugars_total", "cholesterol"]);
 
 function isTarget(v: unknown): v is DailyValue {
   const t = v as DailyValue;
   return typeof t?.key === "string" && typeof t.unit === "string" && typeof t.amount === "number" && t.amount > 0 && t.amount < 1_000_000;
 }
 
-export function getTargets(accountId: string | undefined): DailyValue[] {
-  return accountId ? read(accountId) : EMPTY;
-}
-
-export function saveTargets(accountId: string, targets: DailyValue[]) {
-  const clean = targets.filter(isTarget);
-  cache.set(accountId, clean);
+export function getLegacyTargets(accountId: string): DailyValue[] {
   try {
-    if (clean.length) localStorage.setItem(key(accountId), JSON.stringify(clean));
-    else localStorage.removeItem(key(accountId));
+    const raw = JSON.parse(localStorage.getItem(key(accountId)) ?? "[]") as unknown;
+    return Array.isArray(raw) ? raw.filter(isTarget) : [];
   } catch {
-    // Kept for this visit only.
+    return [];
   }
-  listeners.forEach((fn) => fn());
 }
 
 export function clearTargets(accountId: string) {
-  saveTargets(accountId, []);
+  try {
+    localStorage.removeItem(key(accountId));
+  } catch {
+    // Storage blocked: nothing kept.
+  }
 }
 
-export function useTargets(accountId: string | undefined): DailyValue[] {
-  return useSyncExternalStore(
-    (fn) => {
-      listeners.add(fn);
-      return () => listeners.delete(fn);
-    },
-    () => getTargets(accountId),
-    () => EMPTY,
-  );
+export async function migrateTargets(accountId: string, engine: Pick<SyncEngine, "saveGoal">, today = localDate()): Promise<number> {
+  const targets = getLegacyTargets(accountId);
+  for (const t of targets) {
+    const atMost = LIMITED.has(t.key);
+    await engine.saveGoal(crypto.randomUUID(), {
+      nutrientKey: t.key,
+      unit: t.unit,
+      kind: atMost ? "at_most" : "at_least",
+      min: atMost ? null : t.amount,
+      max: atMost ? t.amount : null,
+      period: "day",
+      startDate: today,
+      endDate: null,
+    });
+  }
+  if (targets.length) clearTargets(accountId);
+  return targets.length;
 }

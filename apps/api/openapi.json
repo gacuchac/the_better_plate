@@ -5442,6 +5442,510 @@
         }
       }
     },
+    "/v1/goals": {
+      "get": {
+        "tags": [
+          "goals"
+        ],
+        "summary": "My consumption goals",
+        "description": "Goals the person set on what they eat. Writes go through POST /v1/sync/batch (goal.put, goal.delete).",
+        "responses": {
+          "200": {
+            "description": "Goals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "goals": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "nutrientKey": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 10
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "at_least",
+                              "at_most",
+                              "between"
+                            ]
+                          },
+                          "min": {
+                            "type": [
+                              "number",
+                              "null"
+                            ],
+                            "exclusiveMinimum": 0,
+                            "maximum": 1000000
+                          },
+                          "max": {
+                            "type": [
+                              "number",
+                              "null"
+                            ],
+                            "exclusiveMinimum": 0,
+                            "maximum": 1000000
+                          },
+                          "period": {
+                            "type": "string",
+                            "enum": [
+                              "day",
+                              "week",
+                              "month"
+                            ]
+                          },
+                          "startDate": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "endDate": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "nutrientKey",
+                          "unit",
+                          "kind",
+                          "min",
+                          "max",
+                          "period",
+                          "startDate",
+                          "endDate",
+                          "id",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "goals"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nutrition/summary": {
+      "get": {
+        "tags": [
+          "goals"
+        ],
+        "summary": "Estimated totals of what I ate over a range of days (at most 366)",
+        "description": "Logged meals only; plans never count. Averages are per day with something logged, and `incomplete` says when some days have nothing logged. Nutrients no logged meal reports are unknown, never zero.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": true,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": true,
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "to": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "days": {
+                      "type": "integer"
+                    },
+                    "daysLogged": {
+                      "type": "integer"
+                    },
+                    "incomplete": {
+                      "type": "boolean"
+                    },
+                    "nutrients": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "total": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "averagePerLoggedDay": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "known",
+                              "partial",
+                              "unknown"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "unit",
+                          "total",
+                          "averagePerLoggedDay",
+                          "status"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "days",
+                    "daysLogged",
+                    "incomplete",
+                    "nutrients"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/recipes/{id}/share": {
       "post": {
         "tags": [
@@ -7111,6 +7615,139 @@
                             "type",
                             "entityId"
                           ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "goal.put"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "baseVersion": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "exclusiveMinimum": 0
+                            },
+                            "body": {
+                              "type": "object",
+                              "properties": {
+                                "nutrientKey": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 10
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "at_least",
+                                    "at_most",
+                                    "between"
+                                  ]
+                                },
+                                "min": {
+                                  "type": [
+                                    "number",
+                                    "null"
+                                  ],
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 1000000
+                                },
+                                "max": {
+                                  "type": [
+                                    "number",
+                                    "null"
+                                  ],
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 1000000
+                                },
+                                "period": {
+                                  "type": "string",
+                                  "enum": [
+                                    "day",
+                                    "week",
+                                    "month"
+                                  ]
+                                },
+                                "startDate": {
+                                  "type": "string",
+                                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                },
+                                "endDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                }
+                              },
+                              "required": [
+                                "nutrientKey",
+                                "unit",
+                                "kind",
+                                "min",
+                                "max",
+                                "period",
+                                "startDate",
+                                "endDate"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId",
+                            "baseVersion",
+                            "body"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "goal.delete"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "baseVersion": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId",
+                            "baseVersion"
+                          ]
                         }
                       ]
                     },
@@ -7602,6 +8239,95 @@
                               "updatedAt"
                             ]
                           },
+                          "serverGoal": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "nutrientKey": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "unit": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 10
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "at_least",
+                                  "at_most",
+                                  "between"
+                                ]
+                              },
+                              "min": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000
+                              },
+                              "max": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000
+                              },
+                              "period": {
+                                "type": "string",
+                                "enum": [
+                                  "day",
+                                  "week",
+                                  "month"
+                                ]
+                              },
+                              "startDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "endDate": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "version": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "nutrientKey",
+                              "unit",
+                              "kind",
+                              "min",
+                              "max",
+                              "period",
+                              "startDate",
+                              "endDate",
+                              "id",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
+                            ]
+                          },
                           "error": {
                             "type": "object",
                             "properties": {
@@ -7784,7 +8510,7 @@
         "tags": [
           "sync"
         ],
-        "summary": "Pull changes to recipes, planned meals and eaten logs after a cursor, including deletion tombstones",
+        "summary": "Pull changes to recipes, planned meals, eaten logs and goals after a cursor, including deletion tombstones",
         "parameters": [
           {
             "schema": {
@@ -7826,7 +8552,8 @@
                             "enum": [
                               "recipe",
                               "planned_meal",
-                              "meal_log"
+                              "meal_log",
+                              "goal"
                             ]
                           },
                           "entityId": {
@@ -8577,6 +9304,95 @@
                               "createdAt",
                               "nutrition",
                               "eaten"
+                            ]
+                          },
+                          "goal": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "nutrientKey": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "unit": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 10
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "at_least",
+                                  "at_most",
+                                  "between"
+                                ]
+                              },
+                              "min": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000
+                              },
+                              "max": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000
+                              },
+                              "period": {
+                                "type": "string",
+                                "enum": [
+                                  "day",
+                                  "week",
+                                  "month"
+                                ]
+                              },
+                              "startDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "endDate": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "version": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "nutrientKey",
+                              "unit",
+                              "kind",
+                              "min",
+                              "max",
+                              "period",
+                              "startDate",
+                              "endDate",
+                              "id",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
                             ]
                           }
                         },
@@ -12236,7 +13052,7 @@
           "account"
         ],
         "summary": "Download all my data as JSON",
-        "description": "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals, share links and issue reports. Rate limited to 10 per hour.",
+        "description": "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals, goals, share links and issue reports. Rate limited to 10 per hour.",
         "responses": {
           "200": {
             "description": "Export (betterplate.export/1)",

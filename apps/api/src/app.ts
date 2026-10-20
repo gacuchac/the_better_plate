@@ -21,6 +21,7 @@ import { syncRoutes } from "./modules/sync.ts";
 import { aiRoutes, MAX_TURN_BYTES } from "./modules/ai/routes.ts";
 import { imageRoutes } from "./modules/images.ts";
 import { connectorRoutes } from "./modules/connector.ts";
+import { goalRoutes } from "./modules/goals.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -98,6 +99,7 @@ export function createApp() {
   app.route("/", recipeRoutes);
   app.route("/", feedbackRoutes);
   app.route("/", mealRoutes);
+  app.route("/", goalRoutes);
   app.route("/", shareRoutes);
   app.route("/", syncRoutes);
   app.route("/", aiRoutes);

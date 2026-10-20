@@ -85,6 +85,18 @@ test("core screens have no automatically detectable WCAG 2.2 AA violations", asy
 
   await page.goto("/#/you");
   await audit(page, "you");
+  await page.getByTestId("period-totals").getByRole("tab", { name: "Dates" }).click();
+  await audit(page, "you-totals-dates");
+  await page.goto("/#/goals");
+  await page.getByRole("button", { name: "Add a goal" }).click();
+  await page.getByRole("dialog", { name: "New goal" }).getByLabel("Goal", { exact: true }).selectOption("between");
+  await audit(page, "goal-sheet");
+  await page.getByRole("dialog", { name: "New goal" }).getByLabel("From").fill("10");
+  await page.getByRole("dialog", { name: "New goal" }).getByLabel("To").fill("20");
+  await page.getByRole("button", { name: "Save goal" }).click();
+  await expect(page.getByTestId("goal-card")).toBeVisible();
+  await audit(page, "goals");
+  await page.goto("/#/you");
 
   await page.getByRole("button", { name: "Report an issue" }).click();
   await audit(page, "report-sheet");

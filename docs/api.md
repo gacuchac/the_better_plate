@@ -32,6 +32,8 @@ curl -s -b jar $API/v1/me
 | POST | `/v1/recipes/calculate` | yes | Nutrition preview without saving |
 | POST | `/v1/sync/batch` | yes | Protocol 1: ≤100 ops, per-op `applied` / `conflict` / `rejected` / `retry`, idempotent by `opId` |
 | GET | `/v1/sync/changes?cursor=` | yes | Changes after cursor in commit order, with tombstones |
+| GET | `/v1/goals` | yes | My consumption goals (written with sync ops `goal.put` / `goal.delete`) |
+| GET | `/v1/nutrition/summary?from=&to=` | yes | Estimated totals and per-logged-day averages of eaten meals over 1–366 days; plans never count |
 | GET/DELETE | `/v1/me` | yes | Account; delete account and all data |
 | * | `/v1/auth/*` | — | Better Auth (email one-time code, sessions, sign-out) |
 | * | `/v1/chef/*` | — | Always `404 feature_disabled` while the chef flag is off |

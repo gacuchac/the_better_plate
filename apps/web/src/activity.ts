@@ -43,7 +43,7 @@ const ROUTE_NAMES: [RegExp, string][] = [
   [/^\/cook\//, "Started cook mode"],
   [/^\/explore$/, "Opened Explore"],
   [/^\/you$/, "Opened You"],
-  [/^\/targets$/, "Opened daily targets"],
+  [/^\/(goals|targets)$/, "Opened goals"],
 ];
 
 export function trackRoute(route: string) {

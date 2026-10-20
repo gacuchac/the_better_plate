@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { FoodRecord } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError, type CatalogBundle, type Me } from "./api.ts";
-import { clearTargets } from "./targets.ts";
+import { clearTargets, migrateTargets } from "./targets.ts";
 import { endSession } from "./agent.ts";
-import { deleteUserDb, isQuotaError, openUserDb, readCatalog, STORAGE_FULL_EVENT, requestPersistentStorage, writeCatalog, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
+import { deleteUserDb, isQuotaError, openUserDb, readCatalog, STORAGE_FULL_EVENT, requestPersistentStorage, writeCatalog, type LocalGoal, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
 import { SyncEngine } from "./sync.ts";
 
 const ACCOUNT_KEY = "bp.account";
@@ -36,6 +36,7 @@ interface AppState {
   recipes: LocalRecipe[];
   plans: LocalPlan[];
   logs: LocalLog[];
+  goals: LocalGoal[];
   online: boolean;
   setAccount: (me: Me) => void;
   signOut: (opts?: { discardUnsynced?: boolean }) => Promise<void>;
@@ -105,6 +106,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [recipes, setRecipes] = useState<LocalRecipe[]>([]);
   const [plans, setPlans] = useState<LocalPlan[]>([]);
   const [logs, setLogs] = useState<LocalLog[]>([]);
+  const [goals, setGoals] = useState<LocalGoal[]>([]);
   const online = useOnline();
   const [storageNotice, setStorageNotice] = useState<StorageNotice>(null);
 
@@ -153,6 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRecipes([]);
       setPlans([]);
       setLogs([]);
+      setGoals([]);
       return;
     }
     let disposed = false;
@@ -161,11 +164,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (disposed) return db.close();
       const e = new SyncEngine(db);
       const refresh = () =>
-        void Promise.all([e.listRecipes(), e.listPlans(), e.listLogs()]).then(([r, p, l]) => {
+        void Promise.all([e.listRecipes(), e.listPlans(), e.listLogs(), e.listGoals()]).then(([r, p, l, g]) => {
           if (disposed) return;
           setRecipes(r);
           setPlans(p);
           setLogs(l);
+          setGoals(g);
         });
       const unsub = e.subscribe(refresh);
       // With Claude or ChatGPT connected, their changes show up within seconds while the app is
@@ -199,7 +203,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       setEngine(e);
       refresh();
-      void e.syncNow();
+      // Daily targets from before goals were synced move into goals once, then leave the device.
+      void migrateTargets(account.id, e).finally(() => void e.syncNow());
     });
     return () => {
       disposed = true;
@@ -240,8 +245,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [account?.id]);
 
   const value = useMemo<AppState>(
-    () => ({ account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes, storageNotice, dismissStorageNotice: () => setStorageNotice(null) }),
-    [account, accountChecked, engine, catalog, recipes, plans, logs, online, setAccount, signOut, refreshRecipes, storageNotice],
+    () => ({ account, accountChecked, engine, catalog, recipes, plans, logs, goals, online, setAccount, signOut, refreshRecipes, storageNotice, dismissStorageNotice: () => setStorageNotice(null) }),
+    [account, accountChecked, engine, catalog, recipes, plans, logs, goals, online, setAccount, signOut, refreshRecipes, storageNotice],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

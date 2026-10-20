@@ -1,8 +1,8 @@
-import type { MealLog, MealLogBody, PlannedMeal, PlannedMealBody, Recipe, RecipeBody, SyncOperation, SyncResult } from "@betterplate/contracts";
+import type { Goal, GoalBody, MealLog, MealLogBody, PlannedMeal, PlannedMealBody, Recipe, RecipeBody, SyncOperation, SyncResult } from "@betterplate/contracts";
 import { MAX_SYNC_OPS } from "@betterplate/contracts";
 import { track } from "./activity.ts";
 import { ApiRequestError, NetworkError, api } from "./api.ts";
-import type { LocalLog, LocalPlan, LocalRecipe, OutboxOp, UserDatabase } from "./localdb.ts";
+import type { LocalGoal, LocalLog, LocalPlan, LocalRecipe, OutboxOp, UserDatabase } from "./localdb.ts";
 
 /**
  * Status words shown to people (PRODUCT.md §6): never claim "Synced" before the server
@@ -205,6 +205,72 @@ export class SyncEngine {
     this.schedule();
   }
 
+  // ---------- goals (versioned like plans) ----------
+
+  async listGoals(): Promise<LocalGoal[]> {
+    return (await this.db.getAll("goals")).filter((g) => !g.deleted).sort((a, b) => a.body.startDate.localeCompare(b.body.startDate) || a.id.localeCompare(b.id));
+  }
+
+  async saveGoal(id: string, body: GoalBody): Promise<void> {
+    const tx = this.db.transaction(["goals", "outbox"], "readwrite");
+    const existing = await tx.objectStore("goals").get(id);
+    for (const op of await tx.objectStore("outbox").index("byEntity").getAll(id)) {
+      if (!this.inFlight.has(op.opId)) await tx.objectStore("outbox").delete(op.opId);
+    }
+    const base = existing?.serverVersion ?? null;
+    await tx.objectStore("outbox").put(this.op(id, "goal.put", base, body));
+    await tx.objectStore("goals").put({
+      id,
+      body,
+      serverVersion: base,
+      state: existing?.state === "conflict" ? "conflict" : "pending",
+      conflictServer: existing?.state === "conflict" ? existing.conflictServer : undefined,
+      updatedAt: now(),
+    });
+    await tx.done;
+    track("Saved a goal");
+    this.changed();
+  }
+
+  async deleteGoal(id: string): Promise<void> {
+    const tx = this.db.transaction(["goals", "outbox"], "readwrite");
+    const existing = await tx.objectStore("goals").get(id);
+    for (const op of await tx.objectStore("outbox").index("byEntity").getAll(id)) {
+      if (!this.inFlight.has(op.opId)) await tx.objectStore("outbox").delete(op.opId);
+    }
+    if (!existing || existing.serverVersion === null) await tx.objectStore("goals").delete(id);
+    else {
+      await tx.objectStore("outbox").put(this.op(id, "goal.delete", existing.serverVersion));
+      await tx.objectStore("goals").put({ ...existing, deleted: true, state: "pending", updatedAt: now() });
+    }
+    await tx.done;
+    track("Removed a goal");
+    this.changed();
+  }
+
+  async resolveGoalConflict(id: string, choice: "mine" | "cloud"): Promise<void> {
+    const local = await this.db.get("goals", id);
+    if (!local || local.state !== "conflict") return;
+    const server = local.conflictServer ?? null;
+    if (choice === "mine") {
+      if (server) {
+        await this.db.put("goals", { ...local, serverVersion: server.version, state: "pending", conflictServer: undefined });
+        await this.saveGoal(id, local.body);
+      } else {
+        await this.db.delete("goals", id);
+        await this.saveGoal(uuid(), local.body);
+      }
+      return;
+    }
+    const tx = this.db.transaction(["goals", "outbox"], "readwrite");
+    for (const op of await tx.objectStore("outbox").index("byEntity").getAll(id)) await tx.objectStore("outbox").delete(op.opId);
+    if (server) await tx.objectStore("goals").put(goalFromServer(server));
+    else await tx.objectStore("goals").delete(id);
+    await tx.done;
+    this.emit();
+    this.schedule();
+  }
+
   private changed() {
     this.setStatus("saved-local");
     this.schedule();
@@ -300,7 +366,8 @@ export class SyncEngine {
       const attention =
         (await this.db.getAll("recipes")).some((r) => needs(r.state)) ||
         (await this.db.getAll("plans")).some((p) => needs(p.state)) ||
-        (await this.db.getAll("logs")).some((l) => needs(l.state));
+        (await this.db.getAll("logs")).some((l) => needs(l.state)) ||
+        (await this.db.getAll("goals")).some((g) => needs(g.state));
       this.lastSyncedAt = now();
       this.setStatus(attention ? "attention" : pending ? "saved-local" : "synced");
     } catch (err) {
@@ -336,7 +403,7 @@ export class SyncEngine {
   }
 
   private async applyResult(result: SyncResult) {
-    const tx = this.db.transaction(["recipes", "plans", "logs", "outbox"], "readwrite");
+    const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "outbox"], "readwrite");
     const outbox = tx.objectStore("outbox");
     const sent = await outbox.get(result.opId);
     await outbox.delete(result.opId);
@@ -358,9 +425,9 @@ export class SyncEngine {
       return;
     }
 
-    // Recipes and plans share versioned semantics.
-    const store = kind === "plan" ? tx.objectStore("plans") : tx.objectStore("recipes");
-    const local = (await store.get(result.entityId)) as LocalRecipe | LocalPlan | undefined;
+    // Recipes, plans and goals share versioned semantics.
+    const store = kind === "plan" ? tx.objectStore("plans") : kind === "goal" ? tx.objectStore("goals") : tx.objectStore("recipes");
+    const local = (await store.get(result.entityId)) as LocalRecipe | LocalPlan | LocalGoal | undefined;
     if (result.status === "applied") {
       // Later local edits were made on top of this content: rebase them on the new version.
       for (const op of later) await outbox.put({ ...op, baseVersion: result.version });
@@ -370,7 +437,7 @@ export class SyncEngine {
       }
     } else if (result.status === "conflict") {
       for (const op of later) await outbox.delete(op.opId);
-      const server = kind === "plan" ? (result.serverPlannedMeal ?? null) : (result.server ?? null);
+      const server = kind === "plan" ? (result.serverPlannedMeal ?? null) : kind === "goal" ? (result.serverGoal ?? null) : (result.server ?? null);
       if (local) await store.put({ ...local, deleted: false, state: "conflict", conflictServer: server } as never);
     } else if (result.status === "rejected") {
       for (const op of later) await outbox.delete(op.opId);
@@ -384,7 +451,7 @@ export class SyncEngine {
     let cursor = ((await this.db.get("meta", "cursor")) as string | undefined) ?? "0";
     for (let guard = 0; guard < 100; guard++) {
       const page = await this.client.changes(cursor);
-      const tx = this.db.transaction(["recipes", "plans", "logs", "meta"], "readwrite");
+      const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "meta"], "readwrite");
       if (page.changes.length) changed = true;
       for (const change of page.changes) {
         if (change.entity === "recipe") {
@@ -398,6 +465,11 @@ export class SyncEngine {
           if (local && local.state !== "synced") continue;
           if (change.deleted || !change.plannedMeal) await tx.objectStore("plans").delete(change.entityId);
           else await tx.objectStore("plans").put(planFromServer(change.plannedMeal));
+        } else if (change.entity === "goal") {
+          const local = await tx.objectStore("goals").get(change.entityId);
+          if (local && local.state !== "synced") continue;
+          if (change.deleted || !change.goal) await tx.objectStore("goals").delete(change.entityId);
+          else await tx.objectStore("goals").put(goalFromServer(change.goal));
         } else {
           const local = await tx.objectStore("logs").get(change.entityId);
           if (local && local.state !== "synced") continue;
@@ -418,7 +490,8 @@ export class SyncEngine {
     const recipes = (await this.db.getAll("recipes")).filter((r) => r.state !== "synced");
     const plannedMeals = (await this.db.getAll("plans")).filter((p) => p.state !== "synced");
     const eatenMeals = (await this.db.getAll("logs")).filter((l) => l.state !== "synced");
-    return { exportedAt: now(), format: "betterplate.unsynced/2", recipes, plannedMeals, eatenMeals };
+    const goals = (await this.db.getAll("goals")).filter((g) => g.state !== "synced");
+    return { exportedAt: now(), format: "betterplate.unsynced/3", recipes, plannedMeals, eatenMeals, goals };
   }
 }
 
@@ -437,6 +510,11 @@ export function planFromServer(p: PlannedMeal): LocalPlan {
   return { id, body, serverVersion: version, state: "synced", updatedAt };
 }
 
+export function goalFromServer(g: Goal): LocalGoal {
+  const { id, version, createdAt: _c, updatedAt, ...body } = g;
+  return { id, body, serverVersion: version, state: "synced", updatedAt };
+}
+
 export function logFromServer(l: MealLog): LocalLog {
   const { id, createdAt, nutrition, eaten: _e, ...body } = l;
   return { id, body, nutrition, state: "synced", createdAt };
@@ -449,8 +527,11 @@ function toWire(o: OutboxOp): SyncOperation {
       return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion, body: o.body as RecipeBody };
     case "plan.put":
       return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion, body: o.body as PlannedMealBody };
+    case "goal.put":
+      return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion, body: o.body as GoalBody };
     case "recipe.delete":
     case "plan.delete":
+    case "goal.delete":
       return { opId: o.opId, type: o.type, entityId: o.entityId, baseVersion: o.baseVersion };
     case "log.create":
       return { opId: o.opId, type: o.type, entityId: o.entityId, body: o.body as MealLogBody };

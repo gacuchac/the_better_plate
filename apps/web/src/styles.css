@@ -252,7 +252,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .segmented button, .segmented [role="tab"] {
   border: 0; background: none; padding: 6px 14px; border-radius: 999px; font-size: 0.875rem; font-weight: 550; min-height: 36px; cursor: pointer; color: var(--ink-2);
 }
-.segmented button[aria-pressed="true"], .segmented [aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: 0 1px 2px rgba(23, 33, 30, 0.08); }
+.segmented button[aria-pressed="true"], .segmented [aria-selected="true"], .segmented [aria-checked="true"] { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: 0 1px 2px rgba(23, 33, 30, 0.08); }
 .nutrient-list { list-style: none; padding: 0; margin: 0; }
 .nutrient-row {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; width: 100%; gap: 4px 12px; padding: 10px 0; min-height: 44px;
@@ -534,3 +534,14 @@ body.companion-open .report-btn { display: none; }
 .photo-grid .photo-title { font-size: 0.8125rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .photo-grid small { color: var(--ink-3); font-size: 0.75rem; }
 .photo-upload, .photo-generate { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+
+/* Goals and period totals */
+.goal-title { margin: 0; }
+.goal-now { margin: 4px 0; }
+.date-range { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+.date-range > span { display: flex; flex-direction: column; min-width: 9rem; flex: 1; }
+.totals-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+.totals-table th, .totals-table td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
+.totals-table th[scope="row"], .totals-table thead th:first-child { text-align: left; font-weight: 500; }
+.totals-table thead th { font-size: 0.8125rem; color: var(--ink-3); font-weight: 600; }
+.totals-table tr:last-child th, .totals-table tr:last-child td { border-bottom: 0; }

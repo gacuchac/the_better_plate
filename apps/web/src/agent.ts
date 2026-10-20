@@ -1,12 +1,13 @@
 import { AI_TOOLS, RecipeBodySchema, type AiTurnProvider, type AiToolCall, type AiToolInput, type AiToolName, type AiTurnRequest, type RecipeBody } from "@betterplate/contracts";
-import { calculateRecipe, type FoodRecord, type NutrientDefinition } from "@betterplate/nutrition";
+import { calculateRecipe, dayCount, goalProblem, goalProgress, summarizePeriod, type FoodRecord, type NutrientDefinition } from "@betterplate/nutrition";
+import type { GoalBody } from "@betterplate/contracts";
 import { api, ApiRequestError, NetworkError } from "./api.ts";
 import type { RecipeImage } from "@betterplate/contracts";
 import { track } from "./activity.ts";
 import { getLang, nutrientName, t } from "./i18n.ts";
 import { eatenAtFor, localDate, summarizeDay } from "./meals.ts";
 import type { SyncEngine } from "./sync.ts";
-import { getTargets, saveTargets } from "./targets.ts";
+import { goalSentence, intakeByDay } from "./goals.ts";
 import { searchFoods } from "./ui/FoodPicker.tsx";
 
 /**
@@ -195,19 +196,61 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
     };
   },
 
-  async set_targets({ targets }, env) {
-    const previous = getTargets(env.accountId);
-    const merged = new Map(previous.map((p) => [p.key, p]));
-    for (const target of targets) {
-      const def = env.nutrients.find((d) => d.key === target.key);
-      if (!def) throw new Error(`Unknown nutrient key ${target.key}. Keys: ${env.nutrients.map((d) => d.key).join(", ")}`);
-      merged.set(def.key, { key: def.key, unit: def.unit, amount: target.amount });
-    }
-    saveTargets(env.accountId, [...merged.values()]);
+  async get_summary({ from, to }, env) {
+    if (from > to) throw new Error("from must be on or before to");
+    if (dayCount(from, to) > 366) throw new Error("At most 366 days");
+    const s = summarizePeriod(await eatenIntake(env), from, to);
     return {
-      output: { saved: [...merged.values()] },
-      detail: targets.map((x) => nutrientName(x.key, x.key)).join(", "),
-      undo: async () => saveTargets(env.accountId, previous),
+      output: {
+        ...s,
+        nutrients: s.nutrients.map((n) => ({ ...n, total: round(n.total), averagePerLoggedDay: round(n.averagePerLoggedDay) })),
+        note: "Estimates from meals marked as eaten only; plans are not included. averagePerLoggedDay divides by days with meals logged. partial means some meals don't report the nutrient (the total is a lower bound); unknown means none do, not zero.",
+      },
+      detail: `${from} – ${to}`,
+    };
+  },
+
+  async list_goals({ today }, env) {
+    const intake = await eatenIntake(env);
+    const asOf = today ?? localDate();
+    const goals = (await env.engine.listGoals()).filter((g) => !g.deleted);
+    return {
+      output: {
+        goals: goals.map((g) => {
+          const p = goalProgress(g.body, intake, asOf);
+          return { goalId: g.id, ...g.body, state: p.state, current: { ...p.current, amount: round(p.current.amount) }, recentPeriodsMet: p.pastMet, recentPeriods: p.past.length };
+        }),
+        note: "Goals hold the person's own numbers. Report progress neutrally; never suggest, compute or judge amounts.",
+      },
+    };
+  },
+
+  async set_goal({ goalId, nutrientKey, kind, min, max, period, startDate, endDate }, env) {
+    const def = env.nutrients.find((d) => d.key === nutrientKey);
+    if (!def) throw new Error(`Unknown nutrient key ${nutrientKey}. Keys: ${env.nutrients.map((d) => d.key).join(", ")}`);
+    const goals = await env.engine.listGoals();
+    const previous = goalId ? goals.find((g) => g.id === goalId && !g.deleted) : undefined;
+    if (goalId && !previous) throw new Error(`No goal ${goalId}; use list_goals`);
+    const body: GoalBody = {
+      nutrientKey: def.key,
+      unit: def.unit,
+      kind,
+      min: kind === "at_most" ? null : (min ?? null),
+      max: kind === "at_least" ? null : (max ?? null),
+      period,
+      startDate: startDate ?? previous?.body.startDate ?? localDate(),
+      endDate: endDate === undefined ? (previous?.body.endDate ?? null) : endDate,
+    };
+    const problem = goalProblem(body);
+    if (problem) throw new Error(problem);
+    const id = goalId ?? uid();
+    await env.engine.saveGoal(id, body);
+    track("Companion saved a goal");
+    const detail = `${nutrientName(def.key, def.name)}: ${goalSentence(body)}`;
+    return {
+      output: { goalId: id, saved: true },
+      detail,
+      undo: async () => (previous ? env.engine.saveGoal(id, previous.body) : env.engine.deleteGoal(id)),
     };
   },
 
@@ -236,6 +279,14 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
     return { output: { deleted: true }, detail: r.body.title };
   },
 
+  async delete_goal({ goalId }, env) {
+    const goal = (await env.engine.listGoals()).find((g) => g.id === goalId && !g.deleted);
+    if (!goal) throw new Error(`No goal ${goalId}; use list_goals`);
+    await env.engine.deleteGoal(goalId);
+    track("Companion deleted a goal");
+    return { output: { deleted: true }, detail: nutrientName(goal.body.nutrientKey, goal.body.nutrientKey) };
+  },
+
   async remove_eaten_meal({ logId }, env) {
     const log = (await env.engine.listLogs()).find((l) => l.id === logId && !l.deleted);
     if (!log) throw new Error(`No eaten meal ${logId}`);
@@ -243,6 +294,11 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
     return { output: { removed: true }, detail: log.body.recipe.title };
   },
 };
+
+async function eatenIntake(env: ToolEnv) {
+  const logs = (await env.engine.listLogs()).filter((l) => !l.deleted);
+  return intakeByDay(logs, env.foods, env.nutrients);
+}
 
 async function setImage(env: ToolEnv, body: RecipeBody, recipeId: string, image: RecipeImage): Promise<ToolOutcome> {
   await env.engine.saveRecipe(recipeId, { ...body, image });
@@ -277,8 +333,14 @@ function stepLabel(name: string, input: Record<string, unknown>): string {
       return t("agent.step.log");
     case "get_day":
       return t("agent.step.day");
-    case "set_targets":
-      return t("agent.step.targets");
+    case "get_summary":
+      return t("agent.step.summary");
+    case "list_goals":
+      return t("agent.step.listGoals");
+    case "set_goal":
+      return t("agent.step.setGoal");
+    case "delete_goal":
+      return t("agent.step.deleteGoal");
     case "delete_recipe":
       return t("agent.step.delete");
     case "remove_eaten_meal":
@@ -296,6 +358,10 @@ function stepLabel(name: string, input: Record<string, unknown>): string {
 
 async function confirmDetail(name: string, input: Record<string, string>, env: ToolEnv): Promise<string | undefined> {
   if (name === "delete_recipe") return (await env.engine.getRecipe(input.recipeId!))?.body.title;
+  if (name === "delete_goal") {
+    const goal = (await env.engine.listGoals()).find((g) => g.id === input.goalId);
+    return goal ? `${nutrientName(goal.body.nutrientKey, goal.body.nutrientKey)}: ${goalSentence(goal.body)}` : undefined;
+  }
   if (name === "remove_eaten_meal") {
     const log = (await env.engine.listLogs()).find((l) => l.id === input.logId);
     return log ? `${log.body.recipe.title}, ${log.body.localDate}` : undefined;
