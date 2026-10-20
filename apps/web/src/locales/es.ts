@@ -468,6 +468,8 @@ export const es: Messages = {
   "photo.upload": "Subir foto",
   "photo.uploading": "Subiendo…",
   "photo.yours": "Tu foto",
+  "update.ready": "Hay una nueva versión de The Better Plate lista.",
+  "update.apply": "Actualizar ahora",
   "photo.needsOnline": "Buscar o generar fotos necesita conexión.",
   "photo.offline": "No se pudo conectar con el servidor. Revisa tu conexión.",
   "photo.aiLabel": "Generada por IA",

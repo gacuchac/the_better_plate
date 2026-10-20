@@ -223,6 +223,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 20px; }
 .banner { border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
 .banner-warn { background: var(--amber-soft); color: #4d3500; }
+.banner-info { background: var(--sage-soft); color: var(--ink); }
 .banner p { margin: 0 0 10px; }
 .banner-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 

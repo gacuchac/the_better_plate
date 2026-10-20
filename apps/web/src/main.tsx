@@ -1,9 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { registerSW } from "virtual:pwa-register";
 import { trackError } from "./activity.ts";
 import { isQuotaError, STORAGE_FULL_EVENT } from "./localdb.ts";
 import { AppProvider } from "./store.tsx";
+import { registerAppUpdates } from "./update.ts";
 import { App } from "./ui/App.tsx";
 import "@fontsource-variable/plus-jakarta-sans/wght.css";
 import "./styles.css";
@@ -15,8 +15,8 @@ addEventListener("unhandledrejection", (e) => {
   if (isQuotaError(e.reason)) dispatchEvent(new Event(STORAGE_FULL_EVENT));
 });
 
-// Cache the app shell so the kitchen opens with no connection.
-if ("serviceWorker" in navigator && import.meta.env.PROD) registerSW({ immediate: true });
+// Cache the app shell so the kitchen opens with no connection; offer new versions as they arrive.
+if ("serviceWorker" in navigator && import.meta.env.PROD) registerAppUpdates();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
