@@ -480,6 +480,8 @@ export const en = {
   "photo.upload": "Upload photo",
   "photo.uploading": "Uploading…",
   "photo.yours": "Your photo",
+  "update.ready": "A new version of The Better Plate is ready.",
+  "update.apply": "Update now",
   "photo.needsOnline": "Finding or generating photos needs a connection.",
   "photo.offline": "Couldn't reach the server. Check your connection.",
   "photo.aiLabel": "AI-generated",

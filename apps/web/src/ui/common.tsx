@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { useApp, useSyncStatus } from "../store.tsx";
 import { Icon } from "./icons.tsx";
 import { useT } from "../i18n.ts";
+import { applyUpdate, useUpdateReady } from "../update.ts";
 
 // ---------- tiny hash router (deep-linkable, works offline from the cached shell) ----------
 
@@ -125,6 +126,23 @@ export function downloadJson(data: unknown, name: string) {
   a.download = `${name}-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** A new version of the app is ready; it switches over only when the person taps Update. */
+export function UpdateBanner() {
+  const ready = useUpdateReady();
+  const t = useT();
+  if (!ready) return null;
+  return (
+    <div className="banner banner-info" role="status" data-testid="update-banner">
+      <p>{t("update.ready")}</p>
+      <div className="banner-actions">
+        <button type="button" className="btn-secondary" onClick={applyUpdate}>
+          {t("update.apply")}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 /** Says plainly when the browser cleared this device's copy or ran out of space. */
