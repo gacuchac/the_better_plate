@@ -5,12 +5,16 @@ import path from "node:path";
 export const API = "http://localhost:4100";
 const OUT = process.env.E2E_OUT ?? path.resolve("artifacts/qa/adhoc/local");
 
-let counter = 0;
+/** Screenshot numbers per test, so parallel workers never write the same file. */
+const counters = new Map<string, number>();
 /** Ordered, named evidence screenshot plus a manifest line describing it. */
 export async function shot(page: Page, info: TestInfo, name: string, note = "") {
-  const dir = path.join(OUT, "screenshots", info.project.name);
+  const test = info.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+  const dir = path.join(OUT, "screenshots", info.project.name, test);
   mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, `${String(++counter).padStart(2, "0")}-${name}.png`);
+  const n = (counters.get(info.testId) ?? 0) + 1;
+  counters.set(info.testId, n);
+  const file = path.join(dir, `${String(n).padStart(2, "0")}-${name}.png`);
   await page.screenshot({ path: file, fullPage: true });
   appendFileSync(
     path.join(OUT, "screenshots", "manifest.jsonl"),

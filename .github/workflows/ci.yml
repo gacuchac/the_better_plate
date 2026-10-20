@@ -1,12 +1,12 @@
 name: CI
 
-# Lint/typecheck, unit + API tests against PostgreSQL, and the Playwright local pass,
-# on every PR into dev or main and on pushes to work branches.
+# Lint/typecheck, unit + API tests against PostgreSQL, and the Playwright local pass, once per
+# push to a PR into dev or main (work branches always go through a PR). Run it by hand for a
+# branch without a PR.
 on:
   pull_request:
     branches: [dev, main]
-  push:
-    branches-ignore: [main, dev]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -59,11 +59,25 @@ jobs:
           done
       - name: Typecheck, catalog integrity, unit and API tests
         run: bash scripts/test.sh
+      - name: Playwright version
+        id: pw
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright Chromium
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Playwright Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
+      - name: Install Chromium system libraries
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
       - name: Playwright journeys (desktop + mobile)
         run: bash scripts/e2e.sh
         env:
+          E2E_WORKERS: "4"
           E2E_RUN_ID: ci-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Upload QA evidence (synthetic data only)
         if: always()

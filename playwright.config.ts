@@ -33,8 +33,9 @@ const apiEnv = {
 export default defineConfig({
   testDir: "e2e",
   outputDir: path.join(OUT, "test-results"),
-  fullyParallel: false,
-  workers: 1,
+  // Every test signs in with its own new account, so tests run side by side.
+  fullyParallel: true,
+  workers: Number(process.env.E2E_WORKERS ?? 4),
   retries: 0,
   timeout: 60_000,
   expect: { timeout: 10_000 },
