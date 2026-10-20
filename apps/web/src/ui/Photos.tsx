@@ -29,7 +29,9 @@ export function RecipePhoto({ image, compact = false }: { image: RecipeImage; co
     <figure className={`recipe-photo${compact ? " compact" : ""}`} data-testid="recipe-photo">
       <img src={imageUrl(image.id)} alt={image.alt} loading="lazy" crossOrigin="use-credentials" />
       <figcaption className="photo-credit" data-testid="photo-credit">
-        {image.kind === "generated" ? (
+        {image.kind === "upload" ? (
+          <span>{t("photo.yours")}</span>
+        ) : image.kind === "generated" ? (
           <>
             <span className="tag tag-amber">{t("photo.aiLabel")}</span> {t("photo.aiNote", { model: image.generator?.model ?? "" })}
           </>
@@ -69,6 +71,8 @@ export function PhotoSheet({ initial, title, onPick, onClose }: { initial: strin
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState(initial);
+  const [file, setFile] = useState<File | null>(null);
+  const [rights, setRights] = useState(false);
 
   const fail = (err: unknown) => setError(err instanceof ApiRequestError ? err.message : t("photo.offline"));
 
@@ -103,6 +107,19 @@ export function PhotoSheet({ initial, title, onPick, onClose }: { initial: strin
     try {
       onPick(await api.generateImage(prompt.trim(), title || prompt.trim()));
       track("Generated a recipe image");
+    } catch (err) {
+      fail(err);
+      setBusy(null);
+    }
+  }
+
+  async function upload() {
+    if (!file || !rights) return;
+    setBusy("upload");
+    setError(null);
+    try {
+      onPick(await api.uploadImage(await fileToBase64(file), title));
+      track("Uploaded a recipe photo");
     } catch (err) {
       fail(err);
       setBusy(null);
@@ -149,6 +166,19 @@ export function PhotoSheet({ initial, title, onPick, onClose }: { initial: strin
               ))}
             </ul>
           )}
+          <section className="photo-upload" data-testid="photo-upload">
+            <h3>{t("photo.uploadTitle")}</h3>
+            <label htmlFor="photo-file">{t("photo.uploadChoose")}</label>
+            <input id="photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/heic" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <label className="check">
+              <input type="checkbox" checked={rights} onChange={(e) => setRights(e.target.checked)} />
+              {t("photo.uploadRights")}
+            </label>
+            <p className="fine">{t("photo.uploadNote")}</p>
+            <button type="button" className="btn-secondary" disabled={busy !== null || !file || !rights} onClick={() => void upload()}>
+              {busy === "upload" ? t("photo.uploading") : t("photo.upload")}
+            </button>
+          </section>
           {canGenerate && (
             <section className="photo-generate">
               <h3>{t("photo.generateTitle")}</h3>
@@ -171,4 +201,27 @@ export function PhotoSheet({ initial, title, onPick, onClose }: { initial: strin
       )}
     </Sheet>
   );
+}
+
+/** Server limit is 9 MB; bigger phone photos are scaled down here first (which also drops their metadata). */
+const UPLOAD_LIMIT = 8_500_000;
+
+async function fileToBase64(file: Blob): Promise<string> {
+  let blob = file;
+  if (file.size > UPLOAD_LIMIT && typeof createImageBitmap === "function") {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode"))), "image/jpeg", 0.9));
+  }
+  const url = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+  return url.slice(url.indexOf(",") + 1);
 }

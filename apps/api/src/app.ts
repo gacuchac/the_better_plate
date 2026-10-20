@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { requestId } from "hono/request-id";
 import { secureHeaders } from "hono/secure-headers";
 import { bodyLimit } from "hono/body-limit";
+import { MAX_UPLOAD_BASE64 } from "@betterplate/contracts";
 import { HTTPException } from "hono/http-exception";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { existsSync } from "node:fs";
@@ -50,7 +51,11 @@ export function createApp() {
   const defaultLimit = bodyLimit({ maxSize: 512 * 1024, onError: (c) => tooLarge(c as never) });
   // The companion sends its conversation back each step, so that one route takes more.
   const turnLimit = bodyLimit({ maxSize: MAX_TURN_BYTES, onError: (c) => tooLarge(c as never) });
-  app.use("*", (c, next) => (c.req.path === "/v1/ai/turn" ? turnLimit(c, next) : defaultLimit(c, next)));
+  // Photo uploads arrive as base64, from the app or from a connected assistant over /mcp.
+  const uploadLimit = bodyLimit({ maxSize: MAX_UPLOAD_BASE64 + 64 * 1024, onError: (c) => tooLarge(c as never) });
+  app.use("*", (c, next) =>
+    c.req.path === "/v1/ai/turn" ? turnLimit(c, next) : c.req.path === "/v1/images/upload" || c.req.path === "/mcp" ? uploadLimit(c, next) : defaultLimit(c, next),
+  );
   app.use("*", async (c, next) => {
     const started = performance.now();
     await next();

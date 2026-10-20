@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { RecipeImageSchema } from "@betterplate/contracts";
 import { pool } from "../src/db/pool.ts";
+import sharp from "sharp";
 import { keywords } from "../src/modules/images.ts";
+import { fetchPublicFile, isPublicAddress } from "../src/lib/public-fetch.ts";
 import { call, type Client, signIn } from "./helpers.ts";
 // @ts-expect-error plain JS test server
 import { startMockOpenverse } from "../../../scripts/mock-openverse.mjs";
@@ -85,9 +87,48 @@ describe("recipe photos", () => {
     expect(RecipeImageSchema.parse(await res.json())).toMatchObject({ kind: "generated", credit: null, generator: { provider: "openai", model: "fake-image" } });
   });
 
+  it("takes the person's own photo only with their rights confirmation, re-encoded without metadata", async () => {
+    const big = await sharp({ create: { width: 3000, height: 2000, channels: 3, background: "#c8b48a" } })
+      .jpeg()
+      .withExif({ IFD0: { Artist: "Alice Example", Copyright: "Alice" } })
+      .toBuffer();
+    const data = big.toString("base64");
+    expect((await alice.request("/v1/images/upload", { method: "POST", json: { data, alt: "My stew" } })).status).toBe(400);
+    expect((await call("/v1/images/upload", { method: "POST", json: { data, rightsConfirmed: true } })).status).toBe(401);
+    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><script>alert(1)</script></svg>').toString("base64");
+    expect((await alice.request("/v1/images/upload", { method: "POST", json: { data: svg, rightsConfirmed: true } })).status).toBe(422);
+    expect((await alice.request("/v1/images/upload", { method: "POST", json: { data: "bm90IGFuIGltYWdl", rightsConfirmed: true } })).status).toBe(422);
+
+    const res = await alice.request("/v1/images/upload", { method: "POST", json: { data: `data:image/jpeg;base64,${data}`, alt: "My stew", rightsConfirmed: true } });
+    expect(res.status).toBe(201);
+    const image = RecipeImageSchema.parse(await res.json());
+    expect(image).toMatchObject({ kind: "upload", alt: "My stew", credit: null, generator: null });
+    const served = await alice.request(`/v1/images/${image.id}`);
+    expect(served.headers.get("content-type")).toBe("image/webp");
+    const meta = await sharp(Buffer.from(await served.arrayBuffer())).metadata();
+    expect(Math.max(meta.width!, meta.height!)).toBe(1600);
+    expect(meta.exif).toBeUndefined();
+    expect((await bob.request(`/v1/images/${image.id}`)).status).toBe(404);
+    const { rows } = await pool.query<{ upload_source: string; rights_confirmed_at: Date }>("select upload_source, rights_confirmed_at from recipe_images where id = $1", [image.id]);
+    expect(rows[0]).toMatchObject({ upload_source: "app" });
+    expect(rows[0]!.rights_confirmed_at).toBeInstanceOf(Date);
+  });
+
+  it("only downloads links to public addresses", async () => {
+    for (const ip of ["127.0.0.1", "10.1.2.3", "172.16.0.1", "192.168.1.1", "169.254.169.254", "100.64.0.1", "0.0.0.0", "::1", "fe80::1", "fd00::1", "::ffff:127.0.0.1"]) {
+      expect(isPublicAddress(ip), ip).toBe(false);
+    }
+    expect(isPublicAddress("8.8.8.8")).toBe(true);
+    expect(isPublicAddress("2606:4700:4700::1111")).toBe(true);
+    for (const url of ["http://example.com/a.jpg", "https://localhost/a.jpg", "https://127.0.0.1/a.jpg", "https://[::1]/a.jpg", "https://169.254.169.254/latest", "https://user:pw@example.com/a.jpg", "https://example.com:8443/a.jpg", "https://intranet/a.jpg", "ftp://example.com/a"]) {
+      await expect(fetchPublicFile(url, { maxBytes: 1000 }), url).rejects.toThrow();
+    }
+  });
+
   it("includes images in the data export and deletes them with the account", async () => {
     const exported = await (await alice.request("/v1/me/export")).json();
-    expect(exported.recipeImages.length).toBeGreaterThanOrEqual(3);
+    expect(exported.recipeImages.length).toBeGreaterThanOrEqual(4);
+    expect(exported.recipeImages.find((i: { kind: string }) => i.kind === "upload")).toMatchObject({ uploadSource: "app", rightsConfirmedAt: expect.any(String) });
     expect(exported.recipeImages[0].image).toMatch(/^data:image\/png;base64,/);
     const { rows } = await pool.query<{ id: string }>("select id from users where email = $1", [alice.email]);
     expect((await alice.request("/v1/me", { method: "DELETE" })).status).toBe(204);

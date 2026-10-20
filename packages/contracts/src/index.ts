@@ -44,7 +44,8 @@ export const PhotoCreditSchema = z.object({
 export const RecipeImageSchema = z.object({
   id: z.uuid(),
   alt: trimmed(200),
-  kind: z.enum(["photo", "generated"]),
+  /** photo: openly licensed (Openverse); generated: AI; upload: the person's own, rights confirmed by them. */
+  kind: z.enum(["photo", "generated", "upload"]),
   credit: PhotoCreditSchema.nullable(),
   generator: z.object({ provider: z.literal("openai"), model: z.string().max(100) }).nullable(),
 });
@@ -71,6 +72,15 @@ export const ImageGenerateSchema = z.object({
   /** What to draw; the app builds it from the recipe, the person can edit it. */
   prompt: trimmed(1000).min(3),
   alt: trimmed(200),
+});
+
+/** Base64 of the original file; the server checks it is an image and re-encodes it. */
+export const MAX_UPLOAD_BASE64 = 12_000_000;
+export const ImageUploadSchema = z.object({
+  data: z.string().min(1).max(MAX_UPLOAD_BASE64),
+  alt: trimmed(200).optional(),
+  /** The person confirms they took the photo or have the right to use it. */
+  rightsConfirmed: z.literal(true),
 });
 
 export const NutrientTotalSchema = z.object({
