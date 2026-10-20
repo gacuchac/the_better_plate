@@ -21,12 +21,13 @@ Saying "the user is responsible" in the terms does not on its own protect the se
 
 Sources: [Proskauer on DMCA agent registration](https://www.proskauer.com/alert/copyright-office-establishes-new-electronic-dmca-agent-registration), [DSA Art. 6](https://presencis.com/regulations/dsa/article-6/), [DSA Art. 16](https://presencis.com/regulations/dsa/article-16/), [Carey on Chile's ISP regime](https://www.carey.cl/news-alert-n2-agosto-2010).
 
+**Operating jurisdiction: United States** (owner decision, 2026-10-20). DMCA §512(c) is the regime to satisfy. The EU and Chile rows matter only if the service targets people there.
+
 ## Owner actions (not done; tracked in OWNER_PREFLIGHT)
 
-1. Decide the operating jurisdiction.
-2. If there will be US users, register a DMCA designated agent. It needs a name, a postal address (a PO box is accepted), a phone number and an email.
-3. Choose the takedown contact email and publish it with the terms.
-4. Have counsel review the draft terms below before public launch.
+1. Register a DMCA designated agent. It needs a name, a postal address (a PO box is accepted), a phone number and an email.
+2. Choose the takedown contact email and publish it with the terms.
+3. Have counsel review the draft terms below before public launch.
 
 ## Takedown runbook (operator)
 
