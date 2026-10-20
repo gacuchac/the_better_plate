@@ -8,6 +8,7 @@ import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
 import { ErrorResponses } from "./common.ts";
 import { LOG_COLUMNS, PLAN_COLUMNS, toLog, toPlan } from "./meals.ts";
 import { toRecipe } from "./recipes.ts";
+import { GOAL_COLUMNS, toGoal } from "./goals.ts";
 import { shareUrl } from "./shares.ts";
 
 const PrivacyStatusSchema = z.object({
@@ -86,7 +87,7 @@ export const EXPORT_FORMAT = "betterplate.export/1" as const;
 /** Everything stored about one account, as data the person can keep or take elsewhere. */
 export async function exportAccount(userId: string) {
   const q = <T extends object>(sql: string) => pool.query<T & Record<string, never>>(sql, [userId]).then((r) => r.rows as T[]);
-  const [users, logins, sessions, recipes, revisions, plans, logs, shares, reports, consents, aiKeys, aiSettings, aiUsage, images, houseUsage, connectedApps] = await Promise.all([
+  const [users, logins, sessions, recipes, revisions, plans, logs, shares, reports, consents, aiKeys, aiSettings, aiUsage, images, houseUsage, connectedApps, goals] = await Promise.all([
     q<{ id: string; email: string; name: string; emailVerified: boolean; createdAt: Date }>(`select id, email, name, "emailVerified", "createdAt" from "users" where id = $1`),
     q<{ providerId: string; createdAt: Date }>(`select "providerId", "createdAt" from "accounts" where "userId" = $1 order by "createdAt"`),
     q<{ createdAt: Date; expiresAt: Date; ipAddress: string | null; userAgent: string | null }>(`select "createdAt", "expiresAt", "ipAddress", "userAgent" from "sessions" where "userId" = $1 order by "createdAt"`),
@@ -118,6 +119,7 @@ export async function exportAccount(userId: string) {
       `select c.name, c."redirectUris" as redirect_uris, k.scopes, k."createdAt" as created_at
          from "oauthConsent" k join "oauthClient" c on c."clientId" = k."clientId" where k."userId" = $1 order by k."createdAt"`,
     ),
+    q<Parameters<typeof toGoal>[0]>(`select ${GOAL_COLUMNS} from goals where user_id = $1 and deleted_at is null order by created_at`),
   ]);
   const user = users[0]!;
   return {
@@ -146,6 +148,7 @@ export async function exportAccount(userId: string) {
     })),
     plannedMeals: plans.map(toPlan),
     mealsEaten: logs.map(toLog),
+    goals: goals.map(toGoal),
     shareLinks: shares.map((s) => ({
       shareId: s.id, url: shareUrl(s.id), recipeId: s.recipe_id, recipeVersion: s.recipe_version, includeMethod: s.include_method,
       createdAt: s.created_at.toISOString(), expiresAt: s.expires_at?.toISOString() ?? null, revokedAt: s.revoked_at?.toISOString() ?? null,
@@ -161,7 +164,7 @@ export async function exportAccount(userId: string) {
 accountRoutes.openapi(
   createRoute({
     method: "get", path: "/v1/me/export", tags: ["account"], summary: "Download all my data as JSON",
-    description: "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals, share links and issue reports. Rate limited to 10 per hour.",
+    description: "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals, goals, share links and issue reports. Rate limited to 10 per hour.",
     responses: { 200: { description: "Export (betterplate.export/1)", content: { "application/json": { schema: z.object({ format: z.literal(EXPORT_FORMAT) }).passthrough() } } }, ...ErrorResponses },
   }),
   async (c) => {

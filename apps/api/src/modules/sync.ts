@@ -12,6 +12,7 @@ import { type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
 import { ErrorResponses } from "./common.ts";
 import { createLog, deleteLog, deletePlan, LOG_COLUMNS, PLAN_COLUMNS, putPlan, toLog, toPlan } from "./meals.ts";
 import { deleteRecipe, putRecipe, toRecipe } from "./recipes.ts";
+import { deleteGoal, GOAL_COLUMNS, putGoal, toGoal } from "./goals.ts";
 
 async function runOperation(client: Parameters<typeof putRecipe>[0], userId: string, op: SyncOperation): Promise<SyncResult> {
   const base = { opId: op.opId, entityId: op.entityId, replayed: false };
@@ -40,6 +41,16 @@ async function runOperation(client: Parameters<typeof putRecipe>[0], userId: str
     case "log.delete": {
       const outcome = op.type === "log.create" ? await createLog(client, userId, op.entityId, op.body) : await deleteLog(client, userId, op.entityId);
       if (outcome.status === "applied") return { ...base, status: "applied", version: null };
+      return { ...base, status: "rejected", version: null, error: { code: outcome.code, message: outcome.message } };
+    }
+    case "goal.put":
+    case "goal.delete": {
+      const outcome =
+        op.type === "goal.put"
+          ? await putGoal(client, userId, op.entityId, op.baseVersion, op.body)
+          : await deleteGoal(client, userId, op.entityId, op.baseVersion);
+      if (outcome.status === "applied") return { ...base, status: "applied", version: outcome.version };
+      if (outcome.status === "conflict") return { ...base, status: "conflict", version: outcome.server?.version ?? null, serverGoal: outcome.server };
       return { ...base, status: "rejected", version: null, error: { code: outcome.code, message: outcome.message } };
     }
   }
@@ -119,7 +130,7 @@ syncRoutes.openapi(
     method: "get",
     path: "/v1/sync/changes",
     tags: ["sync"],
-    summary: "Pull changes to recipes, planned meals and eaten logs after a cursor, including deletion tombstones",
+    summary: "Pull changes to recipes, planned meals, eaten logs and goals after a cursor, including deletion tombstones",
     request: {
       query: z.object({
         cursor: z.string().regex(/^\d{1,19}$/).default("0"),
@@ -134,16 +145,18 @@ syncRoutes.openapi(
   async (c) => {
     const user = requireUser(c);
     const { cursor, limit } = c.req.valid("query");
-    // One global sequence orders every entity; merge the three per-user feeds by it.
-    const [recipes, plans, logs] = await Promise.all([
+    // One global sequence orders every entity; merge the per-user feeds by it.
+    const [recipes, plans, logs, goals] = await Promise.all([
       pool.query("select * from recipes where user_id = $1 and server_seq > $2 order by server_seq limit $3", [user.id, cursor, limit + 1]),
       pool.query(`select ${PLAN_COLUMNS} from planned_meals where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
       pool.query(`select ${LOG_COLUMNS} from consumption_events where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
+      pool.query(`select ${GOAL_COLUMNS} from goals where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
     ]);
     const all: SyncChange[] = [
       ...recipes.rows.map((r) => ({ entity: "recipe" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: r.deleted_at ? null : toRecipe(r) })),
       ...plans.rows.map((r) => ({ entity: "planned_meal" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, plannedMeal: r.deleted_at ? null : toPlan(r) })),
       ...logs.rows.map((r) => ({ entity: "meal_log" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, mealLog: r.deleted_at ? null : toLog(r) })),
+      ...goals.rows.map((r) => ({ entity: "goal" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, goal: r.deleted_at ? null : toGoal(r) })),
     ].sort((a, b) => (BigInt(a.seq) < BigInt(b.seq) ? -1 : 1));
     const page = all.slice(0, limit);
     return c.json(

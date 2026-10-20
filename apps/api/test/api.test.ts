@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getMigrations } from "better-auth/db/migration";
-import { PRIVACY_NOTICE, RecipeSchema, SharedRecipeSchema, ShareSchema, SyncBatchResponseSchema, SyncChangesResponseSchema } from "@betterplate/contracts";
+import { PRIVACY_NOTICE, RecipeSchema, SharedRecipeSchema, ShareSchema, SyncBatchResponseSchema, SyncChangesResponseSchema, MAX_GOALS, NutritionSummarySchema } from "@betterplate/contracts";
 import { authOptions } from "../src/auth.ts";
 import { pool } from "../src/db/pool.ts";
 import { generateOpenApi } from "../src/openapi-cli.ts";
@@ -386,6 +386,102 @@ describe("planned and eaten meals", () => {
   it("bounds the date range", async () => {
     expect((await alice.request("/v1/meals?from=2026-10-01&to=2026-12-01")).status).toBe(400);
     expect((await alice.request("/v1/meals?from=2026-10-20&to=2026-10-19")).status).toBe(400);
+  });
+});
+
+describe("consumption goals and period totals", () => {
+  const batch = async (client: Client, operations: unknown[]) => {
+    const res = await client.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations } });
+    expect(res.status).toBe(200);
+    return SyncBatchResponseSchema.parse(await res.json()).results;
+  };
+  const goalBody = (body: Record<string, unknown> = {}) => ({
+    nutrientKey: "protein", unit: "g", kind: "at_least", min: 120, max: null, period: "day", startDate: "2026-10-01", endDate: null, ...body,
+  });
+  const put = (entityId: string, baseVersion: number | null, body: Record<string, unknown> = {}) => ({ opId: uuid(), type: "goal.put" as const, entityId, baseVersion, body: goalBody(body) });
+  const log = (localDate: string, servings = 1) => ({
+    opId: uuid(), type: "log.create" as const, entityId: uuid(),
+    body: { plannedMealId: null, recipeId: uuid(), recipe: { title: "Rice", servings: 1, ingredients: [ingredient(rice, 200)] }, servings, slot: "lunch", localDate, eatenAt: `${localDate}T12:00:00-03:00` },
+  });
+
+  it("stores goals through sync, versioned, with conflicts and tombstones", async () => {
+    const hal = await signIn();
+    const id = uuid();
+    expect((await batch(hal, [put(id, null)]))[0]).toMatchObject({ status: "applied", version: 1 });
+    expect((await batch(hal, [put(id, 1, { min: 150 })]))[0]).toMatchObject({ status: "applied", version: 2 });
+    const [conflict] = await batch(hal, [put(id, 1, { min: 90 })]);
+    expect(conflict).toMatchObject({ status: "conflict", version: 2 });
+    expect(conflict!.serverGoal).toMatchObject({ min: 150, version: 2 });
+    const { goals } = await (await hal.request("/v1/goals")).json();
+    expect(goals).toEqual([expect.objectContaining({ id, ...goalBody({ min: 150 }), version: 2 })]);
+
+    expect((await batch(hal, [{ opId: uuid(), type: "goal.delete", entityId: id, baseVersion: 2 }]))[0]).toMatchObject({ status: "applied", version: 3 });
+    expect((await (await hal.request("/v1/goals")).json()).goals).toEqual([]);
+    const changes = SyncChangesResponseSchema.parse(await (await hal.request("/v1/sync/changes")).json()).changes;
+    expect(changes.find((c) => c.entityId === id)).toMatchObject({ entity: "goal", deleted: true, goal: null });
+  });
+
+  it("rejects goals with inconsistent numbers, dates, nutrients or units, and caps how many", async () => {
+    const hal = await signIn();
+    const bad = [
+      { kind: "at_least", min: null },
+      { kind: "at_most", min: 10, max: 20 },
+      { kind: "between", min: 30, max: 20 },
+      { endDate: "2026-09-30" },
+      { nutrientKey: "body_weight" },
+      { unit: "mg" },
+    ];
+    const results = await batch(hal, bad.map((b) => put(uuid(), null, b)));
+    expect(results.map((r) => r.status)).toEqual(bad.map(() => "rejected"));
+    expect(results.every((r) => r.error?.code === "invalid_goal")).toBe(true);
+    // Schema-level problems (negative amounts, bad dates, unknown kinds) fail validation outright.
+    const res = await hal.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations: [put(uuid(), null, { min: -5 })] } });
+    expect(res.status).toBe(400);
+
+    await batch(hal, Array.from({ length: MAX_GOALS }, () => put(uuid(), null)));
+    const [over] = await batch(hal, [put(uuid(), null)]);
+    expect(over).toMatchObject({ status: "rejected", error: { code: "goal_limit" } });
+  });
+
+  it("never exposes or touches another person's goals", async () => {
+    const [hal, ivy] = await Promise.all([signIn(), signIn()]);
+    const id = uuid();
+    await batch(hal, [put(id, null)]);
+    expect((await (await ivy.request("/v1/goals")).json()).goals).toEqual([]);
+    const results = await batch(ivy, [put(id, 1, { min: 1 }), { opId: uuid(), type: "goal.delete", entityId: id, baseVersion: 1 }]);
+    expect(results.map((r) => r.status)).toEqual(["rejected", "rejected"]);
+    expect((await (await hal.request("/v1/goals")).json()).goals[0]).toMatchObject({ min: 120, version: 1 });
+    expect((await call("/v1/goals")).status).toBe(401);
+    expect((await call("/v1/nutrition/summary?from=2026-10-01&to=2026-10-07")).status).toBe(401);
+  });
+
+  it("totals only eaten meals over a range, averaging per logged day, and bounds the range", async () => {
+    const hal = await signIn();
+    await batch(hal, [
+      log("2026-10-05"),
+      log("2026-10-07", 2),
+      log("2026-10-09"),
+      { opId: uuid(), type: "plan.put", entityId: uuid(), baseVersion: null, body: { date: "2026-10-06", slot: "dinner", recipeId: uuid(), title: "Plan only", servings: 3 } },
+    ]);
+    const res = await hal.request("/v1/nutrition/summary?from=2026-10-01&to=2026-10-07");
+    expect(res.status).toBe(200);
+    const summary = NutritionSummarySchema.parse(await res.json());
+    expect(summary).toMatchObject({ from: "2026-10-01", to: "2026-10-07", days: 7, daysLogged: 2, incomplete: true });
+    const kcal100 = (await food(rice)).nutrientsPer100g.energy_kcal!;
+    const energy = summary.nutrients.find((n) => n.key === "energy_kcal")!;
+    expect(energy.total).toBeCloseTo(kcal100 * 2 * 3, 6);
+    expect(energy.averagePerLoggedDay).toBeCloseTo((kcal100 * 2 * 3) / 2, 6);
+    expect(energy.status).toBe("known");
+
+    expect((await hal.request("/v1/nutrition/summary?from=2026-10-07&to=2026-10-01")).status).toBe(400);
+    expect((await hal.request("/v1/nutrition/summary?from=2025-01-01&to=2026-10-01")).status).toBe(400);
+  });
+
+  it("includes goals in the account download", async () => {
+    const hal = await signIn();
+    await batch(hal, [put(uuid(), null, { period: "week", kind: "between", min: 700, max: 900, endDate: "2026-12-31" })]);
+    const data = await (await hal.request("/v1/me/export")).json();
+    expect(data.goals).toEqual([expect.objectContaining(goalBody({ period: "week", kind: "between", min: 700, max: 900, endDate: "2026-12-31" }))]);
   });
 });
 

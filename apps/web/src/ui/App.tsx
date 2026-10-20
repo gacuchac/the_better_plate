@@ -12,7 +12,7 @@ import { PRIVACY_NOTICE } from "@betterplate/contracts";
 import { ConsentScreen, PrivacyPage } from "./Privacy.tsx";
 import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
-import { Targets } from "./Targets.tsx";
+import { Goals } from "./Goals.tsx";
 import { AiSettings } from "./AiSettings.tsx";
 import { Companion, CompanionButton } from "./Companion.tsx";
 import { ConnectConsent, ResumeConnect, takePendingConnect } from "./Connect.tsx";
@@ -99,13 +99,13 @@ export function App() {
 
   const recipeMatch = /^\/recipe\/([0-9a-f-]{36})$/.exec(route);
   const mealsMatch = /^\/meals(?:\/(\d{4}-\d{2}-\d{2}))?$/.exec(route);
-  const section = recipeMatch || mealsMatch ? "/kitchen" : route === "/targets" || route === "/ai" ? "/you" : route;
+  const section = recipeMatch || mealsMatch ? "/kitchen" : route === "/goals" || route === "/targets" || route === "/ai" ? "/you" : route;
   let screen;
   if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;
   else if (route === "/explore") screen = <Explore />;
   else if (route === "/you") screen = <You />;
-  else if (route === "/targets") screen = <Targets />;
+  else if (route === "/goals" || route === "/targets") screen = <Goals />;
   else if (route === "/ai") screen = <AiSettings />;
   else screen = <Kitchen />;
 
@@ -133,7 +133,7 @@ export function App() {
             <a className="back" href="#/kitchen" aria-label={t("nav.backToKitchen")}>
               <Icon name="back" /> {t("nav.kitchen")}
             </a>
-          ) : route === "/targets" || route === "/ai" ? (
+          ) : route === "/goals" || route === "/targets" || route === "/ai" ? (
             <a className="back" href="#/you">
               <Icon name="back" /> {t("nav.you")}
             </a>

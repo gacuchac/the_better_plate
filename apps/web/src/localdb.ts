@@ -1,5 +1,5 @@
 import { deleteDB, openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { MealLogBody, PlannedMeal, PlannedMealBody, Recipe, RecipeBody, RecipeNutritionDto, SyncOperation } from "@betterplate/contracts";
+import type { Goal, GoalBody, MealLogBody, PlannedMeal, PlannedMealBody, Recipe, RecipeBody, RecipeNutritionDto, SyncOperation } from "@betterplate/contracts";
 import type { CatalogBundle } from "./api.ts";
 
 /**
@@ -35,6 +35,18 @@ export interface LocalPlan {
   updatedAt: string;
 }
 
+/** A consumption goal the person set; versioned like plans. */
+export interface LocalGoal {
+  id: string;
+  body: GoalBody;
+  serverVersion: number | null;
+  state: RecipeSyncState;
+  conflictServer?: Goal | null;
+  rejection?: string;
+  deleted?: boolean;
+  updatedAt: string;
+}
+
 /** Food eaten. Created once, never edited; "deleted" marks a retraction waiting to sync. */
 export interface LocalLog {
   id: string;
@@ -52,7 +64,7 @@ export interface OutboxOp {
   entityId: string;
   type: SyncOperation["type"];
   baseVersion: number | null;
-  body?: RecipeBody | PlannedMealBody | MealLogBody;
+  body?: RecipeBody | PlannedMealBody | MealLogBody | GoalBody;
   createdAt: string;
   seq: number;
 }
@@ -61,6 +73,7 @@ interface UserDB extends DBSchema {
   recipes: { key: string; value: LocalRecipe; indexes: { byUpdated: string } };
   plans: { key: string; value: LocalPlan };
   logs: { key: string; value: LocalLog };
+  goals: { key: string; value: LocalGoal };
   outbox: { key: string; value: OutboxOp; indexes: { byEntity: string; bySeq: number } };
   meta: { key: string; value: unknown };
 }
@@ -80,7 +93,7 @@ const seenKey = (userId: string) => `bp.db-seen.${userId}`;
  * it comes back empty, the browser evicted it; onEvicted lets the app tell the person.
  */
 export function openUserDb(userId: string, onEvicted?: () => void): Promise<UserDatabase> {
-  return openDB<UserDB>(userDbName(userId), 2, {
+  return openDB<UserDB>(userDbName(userId), 3, {
     upgrade(db, oldVersion) {
       if (oldVersion === 0) {
         try {
@@ -101,6 +114,7 @@ export function openUserDb(userId: string, onEvicted?: () => void): Promise<User
         db.createObjectStore("plans", { keyPath: "id" });
         db.createObjectStore("logs", { keyPath: "id" });
       }
+      if (oldVersion < 3) db.createObjectStore("goals", { keyPath: "id" });
     },
   });
 }

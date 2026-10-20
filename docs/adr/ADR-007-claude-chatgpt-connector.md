@@ -23,7 +23,7 @@ People asked to use the assistant they already pay for instead of an API key. Cl
 
 ## Consequences
 
-- Not yet exercised from real Claude or ChatGPT; both need the public HTTPS dev URL with the flag on. Each client's own setup steps (Claude: Settings → Connectors → Add custom connector; ChatGPT: developer mode connectors) may change and are not promised in the app copy.
+- Exercised from real Claude and ChatGPT against the dev environment on 2026-10-20 (flag on in dev only). Each client's own setup steps (Claude: Settings → Connectors → Add custom connector; ChatGPT: developer mode connectors) may change and are not promised in the app copy.
 - Registered client records stay after a person disconnects (they hold no personal data); approvals and tokens are deleted with the account.
 - Rollback: turn the flag off. Migration `011` only adds tables.
 
@@ -49,7 +49,7 @@ The owner asked for `upload_recipe_photo` to accept images ChatGPT generates, wi
 **Actionable errors:** sandbox paths and chat-only references (`/mnt/data/…`, `sandbox:`, `file:`, `chat_upload://…`, bare `file-…` ids) get "this is a file inside the chat app, which The Better Plate can't open", followed by the three ways that do work: attach the file to the chat, give a public link, or upload in the app. Invalid or cut-off base64, web pages instead of images, other formats, oversize files and failed downloads each get their own message.
 
 **What each client can send (checked 2026-10-20):**
-- **ChatGPT, files the person attaches (web):** passed through file params with a `download_url` and `file_id`. This is documented in the Apps SDK reference (developers.openai.com/plugins/reference, `_meta["openai/fileParams"]`). Not yet exercised against real ChatGPT from dev.
+- **ChatGPT, files the person attaches (web):** passed through file params with a `download_url` and `file_id`. This is documented in the Apps SDK reference (developers.openai.com/plugins/reference, `_meta["openai/fileParams"]`). Verified by the owner against dev on 2026-10-20 with a JPEG attachment.
 - **ChatGPT, images it generates:** **not supported by ChatGPT today.** Generated images live in ChatGPT's sandbox and reach tools as `/mnt/data/...` paths with no download link. OpenAI support confirmed on 2026-10-01 that such a path "isn't a URL that your remote MCP server can fetch directly", and gave no documented way to turn one into a `file_id` (community.openai.com thread 1382637). Base64 written out by the model is cut off for images around 2.5 MB (thread 1365335). **Workaround for people:** download the generated image and attach it to the chat, which makes it a file param, or upload it in the app.
 - **ChatGPT mobile apps:** reported to send bare `chat_upload://image_0` strings instead of file objects (openai-apps-sdk-examples issue #185, still open as of 2026-09-19). These get the chat-only error.
 - **Claude:** no file-param mechanism. Attached images are not handed to connector tools, and the model can't reproduce an image's bytes as base64. In practice Claude can send a public link, or base64 only when it has the bytes as text. This is inferred from the MCP specification having no file-input primitive yet; proposals SEP-2356 (base64 primitive) and SEP-2361 (file handling) are open.

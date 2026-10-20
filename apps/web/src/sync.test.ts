@@ -54,6 +54,7 @@ function fakeServer() {
             store.delete(op.entityId);
             r = { opId: op.opId, entityId: op.entityId, status: "applied", replayed: false, version: (cur?.version ?? 0) + 1 };
           } else {
+            if (op.type !== "recipe.put") throw new Error(`unexpected ${op.type}`);
             const version = (cur?.version ?? 0) + 1;
             store.set(op.entityId, { id: op.entityId, ...op.body, version, createdAt: "", updatedAt: "", nutrition: null });
             log.push({ seq: ++seq, id: op.entityId });

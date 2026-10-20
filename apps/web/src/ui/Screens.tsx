@@ -11,7 +11,8 @@ import { downloadJson, EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
 import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
-import { useTargets } from "../targets.ts";
+import { PeriodTotals } from "./Goals.tsx";
+import { isActive } from "../goals.ts";
 import { dateLocale, formatQty, nutrientName, t as translate, useT, type MessageKey } from "../i18n.ts";
 
 const STATE_LABEL: Record<LocalRecipe["state"], MessageKey> = {
@@ -193,8 +194,8 @@ export function Explore() {
 }
 
 export function You() {
-  const { account, engine, signOut, online } = useApp();
-  const targets = useTargets(account?.id);
+  const { account, engine, signOut, online, goals } = useApp();
+  const activeGoals = goals.filter((g) => isActive(g.body)).length;
   const ai = useAiSettings(account?.id, online);
   const t = useT();
   const status = useSyncStatus(engine);
@@ -258,9 +259,9 @@ export function You() {
           {t(!online ? "sync.offline" : SYNC_WORDS[status])}
           {engine?.lastSyncedAt ? `, ${t("you.lastChecked", { time: new Date(engine.lastSyncedAt).toLocaleTimeString(dateLocale()) })}` : ""}
         </dd>
-        <dt>{t("targets.title")}</dt>
-        <dd data-testid="targets-summary">
-          {targets.length ? t("targets.count", { n: targets.length }) : t("targets.noneSet")} <a href="#/targets">{targets.length ? t("targets.change") : t("targets.set")}</a>
+        <dt>{t("goals.title")}</dt>
+        <dd data-testid="goals-summary">
+          {activeGoals ? t("goals.count", { n: activeGoals }) : t("goals.noneSet")} <a href="#/goals">{goals.length ? t("goals.manage") : t("targets.set")}</a>
         </dd>
         {ai !== false && (
           <>
@@ -279,6 +280,7 @@ export function You() {
           <LanguagePicker id="you-language" hideLabel />
         </dd>
       </dl>
+      <PeriodTotals />
       <div className="stack">
         <button type="button" className="btn-secondary" onClick={() => void engine?.syncNow()}>
           {t("sync.now")}

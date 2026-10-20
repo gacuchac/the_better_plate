@@ -231,6 +231,31 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     }
   });
 
+  it("reads totals and goals, and sets or deletes goals with the person's own numbers", async () => {
+    const { access_token: token } = await connect(alice);
+    const summary = (await tool(token, "get_summary", { from: today, to: today })).data;
+    expect(summary).toMatchObject({ days: 1, daysLogged: 1 });
+    expect(summary.nutrients.find((n: { key: string }) => n.key === "protein").total).toBeGreaterThan(0);
+    expect((await tool(token, "get_summary", { from: today, to: "1990-01-01" })).isError).toBe(true);
+
+    const set = (await tool(token, "set_goal", { nutrientKey: "protein", kind: "at_least", min: 120, period: "week", startDate: today })).data;
+    expect(set).toMatchObject({ saved: true, unit: "g", kind: "at_least", min: 120, max: null, period: "week", endDate: null });
+    expect((await tool(token, "set_goal", { nutrientKey: "body_weight", kind: "at_most", max: 80, period: "day" })).isError).toBe(true);
+    expect((await tool(token, "set_goal", { nutrientKey: "sodium", kind: "between", min: 3000, max: 2000, period: "day" })).isError).toBe(true);
+    const updated = (await tool(token, "set_goal", { goalId: set.goalId, nutrientKey: "protein", kind: "between", min: 100, max: 160, period: "week" })).data;
+    expect(updated).toMatchObject({ goalId: set.goalId, startDate: today, min: 100, max: 160 });
+
+    const listed = (await tool(token, "list_goals", { today })).data.goals;
+    expect(listed).toEqual([expect.objectContaining({ goalId: set.goalId, kind: "between", state: "active" })]);
+    const inApp = await (await alice.request("/v1/goals")).json();
+    expect(inApp.goals).toEqual([expect.objectContaining({ id: set.goalId, min: 100, max: 160, version: 2 })]);
+
+    const tools = (await (await mcp(token, "tools/list")).json()).result.tools as { name: string; annotations: { destructiveHint?: boolean } }[];
+    expect(tools.find((t) => t.name === "delete_goal")!.annotations.destructiveHint).toBe(true);
+    expect((await tool(token, "delete_goal", { goalId: set.goalId })).data.deleted).toBe(true);
+    expect((await (await alice.request("/v1/goals")).json()).goals).toEqual([]);
+  });
+
   it("keeps people apart: one person's token can't read or change another's recipes", async () => {
     const aliceToken = (await connect(alice)).access_token;
     const saved = await tool(aliceToken, "save_recipe", { title: "Alice only", servings: 1, ingredients: [] });

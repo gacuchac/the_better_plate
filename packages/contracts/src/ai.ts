@@ -35,7 +35,7 @@ export const AI_TOOLS = {
     confirm: false,
     description: "Open a screen so the person can watch what you are doing. recipe and cook need recipeId; meals takes an optional date.",
     input: z.object({
-      screen: z.enum(["kitchen", "explore", "you", "targets", "meals", "recipe", "cook"]),
+      screen: z.enum(["kitchen", "explore", "you", "goals", "meals", "recipe", "cook"]),
       recipeId: uuid.optional(),
       date: LocalDateSchema.optional(),
     }),
@@ -88,10 +88,32 @@ export const AI_TOOLS = {
     description: "Planned and eaten meals for a day, with estimated totals of what was eaten (plans excluded).",
     input: z.object({ date: LocalDateSchema }),
   },
-  set_targets: {
+  get_summary: {
     confirm: false,
-    description: "Save daily targets the person stated themselves (nutrient key and amount in its unit). Never propose or calculate target values.",
-    input: z.object({ targets: z.array(z.object({ key: z.string().min(1).max(40), amount: z.number().positive().max(1_000_000) })).max(30) }),
+    description:
+      "Estimated totals and per-logged-day averages of what the person ate between two dates (at most 366 days), with how many days have meals logged. Plans are not included.",
+    input: z.object({ from: LocalDateSchema, to: LocalDateSchema }),
+  },
+  list_goals: {
+    confirm: false,
+    description: "The person's consumption goals with progress in the current day, week or month, and how many recent periods met the goal.",
+    input: z.object({ today: LocalDateSchema.optional().describe("The person's date today, if known") }),
+  },
+  set_goal: {
+    confirm: false,
+    description:
+      "Create a consumption goal (omit goalId) or replace one (pass goalId). Only with numbers the person stated themselves; never propose, calculate or judge amounts. " +
+      "kind at_least needs min, at_most needs max, between needs both, in the nutrient's unit. period is day, week (Monday to Sunday) or month. startDate defaults to today; endDate is optional. The person can undo.",
+    input: z.object({
+      goalId: uuid.optional(),
+      nutrientKey: z.string().min(1).max(40),
+      kind: z.enum(["at_least", "at_most", "between"]),
+      min: z.number().positive().max(1_000_000).nullable().optional(),
+      max: z.number().positive().max(1_000_000).nullable().optional(),
+      period: z.enum(["day", "week", "month"]),
+      startDate: LocalDateSchema.optional(),
+      endDate: LocalDateSchema.nullable().optional(),
+    }),
   },
   find_photos: {
     confirm: false,
@@ -114,6 +136,11 @@ export const AI_TOOLS = {
     confirm: true,
     description: "Delete a recipe. The person must confirm in the app.",
     input: z.object({ recipeId: uuid }),
+  },
+  delete_goal: {
+    confirm: true,
+    description: "Delete one of the person's goals (goalId from list_goals). The person must confirm in the app.",
+    input: z.object({ goalId: uuid }),
   },
   remove_eaten_meal: {
     confirm: true,

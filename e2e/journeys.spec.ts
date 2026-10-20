@@ -261,31 +261,44 @@ test("plan a meal, mark it eaten, and see plans kept apart from what was eaten",
 
   await page.getByTestId("day-totals").click();
   await expect(page.getByRole("dialog")).toContainText("Plans are not included");
-  // Grams only until the person sets their own targets; label Daily Values are cited, not applied.
+  // Grams only until the person sets their own goals; label Daily Values are cited, not applied.
   const sheet = page.getByRole("dialog");
   await expect(sheet).toContainText("FDA Daily Values");
-  await expect(sheet).toContainText("Set your own daily targets to see percentages");
+  await expect(sheet).toContainText("Set your own daily goals to see percentages");
   await expect(sheet).not.toContainText("%");
-  await shot(page, info, "meals-day-nutrients", "Day nutrients in grams, no percentages until targets are set");
-  await sheet.getByRole("link", { name: "Set targets" }).click();
-  await expect(page.getByRole("heading", { name: "Daily targets" })).toBeVisible();
+  await shot(page, info, "meals-day-nutrients", "Day nutrients in grams, no percentages until goals are set");
+  await sheet.getByRole("link", { name: "Set goals" }).click();
+  await expect(page.getByRole("heading", { name: "Goals", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Dietary Guidelines for Americans, 2025–2030" })).toHaveAttribute("href", "https://realfood.gov");
-  await page.getByLabel("Protein", { exact: true }).fill("155");
-  await page.getByLabel("Fiber", { exact: true }).fill("-3");
-  await expect(page.getByRole("alert")).toContainText("Use a number above zero");
-  await page.getByLabel("Fiber", { exact: true }).fill("");
-  await page.getByRole("button", { name: "Save targets" }).click();
-  await expect(page.getByTestId("targets-status")).toHaveText("Saved on this device.");
-  await shot(page, info, "targets", "Daily targets the person types in, kept on this device");
+  await expect(page.getByText("No goals yet")).toBeVisible();
+  await page.getByRole("button", { name: "Add a goal" }).click();
+  const goalSheet = page.getByRole("dialog", { name: "New goal" });
+  await goalSheet.getByLabel("Nutrient").selectOption("protein");
+  await goalSheet.getByLabel("Amount").fill("-3");
+  await goalSheet.getByRole("button", { name: "Save goal" }).click();
+  await expect(goalSheet.getByRole("alert")).toContainText("above zero");
+  await goalSheet.getByLabel("Amount").fill("155");
+  await shot(page, info, "goal-sheet", "New goal: nutrient, at least/at most/between, per day/week/month, dates");
+  await goalSheet.getByRole("button", { name: "Save goal" }).click();
+  await expect(goalSheet).toBeHidden();
+  const goalCard = page.getByTestId("goal-card");
+  await expect(goalCard).toContainText("At least 155 g a day");
+  await expect(goalCard.getByTestId("goal-status")).toContainText("Today:");
+  await expect(goalCard.getByTestId("goal-status")).toContainText("under your goal so far");
+  await expectSynced(page);
+  const goals = await (await page.request.get(`${API}/v1/goals`)).json();
+  expect(goals.goals).toHaveLength(1);
+  expect(goals.goals[0]).toMatchObject({ nutrientKey: "protein", kind: "at_least", min: 155, period: "day", startDate: today, endDate: null });
+  await shot(page, info, "goals", "The person's own goal with today's progress, synced to the account");
   await page.goBack();
   await page.getByTestId("day-totals").click();
   const proteinRow = page.getByTestId("day-nutrient-protein");
-  await expect(proteinRow).toContainText("of your target");
+  await expect(proteinRow).toContainText("of your daily goal");
   const grams = Number((await proteinRow.textContent())!.match(/([\d.]+) g/)![1]);
-  await expect(proteinRow).toContainText(`${Math.round((grams / 155) * 100)}% of your target`);
+  await expect(proteinRow).toContainText(`${Math.round((grams / 155) * 100)}% of your daily goal`);
   await expect(page.getByTestId("day-nutrient-fiber")).not.toContainText("%");
-  await expect(page.getByRole("dialog")).toContainText("Percentages compare with the daily targets you set");
-  await shot(page, info, "meals-day-targets", "Protein as a share of the person's own target; others stay in grams");
+  await expect(page.getByRole("dialog")).toContainText("Percentages compare with the daily goals you set");
+  await shot(page, info, "meals-day-targets", "Protein as a share of the person's own daily goal; others stay in grams");
   await page.getByRole("button", { name: "Close" }).click();
 
   // Offline: a new log is saved on this device, then synced.
@@ -302,6 +315,23 @@ test("plan a meal, mark it eaten, and see plans kept apart from what was eaten",
   await expect(page.getByTestId("week-day")).toHaveCount(7);
   await expect(page.getByTestId("week-summary")).toContainText("1 of 7 days");
   await shot(page, info, "meals-week", "7 days: logged days only, nothing-logged days never shown as zero");
+
+  // Totals over a period on the You page: logs only, averaged per logged day.
+  await page.goto("/#/you");
+  const totals = page.getByTestId("period-totals");
+  await expect(totals.getByTestId("totals-days")).toContainText("Meals logged on 1 of 7 days. Totals cover only those days.");
+  await expect(page.getByTestId("goals-summary")).toContainText("1 active");
+  const kcalRow = totals.getByRole("row", { name: /Energy/ });
+  await expect(kcalRow).toContainText(String(Math.round(kcal)));
+  await totals.getByRole("tab", { name: "This month" }).click();
+  await expect(totals.getByTestId("totals-days")).toContainText("Meals logged on 1 of");
+  await totals.getByRole("tab", { name: "Dates" }).click();
+  await totals.getByLabel("From").fill(today);
+  await totals.getByLabel("To").fill(today);
+  await expect(totals.getByTestId("totals-days")).toHaveText("Meals logged on 1 of 1 day.");
+  const summary = await (await page.request.get(`${API}/v1/nutrition/summary?from=${today}&to=${today}`)).json();
+  expect(summary).toMatchObject({ days: 1, daysLogged: 1, incomplete: false });
+  await shot(page, info, "you-totals", "You: estimated totals and per-logged-day averages over a chosen range");
 });
 
 test("cook mode shows your steps one at a time, timers, and cited safe temperatures", async ({ page }, info) => {

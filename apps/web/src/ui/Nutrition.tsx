@@ -3,7 +3,7 @@ import { DAILY_VALUE_SOURCE, percentDailyValue, type FoodRecord, type NutrientDe
 import type { RecipeIngredientInput } from "@betterplate/contracts";
 import { Sheet } from "./common.tsx";
 import { useApp } from "../store.tsx";
-import { useTargets } from "../targets.ts";
+import { useDailyTargets } from "../goals.ts";
 import { formatQty, nutrientName, t as translate, useT } from "../i18n.ts";
 
 const PRIMARY = ["energy_kcal", "protein", "carbohydrate", "fat_total", "fiber"];
@@ -148,8 +148,7 @@ function SourceList({
  */
 export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "amount" | "unit" | "status">; name: string }) {
   const t = useT();
-  const { account } = useApp();
-  const targets = useTargets(account?.id);
+  const targets = useDailyTargets();
   const pct = percentDailyValue(row, targets);
   const hasTarget = targets.some((d) => d.key === row.key && d.unit === row.unit);
   return (
@@ -178,12 +177,12 @@ export function NutrientLine({ row, name }: { row: Pick<NutrientTotal, "key" | "
 export function DailyValueNote() {
   const t = useT();
   const { account } = useApp();
-  const targets = useTargets(account?.id);
+  const targets = useDailyTargets();
   return (
     <p className="fine" data-testid="targets-note">
       {account ? (
         <>
-          {targets.length ? t("targets.noteSet") : t("targets.noteUnset")} <a href="#/targets">{targets.length ? t("targets.change") : t("targets.set")}</a>{" "}
+          {targets.length ? t("targets.noteSet") : t("targets.noteUnset")} <a href="#/goals">{targets.length ? t("targets.change") : t("targets.set")}</a>{" "}
         </>
       ) : null}
       {t("dv.before")}{" "}

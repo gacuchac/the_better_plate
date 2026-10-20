@@ -152,6 +152,55 @@ export const MealLogSchema = MealLogBodySchema.extend({
   eaten: z.array(NutrientTotalSchema),
 });
 
+// ---------- goals: the person's own consumption goals (never body data) ----------
+
+export const GoalKindSchema = z.enum(["at_least", "at_most", "between"]);
+export const GoalPeriodSchema = z.enum(["day", "week", "month"]);
+
+/**
+ * A goal on what the person eats, in their own numbers: a nutrient, at least / at most / between,
+ * per day, week (Monday to Sunday) or calendar month, from a start date to an optional end date.
+ * The server checks the bounds fit the kind and the nutrient and unit exist in the catalog.
+ */
+export const GoalBodySchema = z.object({
+  nutrientKey: z.string().min(1).max(40),
+  unit: z.string().min(1).max(10),
+  kind: GoalKindSchema,
+  min: z.number().positive().max(1_000_000).nullable(),
+  max: z.number().positive().max(1_000_000).nullable(),
+  period: GoalPeriodSchema,
+  startDate: LocalDateSchema,
+  endDate: LocalDateSchema.nullable(),
+});
+
+export const GoalSchema = GoalBodySchema.extend({
+  id: z.uuid(),
+  version: z.number().int().positive(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const MAX_GOALS = 50;
+
+/** What was eaten over a range of days: logged meals only, plans never count. */
+export const NutritionSummarySchema = z.object({
+  from: LocalDateSchema,
+  to: LocalDateSchema,
+  days: z.number().int(),
+  daysLogged: z.number().int(),
+  /** Some days in the range have nothing logged; totals cover only logged days. */
+  incomplete: z.boolean(),
+  nutrients: z.array(
+    z.object({
+      key: z.string(),
+      unit: z.string(),
+      total: z.number().nullable(),
+      averagePerLoggedDay: z.number().nullable(),
+      status: z.enum(["known", "partial", "unknown"]),
+    }),
+  ),
+});
+
 export const SyncOperationSchema = z.discriminatedUnion("type", [
   z.object({
     opId: z.uuid(),
@@ -192,6 +241,19 @@ export const SyncOperationSchema = z.discriminatedUnion("type", [
     type: z.literal("log.delete"),
     entityId: z.uuid(),
   }),
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("goal.put"),
+    entityId: z.uuid(),
+    baseVersion: z.number().int().positive().nullable(),
+    body: GoalBodySchema,
+  }),
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("goal.delete"),
+    entityId: z.uuid(),
+    baseVersion: z.number().int().positive().nullable(),
+  }),
 ]);
 
 export const SyncBatchRequestSchema = z.object({
@@ -211,6 +273,8 @@ export const SyncResultSchema = z.object({
   server: RecipeSchema.nullable().optional(),
   /** Current server copy of a planned meal on conflict (null if deleted). */
   serverPlannedMeal: PlannedMealSchema.nullable().optional(),
+  /** Current server copy of a goal on conflict (null if deleted). */
+  serverGoal: GoalSchema.nullable().optional(),
   error: z.object({ code: z.string(), message: z.string() }).optional(),
 });
 
@@ -220,13 +284,14 @@ export const SyncBatchResponseSchema = z.object({
 });
 
 export const SyncChangeSchema = z.object({
-  entity: z.enum(["recipe", "planned_meal", "meal_log"]),
+  entity: z.enum(["recipe", "planned_meal", "meal_log", "goal"]),
   entityId: z.uuid(),
   seq: z.string(),
   deleted: z.boolean(),
   recipe: RecipeSchema.nullable(),
   plannedMeal: PlannedMealSchema.nullable().optional(),
   mealLog: MealLogSchema.nullable().optional(),
+  goal: GoalSchema.nullable().optional(),
 });
 
 export const SyncChangesResponseSchema = z.object({
@@ -297,6 +362,9 @@ export type PlannedMealBody = z.infer<typeof PlannedMealBodySchema>;
 export type PlannedMeal = z.infer<typeof PlannedMealSchema>;
 export type MealLogBody = z.infer<typeof MealLogBodySchema>;
 export type MealLog = z.infer<typeof MealLogSchema>;
+export type GoalBody = z.infer<typeof GoalBodySchema>;
+export type Goal = z.infer<typeof GoalSchema>;
+export type NutritionSummary = z.infer<typeof NutritionSummarySchema>;
 export type SyncOperation = z.infer<typeof SyncOperationSchema>;
 export type SyncBatchRequest = z.infer<typeof SyncBatchRequestSchema>;
 export type SyncResult = z.infer<typeof SyncResultSchema>;
