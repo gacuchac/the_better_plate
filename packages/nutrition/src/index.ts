@@ -7,3 +7,5 @@ export * from "./daily-values.ts";
 export * from "./safety.ts";
 export * from "./everyday-foods.ts";
 export * from "./goals.ts";
+export * from "./shopping.ts";
+export * from "./allergens.ts";

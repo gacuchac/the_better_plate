@@ -8,7 +8,7 @@ set -euo pipefail
 # tests themselves, schema and dependencies, the API contract, and the API code those screens
 # call. Anything else (docs, API tests, data scripts, assistant-only code) is covered by the
 # typecheck, unit and API tests.
-FLOW_FILES='^(apps/web/|packages/|e2e/|playwright\.config\.ts$|apps/api/src/db/|apps/api/openapi\.json$|apps/api/src/(app|auth|config|server)\.ts$|apps/api/src/lib/http\.ts$|apps/api/src/modules/(account|catalog|common|connector|feedback|goals|images|meals|recipes|shares|sync)\.ts$|apps/api/src/modules/ai/(routes|fake)\.ts$|scripts/(e2e|bootstrap|serve|db-up|lib|mock-openverse)\.|data/catalog/|pnpm-lock\.yaml$|([^/]+/)*package\.json$|\.github/workflows/ci\.yml$|Dockerfile$)'
+FLOW_FILES='^(apps/web/|packages/|e2e/|playwright\.config\.ts$|apps/api/src/db/|apps/api/openapi\.json$|apps/api/src/(app|auth|config|server)\.ts$|apps/api/src/lib/http\.ts$|apps/api/src/modules/(access|account|catalog|common|connector|feedback|goals|groups|images|meals|preferences|recipes|shares|shopping|sync)\.ts$|apps/api/src/modules/ai/(routes|fake)\.ts$|scripts/(e2e|bootstrap|serve|db-up|lib|mock-openverse)\.|data/catalog/|pnpm-lock\.yaml$|([^/]+/)*package\.json$|\.github/workflows/ci\.yml$|Dockerfile$)'
 
 decide() {
   if [[ "${EVENT:-}" != "pull_request" ]]; then echo "true ($EVENT: full run)"; return; fi

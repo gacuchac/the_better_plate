@@ -62,3 +62,22 @@
 5. **Defects and limitations:** privacy notice needs legal review before public launch (P3); curated method guides and retention/yield factors not started (no sourced data); no admin triage UI; no food photography (P5); brand names in mixed case (e.g. "Pillsbury …") are not detected as brands in search.
 6. **Plan changes:** none beyond the ledger; share snapshots carry nutrient display names so the guest page needs no catalog download.
 7. **Next:** backup/restore drill on dev (needs Railway backup settings, possibly paid), admin triage with MFA, Spanish-ready strings, then production readiness once the owner approves P3, S5 and production spend.
+
+---
+
+## Groups, preferences and shopping list (2026-10-20)
+
+1. **Status:** VERIFIED COMPLETE for the local pass (branch `claude/project-thread-7fzkz5`). Hosted pass runs after merge into `dev`. Production: not deployed.
+2. **Delivered:**
+   - Food preferences: allergies always asked and recorded as stated (FDA nine, "no allergies", "rather not say"), likes, dislikes and notes, for the account and its child profiles; synced with versions and conflict choices.
+   - Allergen tags from versioned name rules over all 7,793 foods, shown on recipes, with alerts (never blocks) in the plan sheet, recipe editor and group planning.
+   - Meal feedback after eating (liked or not, comment, ingredients not liked, optionally added to dislikes).
+   - Shopping list per week: own and profiles' offline on the device, a group's online for admins; scaled to servings planned; oil as added; cooked weights flagged; plans waiting for approval excluded; ticks and share.
+   - Groups (family, nutritionist): owner/admin/member roles, single-use invite links, child profiles with a name only, admins plan group recipes for members (members can't change them), members' own plans wait for approval, group recipes edited by admins and read-only for members, member week view with meals eaten, feedback and allergies, leave and end group, several groups per person.
+   - API: `/v1/preferences`, `/v1/meal-feedback`, `/v1/shopping-list`, `/v1/groups/*`, `/v1/invites/*`, `/v1/profiles/*`; sync ops `prefs.put`, `feedback.put`; change-feed entities `preferences`, `meal_feedback`, `profile`; migrations `015_preferences_feedback.sql`, `016_groups.sql`; OpenAPI regenerated.
+   - PRODUCT.md §2.12 and privacy-minimal bullet updated (owner approval); ADR-009.
+3. **Verification:** `pnpm test`: nutrition 81, web 27, API 113 pass (new: allergens, shopping, 6 sync tests, 14 group/preferences API tests). `pnpm e2e`: 48/48 Playwright (24 journeys × desktop, mobile), including two new journeys and an accessibility audit of preferences, shopping list, groups and a group; screenshots in `artifacts/qa/groups/` inspected. A bug found by the new sync tests was fixed: saving feedback could drop the unsent eaten log it belongs to. Not run: hosted pass, manual screen-reader pass.
+4. **Deployment:** local only until merged into `dev`.
+5. **Defects and limitations:** allergen tags come from USDA names, not labels (stated in the UI); counsel review of self-reported allergies and children's profiles (R-groups); owner transfer and profile renaming in the app not built; Instacart/store integration not started; Spanish strings drafted by the agent.
+6. **Plan changes:** ADR-009.
+7. **Next:** merge into `dev` and the hosted pass; native-speaker review of the new Spanish text; then store export of the shopping list when the owner wants it.

@@ -14,3 +14,4 @@
 | R6 | No privacy notice or consent records yet (P3) | Cannot launch publicly | Gabriel/counsel | Open |
 | R7 | Safe-temperature mapping from USDA food groups is heuristic (e.g. ham, cured meats, squid not in chart) | Some foods show no temperature | Agent: extend only with sourced chart rows | Accepted, disclosed in cook mode |
 | R8 | Anonymous issue reports have no retention limit yet | Storage of free text | Agent: add retention job with P3 policy | Open |
+| R-groups | Self-reported allergies and parent-entered children's profiles (groups, ADR-009) | Possible health-data rules (state privacy laws, FTC Health Breach Notification Rule) and COPPA questions against the adults-only policy | Gabriel with counsel before public launch | Open: built with minimal data (name only for profiles, no age), alerts never block, everything in export and deletion |

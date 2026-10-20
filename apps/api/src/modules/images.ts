@@ -413,14 +413,19 @@ imageRoutes.openapi(
     method: "get",
     path: "/v1/images/{id}",
     tags: ["images"],
-    summary: "An image you stored (owner only)",
+    summary: "An image you stored, or one on a recipe of a group you belong to",
     request: { params: IdParam },
     responses: { 200: { description: "Image bytes", content: { "image/webp": { schema: z.any() }, "image/jpeg": { schema: z.any() }, "image/png": { schema: z.any() } } }, ...ErrorResponses },
   }),
   async (c) => {
     const user = requireUser(c);
     const { id } = c.req.valid("param");
-    const { rows } = await pool.query<{ mime: string; bytes: Buffer }>("select mime, bytes from recipe_images where id = $1 and user_id = $2", [id, user.id]);
+    const { rows } = await pool.query<{ mime: string; bytes: Buffer }>(
+      `select mime, bytes from recipe_images i where id = $1 and (user_id = $2 or exists (
+         select 1 from recipes r join group_members m on m.group_id = r.group_id
+          where m.user_id = $2 and r.deleted_at is null and r.body->'image'->>'id' = i.id::text))`,
+      [id, user.id],
+    );
     if (!rows[0]) throw new ApiError(404, "not_found", "Image not found");
     return c.body(new Uint8Array(rows[0].bytes), 200, {
       "content-type": rows[0].mime,

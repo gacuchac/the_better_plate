@@ -14,6 +14,9 @@ import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
 import { Goals } from "./Goals.tsx";
 import { AiSettings } from "./AiSettings.tsx";
+import { Groups, GroupScreen, JoinGroup } from "./Groups.tsx";
+import { Preferences } from "./Preferences.tsx";
+import { Shopping } from "./Shopping.tsx";
 import { Companion, CompanionButton } from "./Companion.tsx";
 import { ConnectConsent, ResumeConnect, takePendingConnect } from "./Connect.tsx";
 import { useT, type MessageKey } from "../i18n.ts";
@@ -99,7 +102,12 @@ export function App() {
 
   const recipeMatch = /^\/recipe\/([0-9a-f-]{36})$/.exec(route);
   const mealsMatch = /^\/meals(?:\/(\d{4}-\d{2}-\d{2}))?$/.exec(route);
-  const section = recipeMatch || mealsMatch ? "/kitchen" : route === "/goals" || route === "/targets" || route === "/ai" ? "/you" : route;
+  const shoppingMatch = /^\/shopping(?:\/group\/([0-9a-f-]{36}))?$/.exec(route);
+  const groupMatch = /^\/groups\/([0-9a-f-]{36})$/.exec(route);
+  const joinMatch = /^\/join\/([0-9a-f-]{36})$/.exec(route);
+  const inKitchen = !!(recipeMatch || mealsMatch || shoppingMatch);
+  const inYou = ["/goals", "/targets", "/ai", "/groups", "/preferences"].includes(route) || !!groupMatch || !!joinMatch;
+  const section = inKitchen ? "/kitchen" : inYou ? "/you" : route;
   let screen;
   if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;
@@ -107,6 +115,11 @@ export function App() {
   else if (route === "/you") screen = <You />;
   else if (route === "/goals" || route === "/targets") screen = <Goals />;
   else if (route === "/ai") screen = <AiSettings />;
+  else if (shoppingMatch) screen = <Shopping key={shoppingMatch[1] ?? "own"} groupId={shoppingMatch[1]} />;
+  else if (route === "/preferences") screen = <Preferences />;
+  else if (route === "/groups") screen = <Groups />;
+  else if (groupMatch) screen = <GroupScreen key={groupMatch[1]} id={groupMatch[1]!} />;
+  else if (joinMatch) screen = <JoinGroup key={joinMatch[1]} token={joinMatch[1]!} />;
   else screen = <Kitchen />;
 
   return (
@@ -129,11 +142,15 @@ export function App() {
       </nav>
       <div className="content">
         <div className="topbar">
-          {recipeMatch || mealsMatch ? (
+          {inKitchen ? (
             <a className="back" href="#/kitchen" aria-label={t("nav.backToKitchen")}>
               <Icon name="back" /> {t("nav.kitchen")}
             </a>
-          ) : route === "/goals" || route === "/targets" || route === "/ai" ? (
+          ) : groupMatch ? (
+            <a className="back" href="#/groups">
+              <Icon name="back" /> {t("groups.title")}
+            </a>
+          ) : inYou ? (
             <a className="back" href="#/you">
               <Icon name="back" /> {t("nav.you")}
             </a>

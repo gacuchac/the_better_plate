@@ -37,7 +37,9 @@ function greeting(d = new Date()) {
 }
 
 export function Kitchen() {
-  const { recipes, catalog, account, plans, logs } = useApp();
+  const { recipes, catalog, account, plans, logs, preferences, kitchenLoaded } = useApp();
+  // Asked until the person answers (any answer, including "I'd rather not say").
+  const askAllergies = kitchenLoaded && account && !preferences.some((p) => p.id === account.id);
   const t = useT();
   const today = localDate();
   const planned = plans.filter((p) => p.body.date === today).length;
@@ -74,6 +76,22 @@ export function Kitchen() {
         </div>
       </a>
 
+      {askAllergies && (
+        <a className="card ask-card" href="#/preferences" data-testid="allergy-prompt">
+          <strong>{t("prefs.askTitle")}</strong>
+          <span className="hint" style={{ margin: 0 }}>{t("prefs.askBody")}</span>
+        </a>
+      )}
+
+      <nav className="quick-links" aria-label={t("kitchen.more")}>
+        <a className="btn-soft" href="#/shopping" data-testid="shopping-link">
+          <Icon name="basket" size={18} /> {t("shop.title")}
+        </a>
+        <a className="btn-soft" href="#/preferences">
+          <Icon name="check" size={18} /> {t("prefs.title")}
+        </a>
+      </nav>
+
       <div className="section-title">
         <h2>{t("kitchen.recipes")}</h2>
         <button type="button" className="btn-primary fab" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
@@ -103,7 +121,7 @@ export function Kitchen() {
 }
 
 function RecipeCard({ recipe }: { recipe: LocalRecipe }) {
-  const { catalog } = useApp();
+  const { catalog, groups } = useApp();
   const t = useT();
   const energy = useMemo(() => {
     if (catalog.status !== "ready") return null;
@@ -127,6 +145,11 @@ function RecipeCard({ recipe }: { recipe: LocalRecipe }) {
           {energy && energy.amount !== null ? ` · ${t("kitchen.kcalEach", { amount: formatQty(energy.amount, "kcal") })}` : ""}
         </span>
         <span className={`state state-${recipe.state}`}>{t(STATE_LABEL[recipe.state])}</span>
+        {recipe.groupId && (
+          <span className="recipe-group" data-testid="group-recipe-tag">
+            <Icon name="people" size={14} /> {groups?.find((g) => g.id === recipe.groupId)?.name ?? t("groups.groupRecipe")}
+          </span>
+        )}
       </a>
     </li>
   );
@@ -194,7 +217,7 @@ export function Explore() {
 }
 
 export function You() {
-  const { account, engine, signOut, online, goals } = useApp();
+  const { account, engine, signOut, online, goals, groups, profiles } = useApp();
   const activeGoals = goals.filter((g) => isActive(g.body)).length;
   const ai = useAiSettings(account?.id, online);
   const t = useT();
@@ -262,6 +285,15 @@ export function You() {
         <dt>{t("goals.title")}</dt>
         <dd data-testid="goals-summary">
           {activeGoals ? t("goals.count", { n: activeGoals }) : t("goals.noneSet")} <a href="#/goals">{goals.length ? t("goals.manage") : t("targets.set")}</a>
+        </dd>
+        <dt>{t("groups.title")}</dt>
+        <dd data-testid="groups-summary">
+          {groups?.length ? t("groups.count", { n: groups.length }) : t("groups.none")}
+          {profiles.length ? ` · ${t("groups.profilesCount", { n: profiles.length })}` : ""} <a href="#/groups">{t("groups.manage")}</a>
+        </dd>
+        <dt>{t("prefs.title")}</dt>
+        <dd>
+          <a href="#/preferences">{t("prefs.manage")}</a>
         </dd>
         {ai !== false && (
           <>

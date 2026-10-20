@@ -10,6 +10,8 @@ import { LOG_COLUMNS, PLAN_COLUMNS, toLog, toPlan } from "./meals.ts";
 import { toRecipe } from "./recipes.ts";
 import { GOAL_COLUMNS, toGoal } from "./goals.ts";
 import { shareUrl } from "./shares.ts";
+import { toFeedback, toPreferences, type FeedbackRow, type PreferencesRow } from "./preferences.ts";
+import { endOwnedGroups } from "./groups.ts";
 
 const PrivacyStatusSchema = z.object({
   currentVersion: z.string(),
@@ -76,7 +78,9 @@ accountRoutes.openapi(
   }),
   async (c) => {
     const user = requireUser(c);
-    // Recipes, revisions, sync ledger, sessions and accounts cascade from users.
+    // Groups this account owns end first, so other members keep their recipes and meals.
+    await endOwnedGroups(user.id);
+    // Recipes, revisions, profiles, memberships, sync ledger, sessions and accounts cascade from users.
     await pool.query('delete from "users" where id = $1', [user.id]);
     return c.body(null, 204);
   },
@@ -121,6 +125,15 @@ export async function exportAccount(userId: string) {
     ),
     q<Parameters<typeof toGoal>[0]>(`select ${GOAL_COLUMNS} from goals where user_id = $1 and deleted_at is null order by created_at`),
   ]);
+  const [preferences, feedback, profiles, memberships] = await Promise.all([
+    q<PreferencesRow>("select * from food_preferences where user_id = $1 order by created_at"),
+    q<FeedbackRow>("select * from meal_feedback where user_id = $1 and deleted_at is null order by created_at"),
+    q<{ id: string; name: string; created_at: Date }>("select id, name, created_at from profiles where owner_user_id = $1 and deleted_at is null order by created_at"),
+    q<{ group_id: string; group_name: string; role: string; display_name: string; created_at: Date }>(
+      `select m.group_id, g.name as group_name, m.role, m.display_name, m.created_at from group_members m join groups g on g.id = m.group_id
+        where m.user_id = $1 order by m.created_at`,
+    ),
+  ]);
   const user = users[0]!;
   return {
     format: EXPORT_FORMAT,
@@ -149,6 +162,11 @@ export async function exportAccount(userId: string) {
     plannedMeals: plans.map(toPlan),
     mealsEaten: logs.map(toLog),
     goals: goals.map(toGoal),
+    // Plans and eaten meals of your profiles are in plannedMeals and mealsEaten, marked with profileId.
+    profiles: profiles.map((p) => ({ id: p.id, name: p.name, createdAt: p.created_at.toISOString() })),
+    foodPreferences: preferences.map(toPreferences),
+    mealFeedback: feedback.map(toFeedback),
+    groups: memberships.map((m) => ({ groupId: m.group_id, name: m.group_name, role: m.role, nameInGroup: m.display_name, joinedAt: m.created_at.toISOString() })),
     shareLinks: shares.map((s) => ({
       shareId: s.id, url: shareUrl(s.id), recipeId: s.recipe_id, recipeVersion: s.recipe_version, includeMethod: s.include_method,
       createdAt: s.created_at.toISOString(), expiresAt: s.expires_at?.toISOString() ?? null, revokedAt: s.revoked_at?.toISOString() ?? null,
@@ -164,7 +182,9 @@ export async function exportAccount(userId: string) {
 accountRoutes.openapi(
   createRoute({
     method: "get", path: "/v1/me/export", tags: ["account"], summary: "Download all my data as JSON",
-    description: "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals, goals, share links and issue reports. Rate limited to 10 per hour.",
+    description:
+      "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, food preferences, " +
+      "meal feedback, profiles, group memberships, share links and issue reports. Rate limited to 10 per hour.",
     responses: { 200: { description: "Export (betterplate.export/1)", content: { "application/json": { schema: z.object({ format: z.literal(EXPORT_FORMAT) }).passthrough() } } }, ...ErrorResponses },
   }),
   async (c) => {

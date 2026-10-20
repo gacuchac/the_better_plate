@@ -3,7 +3,24 @@ import type { FoodRecord } from "@betterplate/nutrition";
 import { api, ApiRequestError, NetworkError, type CatalogBundle, type Me } from "./api.ts";
 import { clearTargets, migrateTargets } from "./targets.ts";
 import { endSession } from "./agent.ts";
-import { deleteUserDb, isQuotaError, openUserDb, readCatalog, STORAGE_FULL_EVENT, requestPersistentStorage, writeCatalog, type LocalGoal, type LocalLog, type LocalPlan, type LocalRecipe } from "./localdb.ts";
+import type { GroupSummary } from "@betterplate/contracts";
+import {
+  deleteUserDb,
+  isQuotaError,
+  openUserDb,
+  readCatalog,
+  STORAGE_FULL_EVENT,
+  requestPersistentStorage,
+  writeCatalog,
+  type CachedGroups,
+  type LocalFeedback,
+  type LocalGoal,
+  type LocalLog,
+  type LocalPlan,
+  type LocalPreferences,
+  type LocalProfile,
+  type LocalRecipe,
+} from "./localdb.ts";
 import { SyncEngine } from "./sync.ts";
 
 const ACCOUNT_KEY = "bp.account";
@@ -34,9 +51,20 @@ interface AppState {
   engine: SyncEngine | null;
   catalog: CatalogState;
   recipes: LocalRecipe[];
+  /** The account's own plans and eaten meals; profiles' are in allPlans/allLogs. */
   plans: LocalPlan[];
   logs: LocalLog[];
+  allPlans: LocalPlan[];
+  allLogs: LocalLog[];
   goals: LocalGoal[];
+  preferences: LocalPreferences[];
+  feedback: LocalFeedback[];
+  profiles: LocalProfile[];
+  /** Groups as last seen online; null until known. */
+  groups: GroupSummary[] | null;
+  refreshGroups: () => Promise<void>;
+  /** True once this account's records have been read from the device. */
+  kitchenLoaded: boolean;
   online: boolean;
   setAccount: (me: Me) => void;
   signOut: (opts?: { discardUnsynced?: boolean }) => Promise<void>;
@@ -107,6 +135,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [plans, setPlans] = useState<LocalPlan[]>([]);
   const [logs, setLogs] = useState<LocalLog[]>([]);
   const [goals, setGoals] = useState<LocalGoal[]>([]);
+  const [preferences, setPreferences] = useState<LocalPreferences[]>([]);
+  const [feedback, setFeedback] = useState<LocalFeedback[]>([]);
+  const [profiles, setProfiles] = useState<LocalProfile[]>([]);
+  const [groups, setGroups] = useState<GroupSummary[] | null>(null);
+  const [kitchenLoaded, setKitchenLoaded] = useState(false);
   const online = useOnline();
   const [storageNotice, setStorageNotice] = useState<StorageNotice>(null);
 
@@ -156,6 +189,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPlans([]);
       setLogs([]);
       setGoals([]);
+      setPreferences([]);
+      setFeedback([]);
+      setProfiles([]);
+      setGroups(null);
+      setKitchenLoaded(false);
       return;
     }
     let disposed = false;
@@ -164,13 +202,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (disposed) return db.close();
       const e = new SyncEngine(db);
       const refresh = () =>
-        void Promise.all([e.listRecipes(), e.listPlans(), e.listLogs(), e.listGoals()]).then(([r, p, l, g]) => {
-          if (disposed) return;
-          setRecipes(r);
-          setPlans(p);
-          setLogs(l);
-          setGoals(g);
-        });
+        void Promise.all([e.listRecipes(), e.listAllPlans(), e.listAllLogs(), e.listGoals(), e.listPreferences(), e.listFeedback(), e.listProfiles()]).then(
+          ([r, p, l, g, prefs, fb, profs]) => {
+            if (disposed) return;
+            setRecipes(r);
+            setPlans(p);
+            setLogs(l);
+            setGoals(g);
+            setPreferences(prefs);
+            setFeedback(fb);
+            setProfiles(profs);
+            setKitchenLoaded(true);
+          },
+        );
       const unsub = e.subscribe(refresh);
       // With Claude or ChatGPT connected, their changes show up within seconds while the app is
       // open (and only then): a quiet pull every few seconds when the tab is visible.
@@ -203,6 +247,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       setEngine(e);
       refresh();
+      void db.get("meta", "groups").then((cached) => !disposed && cached && setGroups(cached as CachedGroups));
       // Daily targets from before goals were synced move into goals once, then leave the device.
       void migrateTargets(account.id, e).finally(() => void e.syncNow());
     });
@@ -211,6 +256,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cleanup();
     };
   }, [account?.id]);
+
+  // Which groups this account is in, when online. Copies of recipes from groups it has left go.
+  const refreshGroups = useCallback(async () => {
+    if (!engine) return;
+    try {
+      const { groups: list } = await api.groups();
+      setGroups(list);
+      await engine.db.put("meta", list, "groups");
+      await engine.forgetGroupRecipes(new Set(list.map((g) => g.id)));
+    } catch {
+      // Offline: keep what was last seen.
+    }
+  }, [engine]);
+
+  useEffect(() => {
+    if (engine && online) void refreshGroups();
+  }, [engine, online, refreshGroups]);
 
   const refreshRecipes = useCallback(async () => {
     if (engine) setRecipes(await engine.listRecipes());
@@ -244,9 +306,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [account?.id]);
 
-  const value = useMemo<AppState>(
-    () => ({ account, accountChecked, engine, catalog, recipes, plans, logs, goals, online, setAccount, signOut, refreshRecipes, storageNotice, dismissStorageNotice: () => setStorageNotice(null) }),
-    [account, accountChecked, engine, catalog, recipes, plans, logs, goals, online, setAccount, signOut, refreshRecipes, storageNotice],
-  );
+  const value = useMemo<AppState>(() => {
+    const own = <T extends { body: { profileId?: string | null } }>(list: T[]) => list.filter((x) => !x.body.profileId);
+    return {
+      account, accountChecked, engine, catalog, recipes, plans: own(plans), logs: own(logs), allPlans: plans, allLogs: logs, goals,
+      preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice,
+      dismissStorageNotice: () => setStorageNotice(null),
+    };
+  }, [account, accountChecked, engine, catalog, recipes, plans, logs, goals, preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

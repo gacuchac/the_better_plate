@@ -34,6 +34,20 @@ curl -s -b jar $API/v1/me
 | GET | `/v1/sync/changes?cursor=` | yes | Changes after cursor in commit order, with tombstones |
 | GET | `/v1/goals` | yes | My consumption goals (written with sync ops `goal.put` / `goal.delete`) |
 | GET | `/v1/nutrition/summary?from=&to=` | yes | Estimated totals and per-logged-day averages of eaten meals over 1–366 days; plans never count |
+| GET | `/v1/preferences`, `/v1/meal-feedback` | yes | My kitchen's food preferences (mine and my profiles') and meal feedback; written with sync ops `prefs.put` (entity = my id or a profile id) and `feedback.put` (entity = eaten log id) |
+| GET | `/v1/shopping-list?from=&to=[&profileId=|&groupId=]` | yes | What to buy for planned meals over ≤31 days; a group's for its owner and admins |
+| GET/POST | `/v1/groups` | yes | My groups; start one (I become owner) |
+| GET/PUT/DELETE | `/v1/groups/{id}` | member / owner | Members and (admins) open invites; rename; end the group |
+| POST/DELETE | `/v1/groups/{id}/invites[/{inviteId}]` | admin (admin invites: owner) | Single-use invite links, 7 days |
+| GET, POST | `/v1/invites/{token}`, `/v1/invites/{token}/accept` | yes | Preview an invite; join with a display name |
+| PUT/DELETE | `/v1/groups/{id}/members/{memberId}` | owner / self | Change role; remove or leave |
+| POST | `/v1/groups/{id}/profiles`, `/v1/groups/{id}/members` | admin / profile owner | Add a child profile; add an existing profile to another group |
+| GET, PUT/DELETE | `/v1/profiles`, `/v1/profiles/{id}` | owner | My profiles; rename; delete with everything recorded |
+| PUT | `/v1/groups/{id}/members/{memberId}/preferences` | admin | Record a profile's allergies, likes and dislikes |
+| GET | `/v1/groups/{id}/meals?from=&to=` | admin | Every member's plans, eaten meals, feedback and preferences |
+| POST, PUT/DELETE | `/v1/groups/{id}/plans[/{planId}]` | admin | Plan a group recipe for a member (returns an allergen alert, never blocks); change/remove with `If-Match` |
+| POST | `/v1/groups/{id}/plans/{planId}/approve`, `/decline` | admin | Decide on a meal a member planned for themselves |
+| GET/POST | `/v1/groups/{id}/recipes` | member / admin | Group recipes; copy one of mine into the group (admins edit it via `PUT /v1/recipes/{id}` or sync) |
 | GET/DELETE | `/v1/me` | yes | Account; delete account and all data |
 | * | `/v1/auth/*` | — | Better Auth (email one-time code, sessions, sign-out) |
 | * | `/v1/chef/*` | — | Always `404 feature_disabled` while the chef flag is off |

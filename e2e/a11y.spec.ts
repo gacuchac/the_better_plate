@@ -96,6 +96,20 @@ test("core screens have no automatically detectable WCAG 2.2 AA violations", asy
   await page.getByRole("button", { name: "Save goal" }).click();
   await expect(page.getByTestId("goal-card")).toBeVisible();
   await audit(page, "goals");
+  await page.goto("/#/preferences");
+  await page.getByRole("button", { name: "Yes, I'll pick them" }).click();
+  await audit(page, "preferences");
+  await page.goto("/#/shopping");
+  await expect(page.getByTestId("shop-summary")).toBeVisible();
+  await audit(page, "shopping-list");
+  await page.goto("/#/groups");
+  await page.getByLabel("Group name").fill("Accessible family");
+  await page.getByLabel("Your name in the group").fill("Ana");
+  await audit(page, "groups");
+  await page.getByRole("button", { name: "Create group" }).click();
+  await expect(page.getByRole("heading", { name: "Accessible family" })).toBeVisible();
+  await expect(page.getByTestId("group-week")).toBeVisible();
+  await audit(page, "group");
   await page.goto("/#/you");
 
   await page.getByRole("button", { name: "Report an issue" }).click();
