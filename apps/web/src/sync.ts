@@ -271,6 +271,21 @@ export class SyncEngine {
     return this.running;
   }
 
+  /**
+   * Picks up changes made elsewhere (a connected Claude or ChatGPT) without flashing the status
+   * chip. Pending local work goes through a normal sync instead.
+   */
+  async pullQuietly() {
+    if (this.running || this.status === "signed-out") return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    if (await this.pendingCount()) return void this.syncNow();
+    try {
+      await this.pull(false);
+    } catch {
+      // The next regular sync reports any problem.
+    }
+  }
+
   private async cycle() {
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       this.setStatus((await this.pendingCount()) ? "offline" : this.status === "synced" ? "synced" : "offline");
@@ -364,11 +379,13 @@ export class SyncEngine {
     await tx.done;
   }
 
-  private async pull() {
+  private async pull(emitAlways = true) {
+    let changed = false;
     let cursor = ((await this.db.get("meta", "cursor")) as string | undefined) ?? "0";
     for (let guard = 0; guard < 100; guard++) {
       const page = await this.client.changes(cursor);
       const tx = this.db.transaction(["recipes", "plans", "logs", "meta"], "readwrite");
+      if (page.changes.length) changed = true;
       for (const change of page.changes) {
         if (change.entity === "recipe") {
           const local = await tx.objectStore("recipes").get(change.entityId);
@@ -393,7 +410,7 @@ export class SyncEngine {
       await tx.done;
       if (!page.hasMore) break;
     }
-    this.emit();
+    if (emitAlways || changed) this.emit();
   }
 
   /** Unsynced work as a downloadable JSON document (for export before sign-out). */

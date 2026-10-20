@@ -7,6 +7,9 @@ import { deleteUserDb, isQuotaError, openUserDb, readCatalog, STORAGE_FULL_EVENT
 import { SyncEngine } from "./sync.ts";
 
 const ACCOUNT_KEY = "bp.account";
+const LIVE_PULL_MS = 5000;
+/** Fired after connecting or disconnecting an assistant, so live updates start or stop. */
+export const ASSISTANTS_CHANGED = "bp:assistants-changed";
 
 /** Last signed-in account, so the app opens offline. Holds no secrets (session is an httpOnly cookie). */
 function rememberedAccount(): Me | null {
@@ -165,12 +168,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setLogs(l);
         });
       const unsub = e.subscribe(refresh);
-      const resume = () => document.visibilityState === "visible" && void e.syncNow();
+      // With Claude or ChatGPT connected, their changes show up within seconds while the app is
+      // open (and only then): a quiet pull every few seconds when the tab is visible.
+      let assistantConnected = false;
+      const checkAssistants = () =>
+        void api.connectedApps().then(
+          (apps) => void (assistantConnected = apps.length > 0),
+          () => void (assistantConnected = false),
+        );
+      const live = setInterval(() => {
+        if (assistantConnected && document.visibilityState === "visible") void e.pullQuietly();
+      }, LIVE_PULL_MS);
+      const resume = () => {
+        if (document.visibilityState !== "visible") return;
+        void e.syncNow();
+        checkAssistants();
+      };
       const reconnect = () => void e.syncNow();
       document.addEventListener("visibilitychange", resume);
       window.addEventListener("online", reconnect);
+      window.addEventListener(ASSISTANTS_CHANGED, checkAssistants);
+      checkAssistants();
       cleanup = () => {
         unsub();
+        clearInterval(live);
+        window.removeEventListener(ASSISTANTS_CHANGED, checkAssistants);
         document.removeEventListener("visibilitychange", resume);
         window.removeEventListener("online", reconnect);
         db.close();
