@@ -390,7 +390,7 @@ export class AgentSession {
         }
         this.conversation = res.conversation;
         const results = [];
-        for (const call of res.toolCalls) results.push(await this.runTool(call, env, provider === "house"));
+        for (const call of res.toolCalls) results.push(await this.runTool(call, env));
         input = { type: "tool_results", results };
       }
     } catch (err) {
@@ -403,7 +403,7 @@ export class AgentSession {
     }
   }
 
-  private async runTool(call: AiToolCall, env: ToolEnv, openResult = false): Promise<{ id: string; output: string; isError: boolean }> {
+  private async runTool(call: AiToolCall, env: ToolEnv): Promise<{ id: string; output: string; isError: boolean }> {
     const input = (call.input ?? {}) as Record<string, unknown>;
     const step: AgentStep = { id: uid(), tool: call.name, label: stepLabel(call.name, input), status: "running", canUndo: false };
     this.push({ kind: "step", id: step.id, step });
@@ -434,12 +434,6 @@ export class AgentSession {
       const outcome = await impl(parsed.data as never, env);
       if (outcome.undo) this.undos.set(step.id, outcome.undo);
       this.updateStep(step.id, { status: "done", detail: outcome.detail, canUndo: !!outcome.undo });
-      // The included companion has no navigate tool, so the app opens what it changed.
-      if (openResult) {
-        const date = (parsed.data as { date?: string }).date;
-        if (call.name === "save_recipe") env.navigate(`/recipe/${(outcome.output as { recipeId: string }).recipeId}`);
-        else if ((call.name === "plan_meal" || call.name === "log_meal") && date) env.navigate(`/meals/${date}`);
-      }
       return { id: call.id, output: JSON.stringify(outcome.output).slice(0, 20_000), isError: false };
     } catch (err) {
       return fail((err as Error).message || "That didn't work");

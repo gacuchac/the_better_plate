@@ -43,3 +43,12 @@ Owner decision: "we can have our own key set up for luna and limit usage at firs
 ### Addendum (2026-10-19): fewer tools on the included companion
 
 Owner decision: "just having a couple of tools for luna should be enough". The included companion is offered only `search_foods`, `list_recipes`, `save_recipe`, `plan_meal`, `log_meal` and `get_day`, with a shorter system prompt. Every turn sends fewer tool definitions, which costs less and gives the small model fewer ways to go wrong. The server refuses any other tool call on that provider. Since there is no `navigate`, the app opens the saved recipe or the planned or logged day itself. `list_recipes` stays because logging a meal needs an existing recipe's id. Own-key companions keep the full set. Not available on the included companion: editing an existing recipe (no `get_recipe`), photos, targets and deletes. Its answer points people to the app for those.
+
+### Addendum (2026-10-20): included companion has every feature, limited by usage
+
+Owner decision: "house key should be full experience but limited usage not limited features". This replaces the 2026-10-19 tool restriction above.
+
+- The included companion gets the same tools and system prompt as an own key, including `navigate`, `get_recipe`, photos, targets and deletes (deletes still ask the person to confirm). The server no longer refuses tool calls by provider.
+- Generated recipe photos (`POST /v1/images/generate`) use the person's own OpenAI key when connected, and otherwise the included key. On the included key there is a separate cap, `AI_HOUSE_DAILY_IMAGES` (default 3) per person per day. Each photo adds `AI_HOUSE_IMAGE_PRICE_USD` (default 0.10, deliberately high) to the monthly spend estimate. Image counts live in `ai_house_usage.images` (migration `013`), are shown in AI settings, and are included in the account export.
+- Chat stays on Chat Completions and photos on the Images API. The Responses API isn't needed: it would let the chat model create images itself, which gives the same result at higher cost.
+- Cost impact: more tool definitions per turn, so each included turn costs somewhat more. The monthly cap and the OpenAI project budget still bound total spend.

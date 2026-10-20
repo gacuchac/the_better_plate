@@ -125,12 +125,6 @@ export const AI_TOOLS = {
 export type AiToolName = keyof typeof AI_TOOLS;
 export const AI_TOOL_NAMES = Object.keys(AI_TOOLS) as AiToolName[];
 
-/**
- * The included companion (owner's key, small model) gets only the core kitchen tools: fewer
- * tool definitions per turn costs less and leaves less room for mistakes (owner decision
- * 2026-10-19). list_recipes is there because logging a meal needs an existing recipe's id. The app opens the saved recipe or day itself, so no navigate tool is needed.
- */
-export const HOUSE_TOOL_NAMES = ["search_foods", "list_recipes", "save_recipe", "plan_meal", "log_meal", "get_day"] as const satisfies readonly AiToolName[];
 export type AiToolInput<N extends AiToolName> = z.infer<(typeof AI_TOOLS)[N]["input"]>;
 
 export const MAX_AI_CONVERSATION = 120;
@@ -190,6 +184,9 @@ export const AiSettingsSchema = z.object({
     model: z.string().nullable(),
     dailyLimit: z.number().int(),
     requestsToday: z.number().int(),
+    /** Generated photos: same features as an own key, with their own daily cap. */
+    dailyImageLimit: z.number().int(),
+    imagesToday: z.number().int(),
   }),
   providers: z.array(
     z.object({

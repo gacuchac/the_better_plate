@@ -65,10 +65,14 @@ function houseConfig() {
     apiKey: process.env.OPENAI_HOUSE_API_KEY?.trim() || "",
     model: process.env.AI_HOUSE_MODEL?.trim() || "gpt-6-luna",
     dailyRequests: Math.floor(num("AI_HOUSE_DAILY_REQUESTS", 20)),
+    /** Generated recipe photos per person per day; images cost far more than chat. */
+    dailyImages: Math.floor(num("AI_HOUSE_DAILY_IMAGES", 3)),
     monthlyBudgetUsd: num("AI_HOUSE_MONTHLY_BUDGET_USD", 10),
     /** USD per million tokens (gpt-6-luna list price, 2026-10-19). */
     inputPricePerMTok: num("AI_HOUSE_INPUT_PRICE_PER_MTOK", 0.1),
     outputPricePerMTok: num("AI_HOUSE_OUTPUT_PRICE_PER_MTOK", 0.5),
+    /** USD per generated photo; a deliberately high estimate so the monthly cap trips early. */
+    imagePriceUsd: num("AI_HOUSE_IMAGE_PRICE_USD", 0.1),
     /** "*" lets every signed-in account use it; otherwise only these emails. Empty means nobody. */
     allowedEmails: allowed.includes("*") ? ("*" as const) : new Set(allowed),
   };

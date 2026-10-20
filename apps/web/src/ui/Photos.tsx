@@ -60,12 +60,12 @@ export function RecipePhoto({ image, compact = false }: { image: RecipeImage; co
   );
 }
 
-/** Find an openly licensed photo by describing it, or generate one on the person's OpenAI key. */
+/** Find an openly licensed photo by describing it, or generate one (own OpenAI key, else the included companion). */
 export function PhotoSheet({ initial, title, onPick, onClose }: { initial: string; title: string; onPick: (image: RecipeImage) => void; onClose: () => void }) {
   const { account, online } = useApp();
   const t = useT();
   const ai = useAiSettings(account?.id, online);
-  const canGenerate = !!ai && ai.providers.some((p) => p.provider === "openai" && p.connected);
+  const canGenerate = !!ai && (ai.providers.some((p) => p.provider === "openai" && p.connected) || ai.house.status === "available");
   const [description, setDescription] = useState(initial);
   const [results, setResults] = useState<PhotoSearchResult[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);

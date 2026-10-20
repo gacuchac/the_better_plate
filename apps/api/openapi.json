@@ -8805,13 +8805,21 @@
                         },
                         "requestsToday": {
                           "type": "integer"
+                        },
+                        "dailyImageLimit": {
+                          "type": "integer"
+                        },
+                        "imagesToday": {
+                          "type": "integer"
                         }
                       },
                       "required": [
                         "status",
                         "model",
                         "dailyLimit",
-                        "requestsToday"
+                        "requestsToday",
+                        "dailyImageLimit",
+                        "imagesToday"
                       ]
                     },
                     "providers": {
@@ -9117,13 +9125,21 @@
                         },
                         "requestsToday": {
                           "type": "integer"
+                        },
+                        "dailyImageLimit": {
+                          "type": "integer"
+                        },
+                        "imagesToday": {
+                          "type": "integer"
                         }
                       },
                       "required": [
                         "status",
                         "model",
                         "dailyLimit",
-                        "requestsToday"
+                        "requestsToday",
+                        "dailyImageLimit",
+                        "imagesToday"
                       ]
                     },
                     "providers": {
@@ -9422,13 +9438,21 @@
                         },
                         "requestsToday": {
                           "type": "integer"
+                        },
+                        "dailyImageLimit": {
+                          "type": "integer"
+                        },
+                        "imagesToday": {
+                          "type": "integer"
                         }
                       },
                       "required": [
                         "status",
                         "model",
                         "dailyLimit",
-                        "requestsToday"
+                        "requestsToday",
+                        "dailyImageLimit",
+                        "imagesToday"
                       ]
                     },
                     "providers": {
@@ -9699,13 +9723,21 @@
                         },
                         "requestsToday": {
                           "type": "integer"
+                        },
+                        "dailyImageLimit": {
+                          "type": "integer"
+                        },
+                        "imagesToday": {
+                          "type": "integer"
                         }
                       },
                       "required": [
                         "status",
                         "model",
                         "dailyLimit",
-                        "requestsToday"
+                        "requestsToday",
+                        "dailyImageLimit",
+                        "imagesToday"
                       ]
                     },
                     "providers": {
@@ -10872,8 +10904,8 @@
         "tags": [
           "images"
         ],
-        "summary": "Generate a photorealistic recipe image with your own OpenAI key",
-        "description": "Needs the AI companion with OpenAI connected. The image is labelled AI-generated wherever it is shown and is not an exact depiction.",
+        "summary": "Generate a photorealistic recipe image",
+        "description": "Uses the person's own OpenAI key when connected, otherwise the included companion (with its own daily image limit). The image is labelled AI-generated wherever it is shown and is not an exact depiction.",
         "requestBody": {
           "required": true,
           "content": {
