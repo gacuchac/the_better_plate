@@ -3,6 +3,8 @@ import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { config } from "../src/config.ts";
 import { pool } from "../src/db/pool.ts";
+import { photoDownloads } from "../src/modules/connector.ts";
+import { PublicFetchError } from "../src/lib/public-fetch.ts";
 import { call, type Client, signIn } from "./helpers.ts";
 
 // The whole connector path as Claude or ChatGPT would run it: discovery, dynamic client
@@ -143,11 +145,90 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     const withPhoto = await (await alice.request(`/v1/recipes/${recipeId}`)).json();
     expect(withPhoto.image).toMatchObject({ kind: "upload", alt: "My chicken", credit: null });
     const local = await tool(token, "upload_recipe_photo", { recipeId, imageUrl: "https://127.0.0.1/photo.jpg", rightsConfirmed: true });
-    expect(local).toMatchObject({ isError: true, text: "That link points to a private address" });
+    expect(local.isError).toBe(true);
+    expect(local.text).toMatch(/^That link points to a private address\. Ask the person/);
 
     // The app sees the change through its normal sync feed.
     const changes = await (await alice.request("/v1/sync/changes?cursor=0")).json();
     expect(JSON.stringify(changes)).toContain(recipeId);
+  });
+
+  it("takes the person's photo as a chat attachment, link or base64, checks the bytes and confirms where it went", async () => {
+    const token = (await connect(alice)).access_token;
+    const listed = await (await mcp(token, "tools/list")).json();
+    const upload = listed.result.tools.find((t: { name: string }) => t.name === "upload_recipe_photo");
+    // ChatGPT reads this to hand over an attached file with an authorized download link.
+    expect(upload._meta).toEqual({ "openai/fileParams": ["image"] });
+    expect(Object.keys(upload.inputSchema.properties.image.properties).sort()).toEqual(["download_url", "file_id", "file_name", "mime_type"]);
+
+    const { recipeId } = (await tool(token, "save_recipe", { title: "Generated lunch", servings: 1, ingredients: [] })).data;
+    const big = await sharp({ create: { width: 2400, height: 1800, channels: 3, background: "#b9764f" } })
+      .withExif({ IFD0: { Copyright: "someone", ImageDescription: "secret place" } })
+      .png()
+      .toBuffer();
+    const files = new Map<string, { type: string; body: Buffer }>([
+      ["https://files.example.test/generated.png", { type: "image/png", body: big }],
+      ["https://files.example.test/page", { type: "text/html; charset=utf-8", body: Buffer.from("<html></html>") }],
+      ["https://files.example.test/anim.gif", { type: "application/octet-stream", body: await sharp({ create: { width: 10, height: 10, channels: 3, background: "#000" } }).gif().toBuffer() }],
+    ]);
+    const original = photoDownloads.fetch;
+    photoDownloads.fetch = async (url) => {
+      const file = files.get(url);
+      if (!file) throw new PublicFetchError("The link answered 404");
+      return file;
+    };
+    try {
+      // A chat attachment (ChatGPT file params): downloaded, resized, metadata dropped, verified on the recipe.
+      const attached = await tool(token, "upload_recipe_photo", {
+        recipeId,
+        image: { download_url: "https://files.example.test/generated.png", file_id: "file_abc123", mime_type: "image/png", file_name: "lunch.png" },
+        alt: "Lunch bowl",
+        rightsConfirmed: true,
+      });
+      expect(attached.data).toMatchObject({
+        recipeId,
+        photo: "uploaded",
+        verified: true,
+        stored: { format: "webp", width: 1600, height: 1200, metadataRemoved: true, private: true },
+      });
+      expect(JSON.stringify(attached.data)).not.toContain("http");
+      const recipe = await (await alice.request(`/v1/recipes/${recipeId}`)).json();
+      expect(recipe.image).toMatchObject({ id: attached.data.imageId, kind: "upload", alt: "Lunch bowl" });
+      expect(recipe.version).toBe(attached.data.recipeVersion);
+      const { rows } = await pool.query("select bytes, upload_source from recipe_images where id = $1", [attached.data.imageId]);
+      expect(rows[0].upload_source).toBe("assistant");
+      const meta = await sharp(rows[0].bytes).metadata();
+      expect([meta.format, meta.exif]).toEqual(["webp", undefined]);
+      // Someone else can't load it.
+      expect((await bob.request(`/v1/images/${attached.data.imageId}`)).status).toBe(404);
+
+      // AVIF as base64 (and as a data URL) works.
+      const avif = (await sharp({ create: { width: 300, height: 200, channels: 3, background: "#7a9" } }).avif().toBuffer()).toString("base64");
+      expect((await tool(token, "upload_recipe_photo", { recipeId, imageBase64: `data:image/avif;base64,${avif}`, rightsConfirmed: true })).data.stored).toMatchObject({ width: 300, height: 200 });
+
+      // Actionable refusals.
+      const sandbox = await tool(token, "upload_recipe_photo", { recipeId, imageUrl: "/mnt/data/generated.png", rightsConfirmed: true });
+      expect(sandbox).toMatchObject({ isError: true });
+      expect(sandbox.text).toContain("is a file inside the chat app");
+      expect(sandbox.text).toContain("attach the image file to the chat");
+      const sandboxB64 = await tool(token, "upload_recipe_photo", { recipeId, imageBase64: "sandbox:/mnt/data/x.png", rightsConfirmed: true });
+      expect(sandboxB64.text).toContain("is a file inside the chat app");
+      const mobileRef = await tool(token, "upload_recipe_photo", { recipeId, image: { download_url: "chat_upload://image_0", file_id: "chat_upload" }, rightsConfirmed: true });
+      expect(mobileRef.text).toContain("is a file inside the chat app");
+      expect((await tool(token, "upload_recipe_photo", { recipeId, imageUrl: "https://files.example.test/page", rightsConfirmed: true })).text).toContain("opens a web page");
+      expect((await tool(token, "upload_recipe_photo", { recipeId, imageUrl: "https://files.example.test/anim.gif", rightsConfirmed: true })).text).toContain("send a JPEG, PNG, WebP or AVIF image");
+      expect((await tool(token, "upload_recipe_photo", { recipeId, imageUrl: "https://files.example.test/doc.pdf", rightsConfirmed: true })).text).toContain("The link answered 404. Ask the person");
+      const declared = await tool(token, "upload_recipe_photo", { recipeId, image: { download_url: "https://files.example.test/generated.png", file_id: "f", mime_type: "application/pdf" }, rightsConfirmed: true });
+      expect(declared.text).toBe("That file is application/pdf; send a JPEG, PNG, WebP or AVIF image.");
+      expect((await tool(token, "upload_recipe_photo", { recipeId, imageBase64: "not base64 at all!", rightsConfirmed: true })).text).toContain("isn't valid base64");
+      const cut = big.toString("base64").slice(0, 4000);
+      expect((await tool(token, "upload_recipe_photo", { recipeId, imageBase64: cut, rightsConfirmed: true })).text).toContain("often cut off");
+      expect((await tool(token, "upload_recipe_photo", { recipeId, rightsConfirmed: true })).text).toContain("Send exactly one of");
+      const both = await tool(token, "upload_recipe_photo", { recipeId, imageUrl: "https://files.example.test/generated.png", imageBase64: avif, rightsConfirmed: true });
+      expect(both.text).toContain("Send exactly one of");
+    } finally {
+      photoDownloads.fetch = original;
+    }
   });
 
   it("keeps people apart: one person's token can't read or change another's recipes", async () => {

@@ -34,3 +34,24 @@ The owner asked whether Claude or ChatGPT could sit in a floating panel inside t
 - **Where it's offered:** inside the companion panel ("Prefer your own Claude or ChatGPT? Use it instead") and under Connected apps. Both show the connector address with Copy, plus Open Claude / Open ChatGPT buttons. On wide screens the assistant opens in a window docked to the right of the app; elsewhere it opens a tab. The offer is hidden when the server has the connector switched off.
 - **Live updates:** while the app is visible and the person has a connected assistant, it quietly pulls the sync feed every 5 seconds. A quiet pull doesn't touch the sync status chip and re-renders only when something changed. Local unsynced work goes through a normal sync first. There's no background polling when the tab is hidden or no assistant is connected.
 
+
+## Addendum (2026-10-20): photos from the assistant, including ChatGPT-generated images
+
+The owner asked for `upload_recipe_photo` to accept images ChatGPT generates, without assuming the server can open ChatGPT's sandbox paths or attachment ids.
+
+**Inputs (exactly one):**
+- `image`: a chat attachment as the client supplies it, `{ download_url, file_id, mime_type?, file_name? }`. The tool declares `_meta["openai/fileParams"] = ["image"]`, which tells ChatGPT to fill that field with an authorized, temporary download link. The server downloads it through the same SSRF-safe fetch as links (https on 443 only, every resolved address public, connection pinned, redirects re-checked, 9 MB cap). The `file_id` is only kept in the request; it is never used to call OpenAI.
+- `imageUrl`: a public https link to the image file (unchanged).
+- `imageBase64`: the file itself, plain or as a `data:` URL (unchanged, now strictly validated).
+
+**Checks:** a declared type (attachment `mime_type`, `data:` type, HTTP `Content-Type`) must be JPEG, PNG, WebP or AVIF, or absent/`octet-stream`. The bytes decide: sharp must decode them as one of those four (AVIF is HEIF with AV1). The image is then re-encoded to WebP at most 1600 px with all metadata removed, stored owner-only in PostgreSQL, attached to the recipe, and read back. The tool answers only after that read-back succeeds (`verified: true`, image id, recipe version, stored size). No image URL is returned; images are served only to their owner's session. The app's own upload button also still takes phone formats like HEIC.
+
+**Actionable errors:** sandbox paths and chat-only references (`/mnt/data/…`, `sandbox:`, `file:`, `chat_upload://…`, bare `file-…` ids) get "this is a file inside the chat app, which The Better Plate can't open", followed by the three ways that do work: attach the file to the chat, give a public link, or upload in the app. Invalid or cut-off base64, web pages instead of images, other formats, oversize files and failed downloads each get their own message.
+
+**What each client can send (checked 2026-10-20):**
+- **ChatGPT, files the person attaches (web):** passed through file params with a `download_url` and `file_id`. This is documented in the Apps SDK reference (developers.openai.com/plugins/reference, `_meta["openai/fileParams"]`). Not yet exercised against real ChatGPT from dev.
+- **ChatGPT, images it generates:** **not supported by ChatGPT today.** Generated images live in ChatGPT's sandbox and reach tools as `/mnt/data/...` paths with no download link. OpenAI support confirmed on 2026-10-01 that such a path "isn't a URL that your remote MCP server can fetch directly", and gave no documented way to turn one into a `file_id` (community.openai.com thread 1382637). Base64 written out by the model is cut off for images around 2.5 MB (thread 1365335). **Workaround for people:** download the generated image and attach it to the chat, which makes it a file param, or upload it in the app.
+- **ChatGPT mobile apps:** reported to send bare `chat_upload://image_0` strings instead of file objects (openai-apps-sdk-examples issue #185, still open as of 2026-09-19). These get the chat-only error.
+- **Claude:** no file-param mechanism. Attached images are not handed to connector tools, and the model can't reproduce an image's bytes as base64. In practice Claude can send a public link, or base64 only when it has the bytes as text. This is inferred from the MCP specification having no file-input primitive yet; proposals SEP-2356 (base64 primitive) and SEP-2361 (file handling) are open.
+
+When a client adds a file primitive (the MCP proposals above, or ChatGPT exposing generated images as file params), the `image` input is where it plugs in.

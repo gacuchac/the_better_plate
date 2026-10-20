@@ -1,6 +1,6 @@
 import { deflateSync, crc32 } from "node:zlib";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import sharp from "sharp";
+import sharp, { type Metadata } from "sharp";
 import {
   ImageGenerateSchema,
   ImageUploadSchema,
@@ -160,22 +160,45 @@ async function generate(apiKey: string, prompt: string): Promise<{ bytes: Buffer
 /** Phone photos run large; anything bigger than this is refused before decoding. */
 export const MAX_UPLOAD_BYTES = 9_000_000;
 const UPLOAD_FORMATS = new Set(["jpeg", "png", "webp", "avif", "heif", "gif", "tiff"]);
+/** Assistants send generated or shared images; only the common web formats are taken from them. */
+export const ASSISTANT_FORMATS = "JPEG, PNG, WebP or AVIF";
 const unusable = () => new ApiError(422, "photo_unusable", "That file couldn't be read as a photo; try a JPEG or PNG");
+
+/** sharp reports AVIF as HEIF with AV1 compression. */
+function formatName(meta: Metadata): string | undefined {
+  return meta.format === "heif" && meta.compression === "av1" ? "avif" : meta.format;
+}
+
+export interface NormalizedUpload {
+  bytes: Buffer;
+  mime: "image/webp";
+  width: number;
+  height: number;
+}
 
 /**
  * Checks the file really is a raster photo and re-encodes it: at most 1600 px on the long side,
- * WebP, upright, with every bit of metadata (location, camera, owner) dropped.
+ * WebP, upright, with every bit of metadata (location, camera, owner) dropped. From an assistant
+ * ("web") only JPEG, PNG, WebP and AVIF are taken; the app also takes phone formats like HEIC.
  */
-export async function normalizeUpload(input: Buffer): Promise<{ bytes: Buffer; mime: "image/webp" }> {
+export async function normalizeUpload(input: Buffer, formats: "any" | "web" = "any"): Promise<NormalizedUpload> {
   if (input.length === 0) throw unusable();
   if (input.length > MAX_UPLOAD_BYTES) throw new ApiError(413, "photo_too_large", "That photo is too large; use one under 9 MB");
   const opts = { limitInputPixels: 50_000_000, failOn: "error" as const };
   try {
     const meta = await sharp(input, opts).metadata();
-    if (!meta.format || !UPLOAD_FORMATS.has(meta.format)) throw unusable();
-    const bytes = await sharp(input, opts).rotate().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
-    if (bytes.length > MAX_BYTES) throw unusable();
-    return { bytes, mime: "image/webp" };
+    const format = formatName(meta);
+    if (!format || !UPLOAD_FORMATS.has(format)) throw unusable();
+    if (formats === "web" && !["jpeg", "png", "webp", "avif"].includes(format)) {
+      throw new ApiError(422, "photo_format", `That image is ${format.toUpperCase()}; send a ${ASSISTANT_FORMATS} image`);
+    }
+    const { data, info } = await sharp(input, opts)
+      .rotate()
+      .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer({ resolveWithObject: true });
+    if (data.length > MAX_BYTES) throw unusable();
+    return { bytes: data, mime: "image/webp", width: info.width, height: info.height };
   } catch (err) {
     if (err instanceof ApiError) throw err;
     throw unusable();
@@ -183,9 +206,15 @@ export async function normalizeUpload(input: Buffer): Promise<{ bytes: Buffer; m
 }
 
 /** Stores the person's own photo. They confirmed they may use it; that time and where it came from are kept. */
-export async function storeUpload(userId: string, input: Buffer, alt: string, via: "app" | "assistant"): Promise<RecipeImage> {
-  const { bytes, mime } = await normalizeUpload(input);
-  return store(userId, { kind: "upload", credit: null, generator: null, bytes, mime }, alt, via);
+export async function storeUpload(
+  userId: string,
+  input: Buffer,
+  alt: string,
+  via: "app" | "assistant",
+): Promise<{ image: RecipeImage; width: number; height: number; size: number }> {
+  const { bytes, mime, width, height } = await normalizeUpload(input, via === "assistant" ? "web" : "any");
+  const image = await store(userId, { kind: "upload", credit: null, generator: null, bytes, mime }, alt, via);
+  return { image, width, height, size: bytes.length };
 }
 
 // ---------------------------------------------------------------- storage
@@ -356,7 +385,7 @@ imageRoutes.openapi(
     const user = requireUser(c);
     const { data, alt } = c.req.valid("json");
     const bytes = Buffer.from(data.replace(/^data:[^,]*,/, ""), "base64");
-    return c.json(await storeUpload(user.id, bytes, alt ?? "", "app"), 201);
+    return c.json((await storeUpload(user.id, bytes, alt ?? "", "app")).image, 201);
   },
 );
 
