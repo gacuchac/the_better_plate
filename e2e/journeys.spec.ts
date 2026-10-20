@@ -331,7 +331,13 @@ test("plan a meal, mark it eaten, and see plans kept apart from what was eaten",
   await expect(totals.getByTestId("totals-days")).toHaveText("Meals logged on 1 of 1 day.");
   const summary = await (await page.request.get(`${API}/v1/nutrition/summary?from=${today}&to=${today}`)).json();
   expect(summary).toMatchObject({ days: 1, daysLogged: 1, incomplete: false });
-  await shot(page, info, "you-totals", "You: estimated totals and per-logged-day averages over a chosen range");
+  const bar = totals.getByTestId("goal-chart").getByTestId("goal-bar");
+  await expect(bar).toHaveCount(1);
+  await expect(bar).toContainText("Protein");
+  await expect(bar).toContainText("At least 155 g a day");
+  await expect(bar).toHaveAttribute("data-status", "below");
+  await expect(bar).toContainText("under your goal");
+  await shot(page, info, "you-totals", "You: estimated totals, per-logged-day averages and a bar chart against daily goals");
 });
 
 test("cook mode shows your steps one at a time, timers, and cited safe temperatures", async ({ page }, info) => {
