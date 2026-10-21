@@ -25,6 +25,7 @@ const NAV: { path: string; label: MessageKey; icon: IconName }[] = [
   { path: "/kitchen", label: "nav.kitchen", icon: "kitchen" },
   { path: "/create", label: "nav.create", icon: "plus" },
   { path: "/explore", label: "nav.explore", icon: "search" },
+  { path: "/groups", label: "groups.title", icon: "people" },
   { path: "/you", label: "nav.you", icon: "user" },
 ];
 
@@ -106,8 +107,9 @@ export function App() {
   const groupMatch = /^\/groups\/([0-9a-f-]{36})$/.exec(route);
   const joinMatch = /^\/join\/([0-9a-f-]{36})$/.exec(route);
   const inKitchen = !!(recipeMatch || mealsMatch || shoppingMatch);
-  const inYou = ["/goals", "/targets", "/ai", "/groups", "/preferences"].includes(route) || !!groupMatch || !!joinMatch;
-  const section = inKitchen ? "/kitchen" : inYou ? "/you" : route;
+  const inYou = ["/goals", "/targets", "/ai", "/preferences"].includes(route);
+  const inGroups = route === "/groups" || !!groupMatch || !!joinMatch;
+  const section = inKitchen ? "/kitchen" : inYou ? "/you" : inGroups ? "/groups" : route;
   let screen;
   if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;

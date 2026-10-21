@@ -97,7 +97,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .shell { min-height: 100vh; }
 .nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(5, 1fr);
   background: var(--surface); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
 }

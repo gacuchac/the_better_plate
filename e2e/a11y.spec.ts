@@ -103,6 +103,7 @@ test("core screens have no automatically detectable WCAG 2.2 AA violations", asy
   await expect(page.getByTestId("shop-summary")).toBeVisible();
   await audit(page, "shopping-list");
   await page.goto("/#/groups");
+  await expect(page.getByRole("link", { name: "Groups", exact: true })).toHaveAttribute("aria-current", "page");
   await page.getByLabel("Group name").fill("Accessible family");
   await page.getByLabel("Your name in the group").fill("Ana");
   await audit(page, "groups");
