@@ -6059,6 +6059,237 @@
         }
       }
     },
+    "/v1/water": {
+      "get": {
+        "tags": [
+          "water"
+        ],
+        "summary": "Water I logged drinking over a date range (at most 31 days)",
+        "description": "Drinks only; water inside foods comes with each eaten meal's nutrition. Writes go through POST /v1/sync/batch (water.create, water.delete).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": true,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": true,
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Drinks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "to": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "drinks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "amountMl": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 5000
+                          },
+                          "localDate": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "drankAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "amountMl",
+                          "localDate",
+                          "drankAt",
+                          "id",
+                          "createdAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "drinks"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/shopping-list": {
       "get": {
         "tags": [
@@ -16879,6 +17110,78 @@
                             "type": {
                               "type": "string",
                               "enum": [
+                                "water.create"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "body": {
+                              "type": "object",
+                              "properties": {
+                                "amountMl": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 5000
+                                },
+                                "localDate": {
+                                  "type": "string",
+                                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                },
+                                "drankAt": {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              },
+                              "required": [
+                                "amountMl",
+                                "localDate",
+                                "drankAt"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId",
+                            "body"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "water.delete"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
                                 "prefs.put"
                               ]
                             },
@@ -17979,7 +18282,7 @@
           "sync"
         ],
         "summary": "Pull changes after a cursor, including deletion tombstones",
-        "description": "Recipes (mine and my groups'), planned meals (including those my groups' admins planned for me), eaten logs, goals, food preferences, meal feedback and the profiles I own. When I join a group its recipes are sent again; when I leave one, clients drop its recipes.",
+        "description": "Recipes (mine and my groups'), planned meals (including those my groups' admins planned for me), eaten logs, goals, food preferences, meal feedback, water I logged and the profiles I own. When I join a group its recipes are sent again; when I leave one, clients drop its recipes.",
         "parameters": [
           {
             "schema": {
@@ -18025,7 +18328,8 @@
                               "goal",
                               "preferences",
                               "meal_feedback",
-                              "profile"
+                              "profile",
+                              "water_log"
                             ]
                           },
                           "entityId": {
@@ -19083,6 +19387,41 @@
                               "id",
                               "name",
                               "version",
+                              "createdAt"
+                            ]
+                          },
+                          "waterLog": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "amountMl": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 5000
+                              },
+                              "localDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "drankAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "amountMl",
+                              "localDate",
+                              "drankAt",
+                              "id",
                               "createdAt"
                             ]
                           }
@@ -22743,7 +23082,7 @@
           "account"
         ],
         "summary": "Download all my data as JSON",
-        "description": "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, food preferences, meal feedback, profiles, group memberships, share links and issue reports. Rate limited to 10 per hour.",
+        "description": "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, meal feedback, profiles, group memberships, share links and issue reports. Rate limited to 10 per hour.",
         "responses": {
           "200": {
             "description": "Export (betterplate.export/1)",

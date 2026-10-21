@@ -171,6 +171,21 @@ export const MealLogSchema = MealLogBodySchema.extend({
   eaten: z.array(NutrientTotalSchema),
 });
 
+// ---------- water: drinks the person logs ----------
+
+/** A drink of water the person logged. Create-only like eaten meals; separate drinks are never coalesced. */
+export const WaterLogBodySchema = z.object({
+  /** Millilitres drunk (1 ml of water weighs 1 g). */
+  amountMl: z.number().int().min(1).max(5000),
+  localDate: LocalDateSchema,
+  drankAt: z.iso.datetime({ offset: true }),
+});
+
+export const WaterLogSchema = WaterLogBodySchema.extend({
+  id: z.uuid(),
+  createdAt: z.string(),
+});
+
 // ---------- food preferences and feedback: only what people tell us ----------
 
 /**
@@ -358,6 +373,18 @@ export const SyncOperationSchema = z.discriminatedUnion("type", [
     entityId: z.uuid(),
     baseVersion: z.number().int().positive().nullable(),
   }),
+  /** Create-only, like eaten meals: a drink is never edited, only removed. */
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("water.create"),
+    entityId: z.uuid(),
+    body: WaterLogBodySchema,
+  }),
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("water.delete"),
+    entityId: z.uuid(),
+  }),
   /** entityId is the person: the account's own id, or one of its profiles' ids (with body.profileId). */
   z.object({
     opId: z.uuid(),
@@ -408,7 +435,7 @@ export const SyncBatchResponseSchema = z.object({
 });
 
 export const SyncChangeSchema = z.object({
-  entity: z.enum(["recipe", "planned_meal", "meal_log", "goal", "preferences", "meal_feedback", "profile"]),
+  entity: z.enum(["recipe", "planned_meal", "meal_log", "goal", "preferences", "meal_feedback", "profile", "water_log"]),
   entityId: z.uuid(),
   seq: z.string(),
   deleted: z.boolean(),
@@ -419,6 +446,7 @@ export const SyncChangeSchema = z.object({
   preferences: FoodPreferencesSchema.nullable().optional(),
   feedback: MealFeedbackSchema.nullable().optional(),
   profile: ProfileSchema.nullable().optional(),
+  waterLog: WaterLogSchema.nullable().optional(),
 });
 
 export const SyncChangesResponseSchema = z.object({
@@ -495,6 +523,8 @@ export type PlannedMeal = z.infer<typeof PlannedMealSchema>;
 export type MealLogBody = z.infer<typeof MealLogBodySchema>;
 export type MealLog = z.infer<typeof MealLogSchema>;
 export type GoalBody = z.infer<typeof GoalBodySchema>;
+export type WaterLogBody = z.infer<typeof WaterLogBodySchema>;
+export type WaterLog = z.infer<typeof WaterLogSchema>;
 export type Goal = z.infer<typeof GoalSchema>;
 export type NutritionSummary = z.infer<typeof NutritionSummarySchema>;
 export type SyncOperation = z.infer<typeof SyncOperationSchema>;

@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import type { GoalBody } from "@betterplate/contracts";
 import type { DailyValue, DayIntake, FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
-import { sumMeals } from "@betterplate/nutrition";
-import type { LocalGoal, LocalLog } from "./localdb.ts";
+import { sumMeals, waterIntake } from "@betterplate/nutrition";
+import type { LocalGoal, LocalLog, LocalWater } from "./localdb.ts";
 import { localDate, logEaten } from "./meals.ts";
 import { useApp } from "./store.tsx";
-import { formatQty, t } from "./i18n.ts";
+import { formatNutrient, t } from "./i18n.ts";
 
 /** Daily goals in effect today, as the amount percentages compare with (the lower bound, else the upper). */
 export function dailyTargets(goals: LocalGoal[], today = localDate()): DailyValue[] {
@@ -17,6 +17,11 @@ export function dailyTargets(goals: LocalGoal[], today = localDate()): DailyValu
 export function useDailyTargets(): DailyValue[] {
   const { goals } = useApp();
   return useMemo(() => dailyTargets(goals), [goals]);
+}
+
+/** Water each day: drinks logged plus water in logged meals, for water goals. */
+export function waterIntakeByDay(intake: DayIntake[], water: LocalWater[]): DayIntake[] {
+  return waterIntake(intake, water.map((w) => w.body));
 }
 
 /** What was eaten each day with logged meals: logs only, plans never count. */
@@ -35,7 +40,8 @@ const PER = { day: "goals.per.day", week: "goals.per.week", month: "goals.per.mo
 /** "At least 120 g a day", in the nutrient's unit. */
 export function goalSentence(goal: GoalBody): string {
   const per = t(PER[goal.period]);
-  if (goal.kind === "at_least") return t("goals.sentence.atLeast", { amount: formatQty(goal.min, goal.unit), per });
-  if (goal.kind === "at_most") return t("goals.sentence.atMost", { amount: formatQty(goal.max, goal.unit), per });
-  return t("goals.sentence.between", { min: formatQty(goal.min, goal.unit), max: formatQty(goal.max, goal.unit), per });
+  const qty = (v: number | null) => formatNutrient(goal.nutrientKey, v, goal.unit);
+  if (goal.kind === "at_least") return t("goals.sentence.atLeast", { amount: qty(goal.min), per });
+  if (goal.kind === "at_most") return t("goals.sentence.atMost", { amount: qty(goal.max), per });
+  return t("goals.sentence.between", { min: qty(goal.min), max: qty(goal.max), per });
 }

@@ -9,3 +9,4 @@ export * from "./everyday-foods.ts";
 export * from "./goals.ts";
 export * from "./shopping.ts";
 export * from "./allergens.ts";
+export * from "./water.ts";

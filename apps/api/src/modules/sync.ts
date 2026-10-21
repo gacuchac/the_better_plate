@@ -16,6 +16,7 @@ import { deleteGoal, GOAL_COLUMNS, putGoal, toGoal } from "./goals.ts";
 import { putFeedback, putPreferences, toFeedback, toPreferences } from "./preferences.ts";
 import { READABLE_RECIPES } from "./access.ts";
 import { PROFILE_COLUMNS, toProfile } from "./groups.ts";
+import { createWater, deleteWater, toWater, WATER_COLUMNS } from "./water.ts";
 
 async function runOperation(client: Parameters<typeof putRecipe>[0], userId: string, op: SyncOperation): Promise<SyncResult> {
   const base = { opId: op.opId, entityId: op.entityId, replayed: false };
@@ -54,6 +55,12 @@ async function runOperation(client: Parameters<typeof putRecipe>[0], userId: str
           : await deleteGoal(client, userId, op.entityId, op.baseVersion);
       if (outcome.status === "applied") return { ...base, status: "applied", version: outcome.version };
       if (outcome.status === "conflict") return { ...base, status: "conflict", version: outcome.server?.version ?? null, serverGoal: outcome.server };
+      return { ...base, status: "rejected", version: null, error: { code: outcome.code, message: outcome.message } };
+    }
+    case "water.create":
+    case "water.delete": {
+      const outcome = op.type === "water.create" ? await createWater(client, userId, op.entityId, op.body) : await deleteWater(client, userId, op.entityId);
+      if (outcome.status === "applied") return { ...base, status: "applied", version: null };
       return { ...base, status: "rejected", version: null, error: { code: outcome.code, message: outcome.message } };
     }
     case "prefs.put": {
@@ -148,7 +155,7 @@ syncRoutes.openapi(
     summary: "Pull changes after a cursor, including deletion tombstones",
     description:
       "Recipes (mine and my groups'), planned meals (including those my groups' admins planned for me), eaten logs, goals, food preferences, " +
-      "meal feedback and the profiles I own. When I join a group its recipes are sent again; when I leave one, clients drop its recipes.",
+      "meal feedback, water I logged and the profiles I own. When I join a group its recipes are sent again; when I leave one, clients drop its recipes.",
     request: {
       query: z.object({
         cursor: z.string().regex(/^\d{1,19}$/).default("0"),
@@ -164,7 +171,7 @@ syncRoutes.openapi(
     const user = requireUser(c);
     const { cursor, limit } = c.req.valid("query");
     // One global sequence orders every entity; merge the per-user feeds by it.
-    const [recipes, plans, logs, goals, prefs, feedback, profiles] = await Promise.all([
+    const [recipes, plans, logs, goals, prefs, feedback, profiles, water] = await Promise.all([
       pool.query(`select * from recipes where ${READABLE_RECIPES} and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
       pool.query(`select ${PLAN_COLUMNS} from planned_meals where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
       pool.query(`select ${LOG_COLUMNS} from consumption_events where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
@@ -172,6 +179,7 @@ syncRoutes.openapi(
       pool.query("select * from food_preferences where user_id = $1 and server_seq > $2 order by server_seq limit $3", [user.id, cursor, limit + 1]),
       pool.query("select * from meal_feedback where user_id = $1 and server_seq > $2 order by server_seq limit $3", [user.id, cursor, limit + 1]),
       pool.query(`select ${PROFILE_COLUMNS} from profiles where owner_user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
+      pool.query(`select ${WATER_COLUMNS} from water_logs where user_id = $1 and server_seq > $2 order by server_seq limit $3`, [user.id, cursor, limit + 1]),
     ]);
     const all: SyncChange[] = [
       ...recipes.rows.map((r) => ({ entity: "recipe" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: r.deleted_at ? null : toRecipe(r) })),
@@ -181,6 +189,7 @@ syncRoutes.openapi(
       ...prefs.rows.map((r) => ({ entity: "preferences" as const, entityId: r.id, seq: String(r.server_seq), deleted: false, recipe: null, preferences: toPreferences(r) })),
       ...feedback.rows.map((r) => ({ entity: "meal_feedback" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, feedback: r.deleted_at ? null : toFeedback(r) })),
       ...profiles.rows.map((r) => ({ entity: "profile" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, profile: r.deleted_at ? null : toProfile(r) })),
+      ...water.rows.map((r) => ({ entity: "water_log" as const, entityId: r.id, seq: String(r.server_seq), deleted: r.deleted_at !== null, recipe: null, waterLog: r.deleted_at ? null : toWater(r) })),
     ].sort((a, b) => (BigInt(a.seq) < BigInt(b.seq) ? -1 : 1));
     const page = all.slice(0, limit);
     return c.json(

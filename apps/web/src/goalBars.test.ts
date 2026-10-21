@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { GoalBody } from "@betterplate/contracts";
 import type { DayIntake } from "@betterplate/nutrition";
 import type { LocalGoal } from "./localdb.ts";
-import { barScale, goalBars } from "./goalBars.ts";
+import { barScale, goalBars, referenceBars } from "./goalBars.ts";
 
 // Labeled test fixture amounts, not food data.
 const goal = (id: string, body: Partial<GoalBody>): LocalGoal => ({
@@ -59,5 +59,33 @@ describe("eaten against daily goals over a range", () => {
     expect(barScale({ amount: 50, goal: goal("a", {}) })).toBeCloseTo(110);
     expect(barScale({ amount: 300, goal: goal("a", {}) })).toBeCloseTo(330);
     expect(barScale({ amount: null, goal: goal("a", { kind: "between", min: 10, max: 20 }) })).toBeCloseTo(22);
+  });
+});
+
+describe("FDA Daily Values next to goals", () => {
+  // Labeled reference fixtures, not the FDA list.
+  const dvs = [
+    { key: "protein", unit: "g", amount: 50 },
+    { key: "energy_kcal", unit: "kcal", amount: 1000 },
+  ];
+
+  it("adds the Daily Value to goal bars and widens the scale to fit it", () => {
+    const [bar] = goalBars([goal("p", { min: 40 })], [day("2026-10-10", 30)], "2026-10-10", "2026-10-10", dvs);
+    expect(bar!.dailyValue).toBe(50);
+    expect(barScale(bar!)).toBeCloseTo(55);
+  });
+
+  it("lists nutrients without a daily goal against the Daily Value, unknown kept unknown", () => {
+    const bars = referenceBars([goal("p", {})], [day("2026-10-10", 30), day("2026-10-11", 10, "known", 700)], "2026-10-10", "2026-10-11", [...dvs, { key: "iron", unit: "mg", amount: 10 }]);
+    expect(bars).toEqual([
+      { key: "energy_kcal", unit: "kcal", amount: 600, partial: false, dailyValue: 1000 },
+      { key: "iron", unit: "mg", amount: null, partial: false, dailyValue: 10 },
+    ]);
+  });
+
+  it("compares water goals with drinks plus food water", () => {
+    const water: DayIntake[] = [{ date: "2026-10-10", totals: [{ key: "water", unit: "g", amount: 1800, status: "known", mealsMissing: 0, missingFrom: [] }] }];
+    const [bar] = goalBars([goal("w", { nutrientKey: "water", unit: "g", min: 2000 })], [day("2026-10-10", 30)], "2026-10-10", "2026-10-10", [], water);
+    expect(bar).toMatchObject({ amount: 1800, status: "below", daysLogged: 1 });
   });
 });

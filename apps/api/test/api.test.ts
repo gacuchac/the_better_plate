@@ -485,6 +485,50 @@ describe("consumption goals and period totals", () => {
   });
 });
 
+describe("water logged", () => {
+  const batch = async (client: Client, operations: unknown[]) => {
+    const res = await client.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations } });
+    expect(res.status).toBe(200);
+    return SyncBatchResponseSchema.parse(await res.json()).results;
+  };
+  const drink = (amountMl: number, localDate = "2026-10-21", entityId = uuid()) => ({
+    opId: uuid(), type: "water.create" as const, entityId, body: { amountMl, localDate, drankAt: `${localDate}T09:30:00-03:00` },
+  });
+
+  it("keeps each drink, replays safely, removes with a tombstone and exports", async () => {
+    const hal = await signIn();
+    const first = drink(250);
+    const results = await batch(hal, [first, drink(250), drink(500, "2026-10-22"), first]);
+    expect(results.map((r) => [r.status, r.replayed])).toEqual([["applied", false], ["applied", false], ["applied", false], ["applied", true]]);
+    const { drinks } = await (await hal.request("/v1/water?from=2026-10-21&to=2026-10-21")).json();
+    expect(drinks.map((d: { amountMl: number }) => d.amountMl)).toEqual([250, 250]);
+
+    expect((await batch(hal, [{ opId: uuid(), type: "water.delete", entityId: first.entityId }]))[0]!.status).toBe("applied");
+    expect((await (await hal.request("/v1/water?from=2026-10-21&to=2026-10-22")).json()).drinks).toHaveLength(2);
+    const changes = SyncChangesResponseSchema.parse(await (await hal.request("/v1/sync/changes")).json()).changes;
+    expect(changes.find((c) => c.entityId === first.entityId)).toMatchObject({ entity: "water_log", deleted: true, waterLog: null });
+    expect(changes.filter((c) => c.entity === "water_log" && !c.deleted)).toHaveLength(2);
+    const data = await (await hal.request("/v1/me/export")).json();
+    expect(data.waterDrunk).toHaveLength(2);
+  });
+
+  it("validates amounts and dates, bounds the range and never crosses accounts", async () => {
+    const [hal, ivy] = await Promise.all([signIn(), signIn()]);
+    for (const amountMl of [0, 5001, 2.5]) {
+      const res = await hal.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations: [drink(amountMl)] } });
+      expect(res.status).toBe(400);
+    }
+    const mine = drink(300);
+    await batch(hal, [mine]);
+    expect((await (await ivy.request("/v1/water?from=2026-10-21&to=2026-10-21")).json()).drinks).toEqual([]);
+    const results = await batch(ivy, [{ opId: uuid(), type: "water.delete", entityId: mine.entityId }, { ...mine, opId: uuid() }]);
+    expect(results.map((r) => r.status)).toEqual(["rejected", "rejected"]);
+    expect((await (await hal.request("/v1/water?from=2026-10-21&to=2026-10-21")).json()).drinks).toHaveLength(1);
+    expect((await hal.request("/v1/water?from=2026-10-01&to=2026-12-01")).status).toBe(400);
+    expect((await call("/v1/water?from=2026-10-21&to=2026-10-21")).status).toBe(401);
+  });
+});
+
 describe("issue reports", () => {
   const report = (extra: Record<string, unknown> = {}) => ({
     id: uuid(),

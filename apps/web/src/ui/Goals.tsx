@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import type { GoalBody } from "@betterplate/contracts";
-import { DIETARY_GUIDELINES_SOURCE, dayCount, goalProblem, goalProgress, periodWindow, shiftDate, summarizePeriod } from "@betterplate/nutrition";
+import { DAILY_VALUE_SOURCE, DIETARY_GUIDELINES_SOURCE, FDA_DAILY_VALUES, WATER_KEY, dayCount, goalProblem, goalProgress, periodWindow, shiftDate, summarizePeriod } from "@betterplate/nutrition";
 import type { GoalProgress, GoalWindowProgress, NutrientDefinition } from "@betterplate/nutrition";
 import { useApp } from "../store.tsx";
-import { goalSentence, intakeByDay } from "../goals.ts";
-import { barScale, goalBars, type GoalBar } from "../goalBars.ts";
+import { goalSentence, intakeByDay, waterIntakeByDay } from "../goals.ts";
+import { barScale, goalBars, referenceBars, referenceScale, type GoalBar, type ReferenceBar } from "../goalBars.ts";
 import type { LocalGoal } from "../localdb.ts";
 import { localDate } from "../meals.ts";
-import { dateLocale, formatQty, nutrientName, t as tr, useT, type MessageKey } from "../i18n.ts";
+import { dateLocale, formatNutrient, formatQty, nutrientName, t as tr, useT, type MessageKey } from "../i18n.ts";
 import { EmptyState, Sheet } from "./common.tsx";
 
 /**
@@ -24,6 +24,12 @@ function useIntake() {
     () => (catalog.status === "ready" ? intakeByDay(logs, catalog.foods, catalog.bundle.nutrients) : []),
     [logs, catalog],
   );
+}
+
+/** Drinks plus water in logged meals, for water goals. */
+function useWaterIntake(intake: ReturnType<typeof useIntake>) {
+  const { water } = useApp();
+  return useMemo(() => waterIntakeByDay(intake, water), [intake, water]);
 }
 
 const shortDate = (date: string) =>
@@ -52,12 +58,13 @@ export function Goals() {
   const { catalog, goals, engine, account } = useApp();
   const t = useT();
   const intake = useIntake();
+  const waterIn = useWaterIntake(intake);
   const [editing, setEditing] = useState<LocalGoal | "new" | null>(null);
   const today = localDate();
 
   if (catalog.status !== "ready" || !account) return <EmptyState title={t("catalog.notReady")}>{t("common.loading")}</EmptyState>;
   const defs = catalog.bundle.nutrients;
-  const withProgress = goals.map((g) => ({ goal: g, progress: goalProgress(g.body, intake, today) }));
+  const withProgress = goals.map((g) => ({ goal: g, progress: goalProgress(g.body, g.body.nutrientKey === WATER_KEY ? waterIn : intake, today) }));
   const order = { active: 0, upcoming: 1, ended: 2 } as const;
   withProgress.sort((a, b) => order[a.progress.state] - order[b.progress.state] || a.goal.body.startDate.localeCompare(b.goal.body.startDate));
 
@@ -107,7 +114,7 @@ export function Goals() {
               ) : (
                 <>
                   <p className="goal-now" data-testid="goal-status">
-                    <strong>{windowLabel(goal.body, w, progress.state)}:</strong> {w.amount === null ? "" : `${formatQty(w.amount, goal.body.unit)} · `}
+                    <strong>{windowLabel(goal.body, w, progress.state)}:</strong> {w.amount === null ? "" : `${formatNutrient(goal.body.nutrientKey, w.amount, goal.body.unit)} · `}
                     {statusWords(w)}
                   </p>
                   {w.partialData && w.amount !== null && <p className="fine">{t("goals.partial")}</p>}
@@ -210,7 +217,7 @@ function GoalSheet({ goal, defs, onClose }: { goal: LocalGoal | null; defs: Nutr
       <label htmlFor={id}>{label}</label>
       <span className="target-input">
         <input id={id} type="number" min={0} step="any" inputMode="decimal" value={value} onChange={(e) => set(e.target.value)} />
-        <span className="target-unit">{def.unit}</span>
+        <span className="target-unit">{nutrientKey === WATER_KEY ? "ml" : def.unit}</span>
       </span>
     </>
   );
@@ -241,6 +248,7 @@ function GoalSheet({ goal, defs, onClose }: { goal: LocalGoal | null; defs: Nutr
           </button>
         ))}
       </div>
+      {nutrientKey === WATER_KEY && <p className="fine">{t("goals.waterNote")}</p>}
       {period === "week" && <p className="fine">{t("goals.weekNote")}</p>}
       <label htmlFor="goal-start">{t("goals.start")}</label>
       <input id="goal-start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -274,6 +282,7 @@ export function PeriodTotals() {
   const { catalog, goals } = useApp();
   const t = useT();
   const intake = useIntake();
+  const waterIn = useWaterIntake(intake);
   const today = localDate();
   const [range, setRange] = useState<Range>("7");
   const [from, setFrom] = useState(shiftDate(today, -6));
@@ -330,7 +339,12 @@ export function PeriodTotals() {
             <p className="hint">{t("summary.empty")}</p>
           ) : (
             <>
-            <GoalChart bars={goalBars(goals, intake, window.from, window.to)} otherGoals={goals.some((g) => !g.deleted && g.body.period !== "day")} defs={defs} />
+            <GoalChart
+              bars={goalBars(goals, intake, window.from, window.to, FDA_DAILY_VALUES, waterIn)}
+              references={referenceBars(goals, intake, window.from, window.to, FDA_DAILY_VALUES)}
+              otherGoals={goals.some((g) => !g.deleted && g.body.period !== "day")}
+              defs={defs}
+            />
             <table className="totals-table">
               <thead>
                 <tr>
@@ -343,7 +357,8 @@ export function PeriodTotals() {
                 {defs.map((d) => {
                   const n = summary.nutrients.find((x) => x.key === d.key && x.unit === d.unit);
                   const partial = n?.status === "partial";
-                  const qty = (v: number | null | undefined) => (v == null ? t("nutrition.notReported") : partial ? t("summary.atLeast", { amount: formatQty(v, d.unit) }) : formatQty(v, d.unit));
+                  const fmt = (v: number) => formatNutrient(d.key, v, d.unit);
+                  const qty = (v: number | null | undefined) => (v == null ? t("nutrition.notReported") : partial ? t("summary.atLeast", { amount: fmt(v) }) : fmt(v));
                   return (
                     <tr key={d.key}>
                       <th scope="row">{nutrientName(d.key, d.name)}</th>
@@ -363,51 +378,108 @@ export function PeriodTotals() {
   );
 }
 
-/** Eaten next to the person's own daily goals: one pair of bars per goal, each on its own scale. */
-function GoalChart({ bars, otherGoals, defs }: { bars: GoalBar[]; otherGoals: boolean; defs: NutrientDefinition[] }) {
+/**
+ * Eaten next to the person's own daily goals and the FDA label Daily Values: one set of bars per
+ * nutrient, each on its own scale. Daily Values are label references, never personal targets.
+ */
+function GoalChart({ bars, references, otherGoals, defs }: { bars: GoalBar[]; references: ReferenceBar[]; otherGoals: boolean; defs: NutrientDefinition[] }) {
   const t = useT();
-  if (!bars.length) return otherGoals ? <p className="fine">{t("chart.otherGoals")}</p> : null;
   const pct = (v: number, scale: number) => `${Math.min(100, (v / scale) * 100)}%`;
+  const name = (key: string) => nutrientName(key, defs.find((d) => d.key === key)?.name ?? key);
+  const amountWords = (key: string, amount: number, unit: string, partial: boolean) =>
+    partial ? t("summary.atLeast", { amount: formatNutrient(key, amount, unit) }) : formatNutrient(key, amount, unit);
+  const dvRow = (dv: number | null, scale: number) =>
+    dv === null ? null : (
+      <>
+        <span className="goal-bar-label">{t("chart.dvLabel")}</span>
+        <span className="goal-bar-track">
+          <span className="goal-bar-dv" style={{ left: pct(dv, scale) }} />
+        </span>
+      </>
+    );
   return (
     <div className="goal-chart" data-testid="goal-chart">
-      <h3 id="goal-chart-title">{t("chart.title")}</h3>
-      <p className="fine">{t("chart.intro")}</p>
-      <ul aria-labelledby="goal-chart-title">
-        {bars.map((bar) => {
-          const { body } = bar.goal;
-          const name = nutrientName(body.nutrientKey, defs.find((d) => d.key === body.nutrientKey)?.name ?? body.nutrientKey);
-          const scale = barScale(bar);
-          const eaten =
-            bar.amount === null
-              ? bar.daysLogged
-                ? t("goals.status.notReported")
-                : t("chart.noDays")
-              : t("chart.eaten", { amount: bar.partial ? t("summary.atLeast", { amount: formatQty(bar.amount, body.unit) }) : formatQty(bar.amount, body.unit) });
-          const lo = body.kind === "between" ? body.min! : 0;
-          const hi = body.kind === "at_least" ? body.min! : body.max!;
-          return (
-            <li key={bar.goal.id} className="goal-bar" data-testid="goal-bar" data-status={bar.status}>
-              <p className="goal-bar-head">
-                <strong>{name}</strong>{" "}
-                <span>
-                  {eaten} · {goalSentence(body)}
-                  {bar.amount !== null && ` · ${t(CHART_STATUS[bar.status])}`}
-                </span>
-              </p>
-              <div className="goal-bar-rows" aria-hidden="true">
-                <span className="goal-bar-label">{t("chart.eatenLabel")}</span>
-                <span className="goal-bar-track">
-                  {bar.amount !== null && <span className={`goal-bar-fill${bar.partial ? " partial" : ""}`} style={{ width: pct(bar.amount, scale) }} />}
-                </span>
-                <span className="goal-bar-label">{t("chart.goalLabel")}</span>
-                <span className="goal-bar-track">
-                  <span className="goal-bar-goal" style={{ left: pct(lo, scale), width: `calc(${pct(hi, scale)} - ${pct(lo, scale)})` }} />
-                </span>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {bars.length > 0 && (
+        <>
+          <h3 id="goal-chart-title">{t("chart.title")}</h3>
+          <p className="fine">{t("chart.intro")}</p>
+          <ul aria-labelledby="goal-chart-title">
+            {bars.map((bar) => {
+              const { body } = bar.goal;
+              const scale = barScale(bar);
+              const water = body.nutrientKey === WATER_KEY;
+              const eaten =
+                bar.amount === null
+                  ? bar.daysLogged
+                    ? t("goals.status.notReported")
+                    : t("chart.noDays")
+                  : t(water ? "chart.drank" : "chart.eaten", { amount: amountWords(body.nutrientKey, bar.amount, body.unit, bar.partial) });
+              const lo = body.kind === "between" ? body.min! : 0;
+              const hi = body.kind === "at_least" ? body.min! : body.max!;
+              return (
+                <li key={bar.goal.id} className="goal-bar" data-testid="goal-bar" data-status={bar.status}>
+                  <p className="goal-bar-head">
+                    <strong>{name(body.nutrientKey)}</strong>{" "}
+                    <span>
+                      {eaten} · {goalSentence(body)}
+                      {bar.amount !== null && ` · ${t(CHART_STATUS[bar.status])}`}
+                      {bar.dailyValue !== null && ` · ${t("chart.dv", { amount: formatNutrient(body.nutrientKey, bar.dailyValue, body.unit) })}`}
+                    </span>
+                  </p>
+                  <div className="goal-bar-rows" aria-hidden="true">
+                    <span className="goal-bar-label">{t(water ? "chart.waterLabel" : "chart.eatenLabel")}</span>
+                    <span className="goal-bar-track">
+                      {bar.amount !== null && <span className={`goal-bar-fill${bar.partial ? " partial" : ""}`} style={{ width: pct(bar.amount, scale) }} />}
+                    </span>
+                    <span className="goal-bar-label">{t("chart.goalLabel")}</span>
+                    <span className="goal-bar-track">
+                      <span className="goal-bar-goal" style={{ left: pct(lo, scale), width: `calc(${pct(hi, scale)} - ${pct(lo, scale)})` }} />
+                    </span>
+                    {dvRow(bar.dailyValue, scale)}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+      {otherGoals && <p className="fine">{t("chart.otherGoals")}</p>}
+      {references.length > 0 && (
+        <details className="dv-chart" data-testid="dv-chart" open={bars.length === 0}>
+          <summary>{t(bars.length ? "chart.dvOthers" : "chart.dvTitle")}</summary>
+          <p className="fine">
+            {t("chart.dvIntro")}{" "}
+            <a href={DAILY_VALUE_SOURCE.url} target="_blank" rel="noopener noreferrer">
+              {t("chart.dvSource")}
+            </a>
+          </p>
+          <ul>
+            {references.map((bar) => {
+              const scale = referenceScale(bar);
+              const share = bar.amount === null ? null : Math.round((bar.amount / bar.dailyValue) * 100);
+              return (
+                <li key={bar.key} className="goal-bar" data-testid="dv-bar">
+                  <p className="goal-bar-head">
+                    <strong>{name(bar.key)}</strong>{" "}
+                    <span>
+                      {bar.amount === null ? t("goals.status.notReported") : t("chart.eaten", { amount: amountWords(bar.key, bar.amount, bar.unit, bar.partial) })} ·{" "}
+                      {t("chart.dv", { amount: formatQty(bar.dailyValue, bar.unit) })}
+                      {share !== null && ` · ${t(bar.partial ? "chart.dvShareAtLeast" : "chart.dvShare", { pct: share })}`}
+                    </span>
+                  </p>
+                  <div className="goal-bar-rows" aria-hidden="true">
+                    <span className="goal-bar-label">{t("chart.eatenLabel")}</span>
+                    <span className="goal-bar-track">
+                      {bar.amount !== null && <span className={`goal-bar-fill${bar.partial ? " partial" : ""}`} style={{ width: pct(bar.amount, scale) }} />}
+                    </span>
+                    {dvRow(bar.dailyValue, scale)}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      )}
     </div>
   );
 }

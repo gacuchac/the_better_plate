@@ -22,6 +22,7 @@ import { aiRoutes, MAX_TURN_BYTES } from "./modules/ai/routes.ts";
 import { imageRoutes } from "./modules/images.ts";
 import { connectorRoutes } from "./modules/connector.ts";
 import { goalRoutes } from "./modules/goals.ts";
+import { waterRoutes } from "./modules/water.ts";
 import { preferenceRoutes } from "./modules/preferences.ts";
 import { groupRoutes } from "./modules/groups.ts";
 import { shoppingRoutes } from "./modules/shopping.ts";
@@ -103,6 +104,7 @@ export function createApp() {
   app.route("/", feedbackRoutes);
   app.route("/", mealRoutes);
   app.route("/", goalRoutes);
+  app.route("/", waterRoutes);
   app.route("/", shoppingRoutes);
   app.route("/", preferenceRoutes);
   app.route("/", groupRoutes);

@@ -11,6 +11,7 @@ const body = (title: string) => ({ title, description: "", servings: 1, ingredie
 function fakeServer() {
   const store = new Map<string, Recipe>();
   const logs = new Map<string, unknown>();
+  const water = new Map<string, unknown>();
   const plans = new Map<string, { version: number; title: string }>();
   const seen = new Map<string, SyncResult>();
   const batches: SyncBatchRequest[] = [];
@@ -20,6 +21,7 @@ function fakeServer() {
   return {
     store,
     logs,
+    water,
     plans,
     batches,
     setOffline: (v: boolean) => (offline = v),
@@ -33,6 +35,12 @@ function fakeServer() {
           const ok = (version: number | null): SyncResult => ({ opId: op.opId, entityId: op.entityId, status: "applied", replayed: false, version });
           if (op.type === "log.create") {
             logs.set(op.entityId, op.body);
+            seen.set(op.opId, ok(null));
+            return ok(null);
+          }
+          if (op.type === "water.create" || op.type === "water.delete") {
+            if (op.type === "water.create") water.set(op.entityId, op.body);
+            else water.delete(op.entityId);
             seen.set(op.opId, ok(null));
             return ok(null);
           }
@@ -227,6 +235,27 @@ describe("SyncEngine meals", () => {
     await engine.syncNow();
     expect(server.logs.has(kept)).toBe(false);
     expect(server.batches.at(-1)!.operations[0]!.type).toBe("log.delete");
+  });
+
+  it("keeps each glass of water as its own event and removes drinks like logs", async () => {
+    const server = fakeServer();
+    const engine = await engineFor(server);
+    server.setOffline(true);
+    const glass = { amountMl: 250, localDate: "2026-10-21", drankAt: "2026-10-21T09:00:00.000Z" };
+    await engine.logWater(glass);
+    const second = await engine.logWater(glass);
+    const unsent = await engine.logWater(glass);
+    await engine.deleteWater(unsent);
+    expect(await engine.pendingCount()).toBe(2);
+    server.setOffline(false);
+    await engine.syncNow();
+    expect(server.water.size).toBe(2);
+    expect((await engine.listWater()).every((w) => w.state === "synced")).toBe(true);
+    await engine.deleteWater(second);
+    await engine.syncNow();
+    expect(server.water.has(second)).toBe(false);
+    expect(server.batches.at(-1)!.operations[0]!.type).toBe("water.delete");
+    expect(await engine.listWater()).toHaveLength(1);
   });
 
   it("coalesces unsent plan edits and keeps plans apart from logs", async () => {

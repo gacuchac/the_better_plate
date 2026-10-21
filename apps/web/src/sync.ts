@@ -13,12 +13,14 @@ import type {
   RecipeBody,
   SyncOperation,
   SyncResult,
+  WaterLog,
+  WaterLogBody,
 } from "@betterplate/contracts";
 import { MAX_SYNC_OPS } from "@betterplate/contracts";
 import { track } from "./activity.ts";
 import { ApiRequestError, NetworkError, api } from "./api.ts";
 import type { IDBPTransaction, StoreNames } from "idb";
-import type { LocalFeedback, LocalGoal, LocalLog, LocalPlan, LocalPreferences, LocalProfile, LocalRecipe, OutboxOp, UserDatabase, UserDB } from "./localdb.ts";
+import type { LocalFeedback, LocalGoal, LocalLog, LocalPlan, LocalPreferences, LocalProfile, LocalRecipe, LocalWater, OutboxOp, UserDatabase, UserDB } from "./localdb.ts";
 
 /**
  * Status words shown to people (PRODUCT.md §6): never claim "Synced" before the server
@@ -208,6 +210,42 @@ export class SyncEngine {
     } else if (existing) {
       await tx.objectStore("outbox").put(this.op(id, "log.delete", null));
       await tx.objectStore("logs").put({ ...existing, deleted: true, state: "pending" });
+    }
+    await tx.done;
+    this.changed();
+  }
+
+  // ---------- water: drinks (create-only, like eaten meals) ----------
+
+  async listWater(): Promise<LocalWater[]> {
+    return (await this.db.getAll("water")).filter((w) => !w.deleted);
+  }
+
+  /** Records one drink. Every call is a separate event; drinks are never coalesced. */
+  async logWater(body: WaterLogBody): Promise<string> {
+    const id = uuid();
+    const tx = this.db.transaction(["water", "outbox"], "readwrite");
+    await tx.objectStore("outbox").put(this.op(id, "water.create", null, body));
+    await tx.objectStore("water").put({ id, body, state: "pending", createdAt: now() });
+    await tx.done;
+    track("Logged water");
+    this.changed();
+    return id;
+  }
+
+  /** Removes a drink. An unsent drink is simply dropped. */
+  async deleteWater(id: string): Promise<void> {
+    track("Removed logged water");
+    const tx = this.db.transaction(["water", "outbox"], "readwrite");
+    const existing = await tx.objectStore("water").get(id);
+    const ops = await tx.objectStore("outbox").index("byEntity").getAll(id);
+    const unsentCreate = ops.find((o) => o.type === "water.create" && !this.inFlight.has(o.opId));
+    if (unsentCreate) {
+      for (const op of ops) if (!this.inFlight.has(op.opId)) await tx.objectStore("outbox").delete(op.opId);
+      await tx.objectStore("water").delete(id);
+    } else if (existing) {
+      await tx.objectStore("outbox").put(this.op(id, "water.delete", null));
+      await tx.objectStore("water").put({ ...existing, deleted: true, state: "pending" });
     }
     await tx.done;
     this.changed();
@@ -493,6 +531,7 @@ export class SyncEngine {
         (await this.db.getAll("recipes")).some((r) => needs(r.state)) ||
         (await this.db.getAll("plans")).some((p) => needs(p.state)) ||
         (await this.db.getAll("logs")).some((l) => needs(l.state)) ||
+        (await this.db.getAll("water")).some((w) => needs(w.state)) ||
         (await this.db.getAll("goals")).some((g) => needs(g.state)) ||
         (await this.db.getAll("prefs")).some((p) => needs(p.state)) ||
         (await this.db.getAll("feedback")).some((f) => needs(f.state));
@@ -531,7 +570,7 @@ export class SyncEngine {
   }
 
   private async applyResult(result: SyncResult) {
-    const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "prefs", "feedback", "outbox"], "readwrite");
+    const tx = this.db.transaction(["recipes", "plans", "logs", "water", "goals", "prefs", "feedback", "outbox"], "readwrite");
     const outbox = tx.objectStore("outbox");
     const sent = await outbox.get(result.opId);
     await outbox.delete(result.opId);
@@ -539,8 +578,13 @@ export class SyncEngine {
     // Later operations on the same record (feedback and its eaten log share an id, so match the kind).
     const later = (await outbox.index("byEntity").getAll(result.entityId)).filter((o) => o.type.split(".")[0] === kind);
 
-    if (kind === "log") {
-      const logs = tx.objectStore("logs");
+    if (kind === "log" || kind === "water") {
+      // Create-only records: applied, or rejected and kept in view with the reason.
+      const logs = tx.objectStore(kind === "log" ? "logs" : "water") as unknown as {
+        get(id: string): Promise<LocalLog | LocalWater | undefined>;
+        put(v: LocalLog | LocalWater): Promise<unknown>;
+        delete(id: string): Promise<void>;
+      };
       const local = await logs.get(result.entityId);
       if (local) {
         if (result.status === "applied") {
@@ -587,7 +631,7 @@ export class SyncEngine {
     let cursor = ((await this.db.get("meta", "cursor")) as string | undefined) ?? "0";
     for (let guard = 0; guard < 100; guard++) {
       const page = await this.client.changes(cursor);
-      const tx = this.db.transaction(["recipes", "plans", "logs", "goals", "prefs", "feedback", "profiles", "outbox", "meta"], "readwrite");
+      const tx = this.db.transaction(["recipes", "plans", "logs", "water", "goals", "prefs", "feedback", "profiles", "outbox", "meta"], "readwrite");
       if (page.changes.length) changed = true;
       for (const change of page.changes) {
         if (change.entity === "recipe") {
@@ -622,6 +666,11 @@ export class SyncEngine {
             await tx.objectStore("profiles").delete(change.entityId);
             await this.purgeProfile(tx, change.entityId);
           } else await tx.objectStore("profiles").put(change.profile);
+        } else if (change.entity === "water_log") {
+          const local = await tx.objectStore("water").get(change.entityId);
+          if (local && local.state !== "synced") continue;
+          if (change.deleted || !change.waterLog) await tx.objectStore("water").delete(change.entityId);
+          else await tx.objectStore("water").put(waterFromServer(change.waterLog));
         } else {
           const local = await tx.objectStore("logs").get(change.entityId);
           if (local && local.state !== "synced") continue;
@@ -658,7 +707,8 @@ export class SyncEngine {
     const goals = (await this.db.getAll("goals")).filter((g) => g.state !== "synced");
     const foodPreferences = (await this.db.getAll("prefs")).filter((p) => p.state !== "synced");
     const mealFeedback = (await this.db.getAll("feedback")).filter((f) => f.state !== "synced");
-    return { exportedAt: now(), format: "betterplate.unsynced/4", recipes, plannedMeals, eatenMeals, goals, foodPreferences, mealFeedback };
+    const waterDrunk = (await this.db.getAll("water")).filter((w) => w.state !== "synced");
+    return { exportedAt: now(), format: "betterplate.unsynced/5", recipes, plannedMeals, eatenMeals, goals, foodPreferences, mealFeedback, waterDrunk };
   }
 }
 
@@ -698,6 +748,11 @@ export function logFromServer(l: MealLog): LocalLog {
   return { id, body, nutrition, state: "synced", createdAt };
 }
 
+export function waterFromServer(w: WaterLog): LocalWater {
+  const { id, createdAt, ...body } = w;
+  return { id, body, state: "synced", createdAt };
+}
+
 /** Outbox record → wire operation (protocol 1). */
 function toWire(o: OutboxOp): SyncOperation {
   switch (o.type) {
@@ -718,6 +773,9 @@ function toWire(o: OutboxOp): SyncOperation {
     case "log.create":
       return { opId: o.opId, type: o.type, entityId: o.entityId, body: o.body as MealLogBody };
     case "log.delete":
+    case "water.delete":
       return { opId: o.opId, type: o.type, entityId: o.entityId };
+    case "water.create":
+      return { opId: o.opId, type: o.type, entityId: o.entityId, body: o.body as WaterLogBody };
   }
 }
