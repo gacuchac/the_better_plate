@@ -108,6 +108,12 @@ export function formatWater(ml: number | null): string {
   return ml >= 1000 ? `${(ml / 1000).toLocaleString(dateLocale(), { maximumFractionDigits: 2 })} L` : `${Math.round(ml).toLocaleString(dateLocale())} ml`;
 }
 
+/** A published reference amount: whole numbers stay whole ("50 g", not "50.0 g"). */
+export function formatReference(key: string, amount: number, unit: string): string {
+  if (key === WATER_KEY && unit === WATER_UNIT) return formatWater(amount);
+  return Number.isInteger(amount) ? `${amount.toLocaleString(dateLocale())} ${unit}` : formatQty(amount, unit);
+}
+
 /** An amount of one nutrient; water (stored in grams like USDA) reads as ml or L. */
 export function formatNutrient(key: string, amount: number | null, unit: string): string {
   return key === WATER_KEY && unit === WATER_UNIT ? formatWater(amount) : formatQty(amount, unit);

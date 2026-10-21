@@ -585,7 +585,7 @@ export const en = {
   "goals.waterNote": "Counts water you log drinking plus water in the foods of meals you mark as eaten. 1 ml of water weighs 1 g.",
   "water.title": "Water today",
   "water.split": "Drinks {drinks} · in food about {food} (estimated)",
-  "water.foodNone": "nothing logged yet",
+  "water.splitNoFood": "Drinks {drinks} · water in food counts once you mark a meal as eaten",
   "water.foodPartial": "Some foods eaten don't report water, so food water is at least this.",
   "water.addGlass": "Add a glass ({amount})",
   "water.other": "Other amount",

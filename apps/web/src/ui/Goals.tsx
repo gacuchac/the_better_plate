@@ -7,7 +7,7 @@ import { goalSentence, intakeByDay, waterIntakeByDay } from "../goals.ts";
 import { barScale, goalBars, referenceBars, referenceScale, type GoalBar, type ReferenceBar } from "../goalBars.ts";
 import type { LocalGoal } from "../localdb.ts";
 import { localDate } from "../meals.ts";
-import { dateLocale, formatNutrient, formatQty, nutrientName, t as tr, useT, type MessageKey } from "../i18n.ts";
+import { dateLocale, formatNutrient, formatQty, formatReference, nutrientName, t as tr, useT, type MessageKey } from "../i18n.ts";
 import { EmptyState, Sheet } from "./common.tsx";
 
 /**
@@ -423,7 +423,7 @@ function GoalChart({ bars, references, otherGoals, defs }: { bars: GoalBar[]; re
                     <span>
                       {eaten} · {goalSentence(body)}
                       {bar.amount !== null && ` · ${t(CHART_STATUS[bar.status])}`}
-                      {bar.dailyValue !== null && ` · ${t("chart.dv", { amount: formatNutrient(body.nutrientKey, bar.dailyValue, body.unit) })}`}
+                      {bar.dailyValue !== null && ` · ${t("chart.dv", { amount: formatReference(body.nutrientKey, bar.dailyValue, body.unit) })}`}
                     </span>
                   </p>
                   <div className="goal-bar-rows" aria-hidden="true">
@@ -463,7 +463,7 @@ function GoalChart({ bars, references, otherGoals, defs }: { bars: GoalBar[]; re
                     <strong>{name(bar.key)}</strong>{" "}
                     <span>
                       {bar.amount === null ? t("goals.status.notReported") : t("chart.eaten", { amount: amountWords(bar.key, bar.amount, bar.unit, bar.partial) })} ·{" "}
-                      {t("chart.dv", { amount: formatQty(bar.dailyValue, bar.unit) })}
+                      {t("chart.dv", { amount: formatReference(bar.key, bar.dailyValue, bar.unit) })}
                       {share !== null && ` · ${t(bar.partial ? "chart.dvShareAtLeast" : "chart.dvShare", { pct: share })}`}
                     </span>
                   </p>

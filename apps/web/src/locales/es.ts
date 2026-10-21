@@ -573,7 +573,7 @@ export const es: Messages = {
   "goals.waterNote": "Cuenta el agua que registras como bebida más el agua de los alimentos de las comidas que marcas como comidas. 1 ml de agua pesa 1 g.",
   "water.title": "Agua de hoy",
   "water.split": "Bebidas {drinks} · en la comida unos {food} (estimado)",
-  "water.foodNone": "aún nada registrado",
+  "water.splitNoFood": "Bebidas {drinks} · el agua de la comida cuenta cuando marcas una comida como comida",
   "water.foodPartial": "Algunos alimentos comidos no informan agua, así que el agua de la comida es al menos esto.",
   "water.addGlass": "Añadir un vaso ({amount})",
   "water.other": "Otra cantidad",

@@ -340,6 +340,84 @@ test("plan a meal, mark it eaten, and see plans kept apart from what was eaten",
   await shot(page, info, "you-totals", "You: estimated totals, per-logged-day averages and a bar chart against daily goals");
 });
 
+test("log water, set a water goal, and compare eaten with FDA Daily Values", async ({ page, context }, info) => {
+  await signIn(page, newEmail("water"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Plain rice");
+  await page.getByLabel("Servings", { exact: true }).fill("1");
+  await addIngredient(page, "rice white cooked", RICE);
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Unit").selectOption("g");
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Amount").fill("200");
+  await saveAndSync(page);
+  await page.getByRole("button", { name: "I ate this" }).click();
+  const eat = page.getByRole("dialog", { name: "I ate this" });
+  await eat.getByRole("button", { name: "Lunch" }).click();
+  await eat.getByRole("button", { name: "Save as eaten" }).click();
+  await expectSynced(page);
+  const today = await page.evaluate(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  const meals = await (await page.request.get(`${API}/v1/meals?from=${today}&to=${today}`)).json();
+  const foodWater = meals.eaten[0].eaten.find((t: { key: string }) => t.key === "water").amount as number;
+  expect(foodWater).toBeGreaterThan(0);
+
+  await page.goto("/#/you");
+  const card = page.getByTestId("water-today");
+  await expect(card.getByTestId("water-split")).toContainText(`Drinks 0 ml · in food about ${Math.round(foodWater)} ml (estimated)`);
+  await shot(page, info, "water-empty", "Water today: no drinks yet, water in the rice eaten shown separately as an estimate");
+  await card.getByRole("button", { name: "Add a glass (250 ml)" }).click();
+  await expect(card.getByTestId("water-drink")).toHaveCount(1);
+  await expect(card.getByTestId("water-total")).toContainText(`${Math.round(250 + foodWater)} ml`);
+
+  // Offline: a drink is saved on this device first, then synced.
+  await context.setOffline(true);
+  await card.getByLabel("Other amount").fill("0");
+  await card.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(card.getByRole("alert")).toContainText("1 to 5 L");
+  await card.getByLabel("Other amount").fill("500");
+  await card.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(card.getByTestId("water-drink")).toHaveCount(2);
+  await expect(card.getByTestId("water-drink").last()).toContainText("Saved on this device");
+  await context.setOffline(false);
+  await expectSynced(page);
+  const water = await (await page.request.get(`${API}/v1/water?from=${today}&to=${today}`)).json();
+  expect(water.drinks.map((d: { amountMl: number }) => d.amountMl)).toEqual([250, 500]);
+
+  // A water goal compares with drinks plus water in food.
+  await card.getByRole("link", { name: "Set a daily water goal" }).click();
+  await page.getByRole("button", { name: "Add a goal" }).click();
+  const goalSheet = page.getByRole("dialog", { name: "New goal" });
+  await goalSheet.getByLabel("Nutrient").selectOption("water");
+  await expect(goalSheet).toContainText("plus water in the foods");
+  await goalSheet.getByLabel("Amount").fill("2000");
+  await goalSheet.getByRole("button", { name: "Save goal" }).click();
+  await expect(page.getByTestId("goal-card")).toContainText("At least 2 L a day");
+  await expectSynced(page);
+  await page.goto("/#/you");
+  await expect(card.getByTestId("water-total")).toContainText("At least 2 L a day");
+  const bar = page.getByTestId("goal-chart").getByTestId("goal-bar");
+  await expect(bar).toContainText("Water");
+  await expect(bar).toContainText("drinks and food");
+  await expect(bar).toHaveAttribute("data-status", "below");
+  await shot(page, info, "water-goal", "Water today with a daily goal; chart compares drinks plus food water with it");
+
+  // Nutrients without a goal sit next to the FDA label Daily Values, as a reference.
+  const dv = page.getByTestId("dv-chart");
+  await dv.getByText("Other nutrients compared with FDA Daily Values").click();
+  const protein = dv.getByTestId("dv-bar").filter({ hasText: "Protein" });
+  await expect(protein).toContainText("FDA Daily Value 50 g");
+  await expect(protein).toContainText("% of the Daily Value");
+  await expect(dv.getByRole("link", { name: "FDA: Daily Value on the Nutrition Facts label" })).toHaveAttribute("href", /fda\.gov/);
+  await dv.scrollIntoViewIfNeeded();
+  await shot(page, info, "you-daily-values", "Other nutrients next to FDA Daily Values, labeled a reference for a 2,000-calorie adult diet");
+
+  await card.getByRole("button", { name: /Remove 250 ml/ }).click();
+  await expect(card.getByTestId("water-drink")).toHaveCount(1);
+  await expectSynced(page);
+  expect((await (await page.request.get(`${API}/v1/water?from=${today}&to=${today}`)).json()).drinks).toHaveLength(1);
+});
+
 test("cook mode shows your steps one at a time, timers, and cited safe temperatures", async ({ page }, info) => {
   await signIn(page, newEmail("cook"));
   await page.getByRole("button", { name: "New recipe" }).click();

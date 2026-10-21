@@ -59,7 +59,7 @@ export function WaterToday() {
         {goal && ` · ${goalSentence(goal.body)}`}
       </p>
       <p className="hint" data-testid="water-split">
-        {t("water.split", { drinks: formatWater(drinksMl), food: foodMl === null ? t("water.foodNone") : formatWater(foodMl) })}
+        {foodMl === null ? t("water.splitNoFood", { drinks: formatWater(drinksMl) }) : t("water.split", { drinks: formatWater(drinksMl), food: formatWater(foodMl) })}
         {food?.foodPartial && foodMl !== null && ` ${t("water.foodPartial")}`}
       </p>
       {target !== null && (
