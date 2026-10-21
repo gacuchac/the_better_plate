@@ -16,6 +16,7 @@ import type {
   RecipeBody,
   RecipeNutritionDto,
   SyncOperation,
+  WaterLogBody,
 } from "@betterplate/contracts";
 import type { CatalogBundle } from "./api.ts";
 
@@ -87,6 +88,16 @@ export interface LocalLog {
   createdAt: string;
 }
 
+/** A drink of water. Created once, never edited; "deleted" marks a removal waiting to sync. */
+export interface LocalWater {
+  id: string;
+  body: WaterLogBody;
+  state: "pending" | "synced" | "rejected";
+  rejection?: string;
+  deleted?: boolean;
+  createdAt: string;
+}
+
 /** Allergies, likes and dislikes as a person told us; id is the account's own id or a profile's. */
 export interface LocalPreferences {
   id: string;
@@ -116,7 +127,7 @@ export interface OutboxOp {
   entityId: string;
   type: SyncOperation["type"];
   baseVersion: number | null;
-  body?: RecipeBody | PlannedMealBody | MealLogBody | GoalBody | FoodPreferencesBody | MealFeedbackBody;
+  body?: RecipeBody | PlannedMealBody | MealLogBody | GoalBody | FoodPreferencesBody | MealFeedbackBody | WaterLogBody;
   createdAt: string;
   seq: number;
 }
@@ -126,6 +137,7 @@ export interface UserDB extends DBSchema {
   plans: { key: string; value: LocalPlan };
   logs: { key: string; value: LocalLog };
   goals: { key: string; value: LocalGoal };
+  water: { key: string; value: LocalWater };
   prefs: { key: string; value: LocalPreferences };
   feedback: { key: string; value: LocalFeedback };
   profiles: { key: string; value: LocalProfile };
@@ -151,7 +163,7 @@ const seenKey = (userId: string) => `bp.db-seen.${userId}`;
  * it comes back empty, the browser evicted it; onEvicted lets the app tell the person.
  */
 export function openUserDb(userId: string, onEvicted?: () => void): Promise<UserDatabase> {
-  return openDB<UserDB>(userDbName(userId), 4, {
+  return openDB<UserDB>(userDbName(userId), 5, {
     upgrade(db, oldVersion) {
       if (oldVersion === 0) {
         try {
@@ -178,6 +190,7 @@ export function openUserDb(userId: string, onEvicted?: () => void): Promise<User
         db.createObjectStore("feedback", { keyPath: "id" });
         db.createObjectStore("profiles", { keyPath: "id" });
       }
+      if (oldVersion < 5) db.createObjectStore("water", { keyPath: "id" });
     },
   });
 }

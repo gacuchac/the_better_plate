@@ -1,13 +1,14 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import type pg from "pg";
 import { GoalSchema, LocalDateSchema, MAX_GOALS, NutritionSummarySchema, type Goal, type GoalBody } from "@betterplate/contracts";
-import { dayCount, goalProblem, goalProgress, shiftDate, summarizePeriod, sumMeals, type DayIntake } from "@betterplate/nutrition";
+import { dayCount, goalProblem, goalProgress, shiftDate, summarizePeriod, sumMeals, WATER_KEY, waterIntake, type DayIntake } from "@betterplate/nutrition";
 import { pool } from "../db/pool.ts";
 import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
 import { currentCatalog } from "./catalog.ts";
 import { ErrorResponses } from "./common.ts";
 import { LOG_COLUMNS, toLog } from "./meals.ts";
 import { lockUser } from "./recipes.ts";
+import { listWater } from "./water.ts";
 
 // ---------- service ----------
 
@@ -117,8 +118,11 @@ export async function goalsWithProgress(userId: string, asOf: string) {
   if (!goals.length) return [];
   const earliest = goals.reduce((m, g) => (g.startDate < m ? g.startDate : m), asOf);
   const from = earliest < shiftDate(asOf, -400) ? shiftDate(asOf, -400) : earliest;
-  const intake = await intakeBetween(userId, from, goals.reduce((m, g) => (g.endDate && g.endDate > m ? g.endDate : m), asOf));
-  return goals.map((goal) => ({ goal, progress: goalProgress(goal, intake, asOf) }));
+  const to = goals.reduce((m, g) => (g.endDate && g.endDate > m ? g.endDate : m), asOf);
+  const intake = await intakeBetween(userId, from, to);
+  // Water goals count drinks too, not only the water inside foods.
+  const water = goals.some((g) => g.nutrientKey === WATER_KEY) ? waterIntake(intake, await listWater(userId, from, to)) : [];
+  return goals.map((goal) => ({ goal, progress: goalProgress(goal, goal.nutrientKey === WATER_KEY ? water : intake, asOf) }));
 }
 
 // ---------- routes ----------

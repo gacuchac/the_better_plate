@@ -12,6 +12,7 @@ import { Icon } from "./icons.tsx";
 import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
 import { PeriodTotals } from "./Goals.tsx";
+import { WaterToday } from "./Water.tsx";
 import { isActive } from "../goals.ts";
 import { dateLocale, formatQty, nutrientName, t as translate, useT, type MessageKey } from "../i18n.ts";
 
@@ -312,6 +313,7 @@ export function You() {
           <LanguagePicker id="you-language" hideLabel />
         </dd>
       </dl>
+      <WaterToday />
       <PeriodTotals />
       <div className="stack">
         <button type="button" className="btn-secondary" onClick={() => void engine?.syncNow()}>

@@ -9,6 +9,7 @@ import { ErrorResponses } from "./common.ts";
 import { LOG_COLUMNS, PLAN_COLUMNS, toLog, toPlan } from "./meals.ts";
 import { toRecipe } from "./recipes.ts";
 import { GOAL_COLUMNS, toGoal } from "./goals.ts";
+import { toWater, WATER_COLUMNS } from "./water.ts";
 import { shareUrl } from "./shares.ts";
 import { toFeedback, toPreferences, type FeedbackRow, type PreferencesRow } from "./preferences.ts";
 import { endOwnedGroups } from "./groups.ts";
@@ -125,7 +126,7 @@ export async function exportAccount(userId: string) {
     ),
     q<Parameters<typeof toGoal>[0]>(`select ${GOAL_COLUMNS} from goals where user_id = $1 and deleted_at is null order by created_at`),
   ]);
-  const [preferences, feedback, profiles, memberships] = await Promise.all([
+  const [preferences, feedback, profiles, memberships, water] = await Promise.all([
     q<PreferencesRow>("select * from food_preferences where user_id = $1 order by created_at"),
     q<FeedbackRow>("select * from meal_feedback where user_id = $1 and deleted_at is null order by created_at"),
     q<{ id: string; name: string; created_at: Date }>("select id, name, created_at from profiles where owner_user_id = $1 and deleted_at is null order by created_at"),
@@ -133,6 +134,7 @@ export async function exportAccount(userId: string) {
       `select m.group_id, g.name as group_name, m.role, m.display_name, m.created_at from group_members m join groups g on g.id = m.group_id
         where m.user_id = $1 order by m.created_at`,
     ),
+    q<Parameters<typeof toWater>[0]>(`select ${WATER_COLUMNS} from water_logs where user_id = $1 and deleted_at is null order by local_date, drank_at`),
   ]);
   const user = users[0]!;
   return {
@@ -162,6 +164,7 @@ export async function exportAccount(userId: string) {
     plannedMeals: plans.map(toPlan),
     mealsEaten: logs.map(toLog),
     goals: goals.map(toGoal),
+    waterDrunk: water.map(toWater),
     // Plans and eaten meals of your profiles are in plannedMeals and mealsEaten, marked with profileId.
     profiles: profiles.map((p) => ({ id: p.id, name: p.name, createdAt: p.created_at.toISOString() })),
     foodPreferences: preferences.map(toPreferences),
@@ -183,7 +186,7 @@ accountRoutes.openapi(
   createRoute({
     method: "get", path: "/v1/me/export", tags: ["account"], summary: "Download all my data as JSON",
     description:
-      "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, food preferences, " +
+      "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, " +
       "meal feedback, profiles, group memberships, share links and issue reports. Rate limited to 10 per hour.",
     responses: { 200: { description: "Export (betterplate.export/1)", content: { "application/json": { schema: z.object({ format: z.literal(EXPORT_FORMAT) }).passthrough() } } }, ...ErrorResponses },
   }),

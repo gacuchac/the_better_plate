@@ -340,6 +340,165 @@ test("plan a meal, mark it eaten, and see plans kept apart from what was eaten",
   await shot(page, info, "you-totals", "You: estimated totals, per-logged-day averages and a bar chart against daily goals");
 });
 
+test("log water, set a water goal, and compare eaten with FDA Daily Values", async ({ page, context }, info) => {
+  await signIn(page, newEmail("water"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Plain rice");
+  await page.getByLabel("Servings", { exact: true }).fill("1");
+  await addIngredient(page, "rice white cooked", RICE);
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Unit").selectOption("g");
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Amount").fill("200");
+  await saveAndSync(page);
+  await page.getByRole("button", { name: "I ate this" }).click();
+  const eat = page.getByRole("dialog", { name: "I ate this" });
+  await eat.getByRole("button", { name: "Lunch" }).click();
+  await eat.getByRole("button", { name: "Save as eaten" }).click();
+  await expectSynced(page);
+  const today = await page.evaluate(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  await expect
+    .poll(async () => (await (await page.request.get(`${API}/v1/meals?from=${today}&to=${today}`)).json()).eaten.length)
+    .toBe(1);
+  const meals = await (await page.request.get(`${API}/v1/meals?from=${today}&to=${today}`)).json();
+  const foodWater = meals.eaten[0].eaten.find((t: { key: string }) => t.key === "water").amount as number;
+  expect(foodWater).toBeGreaterThan(0);
+
+  await page.goto("/#/you");
+  const card = page.getByTestId("water-today");
+  await expect(card.getByTestId("water-split")).toContainText(`Drinks 0 ml · in food about ${Math.round(foodWater)} ml (estimated)`);
+  await shot(page, info, "water-empty", "Water today: no drinks yet, water in the rice eaten shown separately as an estimate");
+  await card.getByRole("button", { name: "Add a glass (250 ml)" }).click();
+  await expect(card.getByTestId("water-drink")).toHaveCount(1);
+  await expect(card.getByTestId("water-total")).toContainText(`${Math.round(250 + foodWater)} ml`);
+
+  // Offline: a drink is saved on this device first, then synced.
+  await context.setOffline(true);
+  await card.getByLabel("Other amount").fill("0");
+  await card.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(card.getByRole("alert")).toContainText("1 to 5 L");
+  await card.getByLabel("Other amount").fill("500");
+  await card.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(card.getByTestId("water-drink")).toHaveCount(2);
+  await expect(card.getByTestId("water-drink").last()).toContainText("Saved on this device");
+  await context.setOffline(false);
+  await expectSynced(page);
+  const water = await (await page.request.get(`${API}/v1/water?from=${today}&to=${today}`)).json();
+  expect(water.drinks.map((d: { amountMl: number }) => d.amountMl)).toEqual([250, 500]);
+
+  // A water goal compares with drinks plus water in food.
+  await card.getByRole("link", { name: "Set a daily water goal" }).click();
+  await page.getByRole("button", { name: "Add a goal" }).click();
+  const goalSheet = page.getByRole("dialog", { name: "New goal" });
+  await goalSheet.getByLabel("Nutrient").selectOption("water");
+  await expect(goalSheet).toContainText("plus water in the foods");
+  await goalSheet.getByLabel("Amount").fill("2000");
+  await goalSheet.getByRole("button", { name: "Save goal" }).click();
+  await expect(page.getByTestId("goal-card")).toContainText("At least 2 L a day");
+  await expectSynced(page);
+  await page.goto("/#/you");
+  await expect(card.getByTestId("water-total")).toContainText("At least 2 L a day");
+  const bar = page.getByTestId("goal-chart").getByTestId("goal-bar");
+  await expect(bar).toContainText("Water");
+  await expect(bar).toContainText("drinks and food");
+  await expect(bar).toHaveAttribute("data-status", "below");
+  await shot(page, info, "water-goal", "Water today with a daily goal; chart compares drinks plus food water with it");
+
+  // Nutrients without a goal sit next to the FDA label Daily Values, as a reference.
+  const dv = page.getByTestId("dv-chart");
+  await dv.getByText("Other nutrients compared with FDA Daily Values").click();
+  const protein = dv.getByTestId("dv-bar").filter({ hasText: "Protein" });
+  await expect(protein).toContainText("FDA Daily Value 50 g");
+  await expect(protein).toContainText("% of the Daily Value");
+  await expect(dv.getByRole("link", { name: "FDA: Daily Value on the Nutrition Facts label" })).toHaveAttribute("href", /fda\.gov/);
+  await dv.scrollIntoViewIfNeeded();
+  await shot(page, info, "you-daily-values", "Other nutrients next to FDA Daily Values, labeled a reference for a 2,000-calorie adult diet");
+
+  await card.getByRole("button", { name: /Remove 250 ml/ }).click();
+  await expect(card.getByTestId("water-drink")).toHaveCount(1);
+  await expectSynced(page);
+  expect((await (await page.request.get(`${API}/v1/water?from=${today}&to=${today}`)).json()).drinks).toHaveLength(1);
+});
+
+test("calculate goals from published tables without storing what was typed", async ({ page }, info) => {
+  await signIn(page, newEmail("calc"));
+  const sent: string[] = [];
+  page.on("request", (r) => {
+    if (r.method() !== "GET") sent.push(r.postData() ?? "");
+  });
+  await page.goto("/#/goals");
+  await page.getByRole("button", { name: "Help me calculate" }).click();
+  const sheet = page.getByRole("dialog", { name: "Help me calculate goals" });
+  await expect(sheet.getByTestId("calc-privacy")).toContainText("isn't saved, sent or added to reports");
+  await sheet.getByRole("button", { name: "Show suggestions" }).click();
+  await expect(sheet.getByRole("alert")).toContainText("Choose a sex and an activity level");
+  await sheet.getByRole("radio", { name: "Male", exact: true }).click();
+  await sheet.getByLabel("Age").fill("17");
+  await sheet.getByLabel("Height").fill("175");
+  await sheet.getByLabel("Weight").fill("70");
+  await sheet.getByRole("radio", { name: /Inactive/ }).check();
+  await sheet.getByRole("button", { name: "Show suggestions" }).click();
+  await expect(sheet.getByRole("alert")).toContainText("adults only");
+  await shot(page, info, "calc-inputs", "Calculator: adults only; what is typed stays in this sheet");
+  await sheet.getByLabel("Age").fill("30");
+  await sheet.getByRole("button", { name: "Show suggestions" }).click();
+
+  // Hand-worked from the 2023 National Academies equation: 753.07 - 10.83*30 + 6.50*175 + 14.10*70 = 2552.67, shown as 2,550.
+  const results = sheet.getByTestId("calc-results");
+  const row = (n: string) => results.locator(`[data-nutrient="${n}"]`);
+  await expect(row("energy_kcal").getByLabel("Energy, lower amount")).toHaveValue("2210");
+  await expect(row("energy_kcal").getByLabel("Energy, upper amount")).toHaveValue("2890");
+  await expect(row("protein").getByLabel("Protein, lower amount")).toHaveValue("65");
+  await expect(row("fiber").getByLabel("Fiber, at least")).toHaveValue("38");
+  await expect(row("water").getByLabel("Water, at least")).toHaveValue("3700");
+  await expect(results.getByRole("link", { name: /Dietary Reference Intakes for Energy/ })).toHaveAttribute("href", /nap\.nationalacademies\.org\/read\/26818/);
+  await shot(page, info, "calc-results", "Suggested goals with how each was worked out and its source");
+
+  // Edit one number, drop two rows, keep four.
+  await row("protein").getByLabel("Protein, lower amount").fill("70");
+  await row("fat_total").getByRole("checkbox").uncheck();
+  await row("carbohydrate").getByRole("checkbox").uncheck();
+  await sheet.getByRole("button", { name: "Save 4 goals" }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByTestId("goal-card")).toHaveCount(4);
+  await expectSynced(page);
+  const { goals } = await (await page.request.get(`${API}/v1/goals`)).json();
+  const byKey = Object.fromEntries(goals.map((g: { nutrientKey: string }) => [g.nutrientKey, g]));
+  expect(Object.keys(byKey).sort()).toEqual(["energy_kcal", "fiber", "protein", "water"]);
+  expect(byKey.protein).toMatchObject({ kind: "between", min: 70, max: 225, period: "day" });
+  expect(byKey.water).toMatchObject({ kind: "at_least", unit: "g", min: 3700 });
+  await shot(page, info, "calc-goals-saved", "Only the kept goals are saved");
+
+  // Nothing typed was sent, kept on the device, or put in the activity log.
+  const keys = new Set<string>();
+  for (const body of sent) {
+    for (const op of JSON.parse(body || "{}").operations ?? []) Object.keys(op.body ?? {}).forEach((k) => keys.add(k));
+  }
+  expect([...keys].sort()).toEqual(["endDate", "kind", "max", "min", "nutrientKey", "period", "startDate", "unit"]);
+  expect(sent.join(" ")).not.toMatch(/heightCm|weightKg|"age"|"sex"|"activity"/);
+  const stored = await page.evaluate(async () => {
+    const dumps: string[] = [JSON.stringify({ ...localStorage }), JSON.stringify({ ...sessionStorage })];
+    for (const { name } of await indexedDB.databases()) {
+      if (!name?.startsWith("betterplate-user-")) continue;
+      const db = await new Promise<IDBDatabase>((res, rej) => {
+        const r = indexedDB.open(name);
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      for (const store of Array.from(db.objectStoreNames)) {
+        dumps.push(await new Promise<string>((res) => {
+          const r = db.transaction(store).objectStore(store).getAll();
+          r.onsuccess = () => res(JSON.stringify(r.result));
+        }));
+      }
+      db.close();
+    }
+    return dumps.join(" ");
+  });
+  expect(stored).not.toMatch(/heightCm|weightKg|"sex"|"age"|"activity"/);
+});
+
 test("cook mode shows your steps one at a time, timers, and cited safe temperatures", async ({ page }, info) => {
   await signIn(page, newEmail("cook"));
   await page.getByRole("button", { name: "New recipe" }).click();

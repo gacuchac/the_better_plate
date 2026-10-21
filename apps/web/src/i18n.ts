@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { formatAmount } from "@betterplate/nutrition";
+import { formatAmount, WATER_KEY, WATER_UNIT } from "@betterplate/nutrition";
 import { en } from "./locales/en.ts";
 import { es, esExtra } from "./locales/es.ts";
 
@@ -100,4 +100,21 @@ export function formatQty(amount: number | null, unit: string): string {
   const abs = Math.abs(amount);
   const digits = amount === 0 || abs >= 100 ? 0 : abs >= 1 ? 1 : 2;
   return `${amount.toLocaleString(lang, { minimumFractionDigits: digits, maximumFractionDigits: digits })} ${unit}`;
+}
+
+/** Water in millilitres (1 g of water is 1 ml): ml below a litre, litres from there. */
+export function formatWater(ml: number | null): string {
+  if (ml === null) return t("nutrition.notReported");
+  return ml >= 1000 ? `${(ml / 1000).toLocaleString(dateLocale(), { maximumFractionDigits: 2 })} L` : `${Math.round(ml).toLocaleString(dateLocale())} ml`;
+}
+
+/** A published reference amount: whole numbers stay whole ("50 g", not "50.0 g"). */
+export function formatReference(key: string, amount: number, unit: string): string {
+  if (key === WATER_KEY && unit === WATER_UNIT) return formatWater(amount);
+  return Number.isInteger(amount) ? `${amount.toLocaleString(dateLocale())} ${unit}` : formatQty(amount, unit);
+}
+
+/** An amount of one nutrient; water (stored in grams like USDA) reads as ml or L. */
+export function formatNutrient(key: string, amount: number | null, unit: string): string {
+  return key === WATER_KEY && unit === WATER_UNIT ? formatWater(amount) : formatQty(amount, unit);
 }
