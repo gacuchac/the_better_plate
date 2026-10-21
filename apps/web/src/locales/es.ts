@@ -756,6 +756,7 @@ export const esExtra: Record<string, string> = {
   "nutrient.vitamin_d": "Vitamina D (D2 + D3)",
   "nutrient.vitamin_b12": "Vitamina B12",
   "nutrient.folate_dfe": "Folato (EFD)",
+  "nutrient.water": "Agua",
   "safety.whole_cuts.label": "Bistecs, asados y chuletas de res, cerdo, cordero, ternera o cabra",
   "safety.ground_meat.label": "Carne molida y salchichas",
   "safety.poultry.label": "Pollo, pavo y otras aves (enteras, en presas o molidas)",

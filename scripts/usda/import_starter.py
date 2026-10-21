@@ -62,6 +62,8 @@ TRACKED_NUTRIENTS = [
     ("vitamin_d", 1114, "Vitamin D (D2 + D3)", "µg"),
     ("vitamin_b12", 1178, "Vitamin B12", "µg"),
     ("folate_dfe", 1190, "Folate (DFE)", "µg"),
+    # Water in the food itself, for daily water totals alongside logged drinks.
+    ("water", 1051, "Water", "g"),
 ]
 FDC_UNIT_ALIASES = {"KCAL": "kcal", "G": "g", "MG": "mg", "UG": "µg", "µG": "µg"}
 
