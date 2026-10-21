@@ -18,7 +18,7 @@ The owner asked to compare goals and what was eaten with FDA recommended amounts
    - **Fiber:** the Adequate Intake for sex and age band (38/25 g to age 50, 30/21 g from 51).
    - **Water:** the Adequate Intake for total water (3.7 L men, 2.7 L women), which counts food, drinks and drinking water together, matching how water goals are measured.
    - Values were copied from the National Academies Press pages (retrieved 2026-10-21) and are cited in the code and the sheet. No calculator for child profiles, pregnancy or breastfeeding; inputs outside the equations' range are refused, not extrapolated.
-   - **Not included yet:** vitamins and minerals. The summary tables available in the same source predate newer reports for calcium and vitamin D (2011) and sodium and potassium (2019), so those need current sources first.
+   - **Vitamins and minerals (added 2026-10-21):** offered in a separate, unticked group, needing only sex and age. Eleven nutrients the catalog tracks: calcium, iron, magnesium, zinc, vitamins A (RAE), C, D and B12, folate (DFE), potassium (Adequate Intake) and sodium. Source: Appendix J of *Dietary Reference Intakes for Sodium and Potassium* (National Academies, 2019, doi 10.17226/25353), the newest compiled tables; calcium and vitamin D come from the 2011 report and potassium from 2019. Sodium is the Chronic Disease Risk Reduction Intake ("reduce intakes if above 2,300 mg"), saved as a "no more than" goal, not a target. A search found no newer vitamin or mineral values. Nutrients the catalog does not track (vitamins E, K, B6, B-vitamins other than B12, phosphorus, selenium and others) are not offered; adding them needs a catalog import change.
 
 ## Alternatives considered
 

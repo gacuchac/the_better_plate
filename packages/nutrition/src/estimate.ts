@@ -25,6 +25,14 @@ export const DRI_SOURCES = {
     doi: "10.17226/10925",
     retrievedAt: "2026-10-21",
   },
+  vitaminsAndElements: {
+    publisher: "National Academies of Sciences, Engineering, and Medicine",
+    title: "Dietary Reference Intakes for Sodium and Potassium (2019), Appendix J: Dietary Reference Intakes Summary Tables",
+    detail: "Recommended Dietary Allowances and Adequate Intakes for vitamins and elements (calcium and vitamin D values from the 2011 report, potassium from 2019); Chronic Disease Risk Reduction Intake for sodium",
+    url: "https://nap.nationalacademies.org/read/25353/chapter/28",
+    doi: "10.17226/25353",
+    retrievedAt: "2026-10-21",
+  },
 } as const;
 
 export type EstimateSex = "female" | "male";
@@ -124,11 +132,11 @@ export interface GoalSuggestion {
   /** Catalog nutrient key. */
   nutrientKey: string;
   unit: string;
-  kind: "at_least" | "between";
+  kind: "at_least" | "at_most" | "between";
   min: number | null;
   max: number | null;
   /** Which published value each number comes from, so the screen can say how it was worked out. */
-  basis: "energy" | "protein" | "fat" | "carbohydrate" | "fiber" | "water";
+  basis: "energy" | "protein" | "fat" | "carbohydrate" | "fiber" | "water" | "rda" | "ai" | "cdrr";
   source: keyof typeof DRI_SOURCES;
 }
 
@@ -164,4 +172,37 @@ export function estimateGoals(input: EstimateInput): Estimate {
       { nutrientKey: "water", unit: "g", kind: "at_least", min: WATER_AI_L[input.sex] * 1000, max: null, basis: "water", source: "macronutrientsAndWater" },
     ],
   };
+}
+
+/** Recommended Dietary Allowance (rda) or Adequate Intake (ai), or the sodium limit (cdrr). Adults 19+. */
+type MicroRule = { nutrientKey: string; unit: string; basis: "rda" | "ai" | "cdrr"; amount: (sex: EstimateSex, age: number) => number };
+
+const bySex = (male: number, female: number) => (sex: EstimateSex) => (sex === "male" ? male : female);
+
+const MICRONUTRIENTS: MicroRule[] = [
+  { nutrientKey: "calcium", unit: "mg", basis: "rda", amount: (sex, age) => (age >= 71 || (sex === "female" && age >= 51) ? 1200 : 1000) },
+  { nutrientKey: "iron", unit: "mg", basis: "rda", amount: (sex, age) => (sex === "female" && age < 51 ? 18 : 8) },
+  { nutrientKey: "magnesium", unit: "mg", basis: "rda", amount: (sex, age) => (sex === "male" ? (age <= 30 ? 400 : 420) : age <= 30 ? 310 : 320) },
+  { nutrientKey: "zinc", unit: "mg", basis: "rda", amount: bySex(11, 8) },
+  { nutrientKey: "potassium", unit: "mg", basis: "ai", amount: bySex(3400, 2600) },
+  { nutrientKey: "sodium", unit: "mg", basis: "cdrr", amount: () => 2300 },
+  { nutrientKey: "vitamin_c", unit: "mg", basis: "rda", amount: bySex(90, 75) },
+  { nutrientKey: "vitamin_a_rae", unit: "µg", basis: "rda", amount: bySex(900, 700) },
+  { nutrientKey: "vitamin_d", unit: "µg", basis: "rda", amount: (_sex, age) => (age > 70 ? 20 : 15) },
+  { nutrientKey: "vitamin_b12", unit: "µg", basis: "rda", amount: () => 2.4 },
+  { nutrientKey: "folate_dfe", unit: "µg", basis: "rda", amount: () => 400 },
+];
+
+/**
+ * Reference amounts for vitamins and minerals, adults 19+. Needs only sex and age. Sodium is a
+ * limit ("reduce intakes if above"), not a target; the rest are amounts to reach.
+ */
+export function estimateMicronutrients(input: { sex: EstimateSex; age: number }): GoalSuggestion[] {
+  if (estimateProblem({ age: input.age, heightCm: ESTIMATE_LIMITS.heightCm.min, weightKg: ESTIMATE_LIMITS.weightKg.min })) throw new RangeError("Input outside what the estimates cover: age");
+  return MICRONUTRIENTS.map((r): GoalSuggestion => {
+    const amount = r.amount(input.sex, input.age);
+    return r.basis === "cdrr"
+      ? { nutrientKey: r.nutrientKey, unit: r.unit, kind: "at_most", min: null, max: amount, basis: r.basis, source: "vitaminsAndElements" }
+      : { nutrientKey: r.nutrientKey, unit: r.unit, kind: "at_least", min: amount, max: null, basis: r.basis, source: "vitaminsAndElements" };
+  });
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateEnergyKcal, estimateGoals, estimateProblem, type EstimateInput } from "./estimate.ts";
+import { estimateEnergyKcal, estimateGoals, estimateMicronutrients, estimateProblem, type EstimateInput } from "./estimate.ts";
 
 // Hand-worked arithmetic with the published coefficients (Table S-3), not nutrient facts.
 const man: EstimateInput = { sex: "male", age: 30, heightCm: 175, weightKg: 70, activity: "inactive" };
@@ -74,5 +74,67 @@ describe("inputs outside what the equations cover", () => {
     expect(estimateProblem({ age: 30, heightCm: 170 })).toBe("weight");
     expect(estimateProblem({ age: 30, heightCm: 170, weightKg: 60 })).toBeNull();
     expect(() => estimateGoals({ ...man, age: 17 })).toThrow(RangeError);
+  });
+});
+
+describe("vitamin and mineral reference amounts", () => {
+  const micro = (sex: "male" | "female", age: number) =>
+    estimateMicronutrients({ sex, age });
+  const get = (list: ReturnType<typeof micro>, key: string) =>
+    list.find((s) => s.nutrientKey === key)!;
+
+  it("returns the published adult values for a 30-year-old man and woman", () => {
+    const m = micro("male", 30);
+    expect(m).toHaveLength(11);
+    expect(get(m, "calcium")).toMatchObject({
+      kind: "at_least",
+      min: 1000,
+      unit: "mg",
+      basis: "rda",
+    });
+    expect(get(m, "iron").min).toBe(8);
+    expect(get(m, "magnesium").min).toBe(400);
+    expect(get(m, "zinc").min).toBe(11);
+    expect(get(m, "potassium")).toMatchObject({ min: 3400, basis: "ai" });
+    expect(get(m, "vitamin_c").min).toBe(90);
+    expect(get(m, "vitamin_a_rae").min).toBe(900);
+    const f = micro("female", 30);
+    expect(get(f, "iron").min).toBe(18);
+    expect(get(f, "magnesium").min).toBe(310);
+    expect(get(f, "zinc").min).toBe(8);
+    expect(get(f, "potassium").min).toBe(2600);
+    expect(get(f, "vitamin_c").min).toBe(75);
+    expect(get(f, "vitamin_a_rae").min).toBe(700);
+    expect(get(f, "vitamin_d").min).toBe(15);
+    expect(get(f, "vitamin_b12").min).toBe(2.4);
+    expect(get(f, "folate_dfe").min).toBe(400);
+  });
+
+  it("treats sodium as a limit, not a target", () => {
+    expect(get(micro("male", 40), "sodium")).toMatchObject({
+      kind: "at_most",
+      min: null,
+      max: 2300,
+      basis: "cdrr",
+    });
+  });
+
+  it("switches at the published age boundaries", () => {
+    expect(get(micro("female", 50), "iron").min).toBe(18);
+    expect(get(micro("female", 51), "iron").min).toBe(8);
+    expect(get(micro("female", 50), "calcium").min).toBe(1000);
+    expect(get(micro("female", 51), "calcium").min).toBe(1200);
+    expect(get(micro("male", 70), "calcium").min).toBe(1000);
+    expect(get(micro("male", 71), "calcium").min).toBe(1200);
+    expect(get(micro("male", 30), "magnesium").min).toBe(400);
+    expect(get(micro("male", 31), "magnesium").min).toBe(420);
+    expect(get(micro("female", 30), "magnesium").min).toBe(310);
+    expect(get(micro("female", 31), "magnesium").min).toBe(320);
+    expect(get(micro("male", 70), "vitamin_d").min).toBe(15);
+    expect(get(micro("male", 71), "vitamin_d").min).toBe(20);
+  });
+
+  it("refuses ages outside adulthood", () => {
+    expect(() => micro("male", 18)).toThrow(RangeError);
   });
 });
