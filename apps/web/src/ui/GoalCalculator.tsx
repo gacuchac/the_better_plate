@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { GoalBody } from "@betterplate/contracts";
-import { ACTIVITY_LEVELS, AMDR, DRI_SOURCES, ESTIMATE_LIMITS, estimateGoals, estimateProblem, goalProblem, WATER_KEY } from "@betterplate/nutrition";
+import { ACTIVITY_LEVELS, AMDR, DRI_SOURCES, ESTIMATE_LIMITS, estimateGoals, estimateMicronutrients, estimateProblem, goalProblem, WATER_KEY } from "@betterplate/nutrition";
 import type { ActivityLevel, Estimate, EstimateSex, GoalSuggestion, NutrientDefinition } from "@betterplate/nutrition";
 import { useApp } from "../store.tsx";
 import { isActive } from "../goals.ts";
@@ -37,7 +37,12 @@ const BASIS: Record<GoalSuggestion["basis"], MessageKey> = {
   carbohydrate: "calc.basis.carbohydrate",
   fiber: "calc.basis.fiber",
   water: "calc.basis.water",
+  rda: "calc.basis.rda",
+  ai: "calc.basis.ai",
+  cdrr: "calc.basis.cdrr",
 };
+
+const MICRO_BASIS: GoalSuggestion["basis"][] = ["rda", "ai", "cdrr"];
 
 interface Row {
   suggestion: GoalSuggestion;
@@ -80,9 +85,11 @@ export function GoalCalculator({ defs, onClose }: { defs: NutrientDefinition[]; 
     setTried(true);
     if (problem || sex === "" || activity === "") return;
     const est = estimateGoals({ sex, age: ageYears, heightCm, weightKg, activity });
-    const rows = est.suggestions.map((s): Row => {
+    const micro = estimateMicronutrients({ sex, age: ageYears });
+    const rows = [...est.suggestions, ...micro].map((s): Row => {
       const hasGoal = goals.some((g) => !g.deleted && g.body.period === "day" && g.body.nutrientKey === s.nutrientKey && isActive(g.body));
-      return { suggestion: s, keep: !hasGoal, hasGoal, min: s.min === null ? "" : String(s.min), max: s.max === null ? "" : String(s.max) };
+      // Vitamins and minerals are offered but start unticked: the person opts in.
+      return { suggestion: s, keep: !hasGoal && !MICRO_BASIS.includes(s.basis), hasGoal, min: s.min === null ? "" : String(s.min), max: s.max === null ? "" : String(s.max) };
     });
     setResult({ estimate: est, rows });
     setSaveTried(false);
@@ -92,7 +99,7 @@ export function GoalCalculator({ defs, onClose }: { defs: NutrientDefinition[]; 
 
   function bodyFor(row: Row, today: string): GoalBody {
     const { suggestion: s } = row;
-    return { nutrientKey: s.nutrientKey, unit: s.unit, kind: s.kind, min: num(row.min), max: s.kind === "at_least" ? null : num(row.max), period: "day", startDate: today, endDate: null };
+    return { nutrientKey: s.nutrientKey, unit: s.unit, kind: s.kind, min: s.kind === "at_most" ? null : num(row.min), max: s.kind === "at_least" ? null : num(row.max), period: "day", startDate: today, endDate: null };
   }
   const rowProblem = (row: Row): boolean => {
     const body = bodyFor(row, localDate());
@@ -111,6 +118,114 @@ export function GoalCalculator({ defs, onClose }: { defs: NutrientDefinition[]; 
 
   const name = (key: string) => nutrientName(key, defs.find((d) => d.key === key)?.name ?? key);
   const unitOf = (s: GoalSuggestion) => (s.nutrientKey === WATER_KEY ? "ml" : s.unit);
+  const renderRows = (
+    res: { estimate: Estimate; rows: Row[] },
+    micro: boolean,
+  ) => (
+    <ul className="calc-list">
+      {res.rows.map((row, i) => {
+        if (MICRO_BASIS.includes(row.suggestion.basis) !== micro) return null;
+        const { suggestion: s } = row;
+        const water = s.nutrientKey === WATER_KEY;
+        const bad = saveTried && row.keep && rowProblem(row);
+        return (
+          <li
+            key={s.nutrientKey}
+            data-testid="calc-row"
+            data-nutrient={s.nutrientKey}
+          >
+            <label className="check calc-keep">
+              <input
+                type="checkbox"
+                checked={row.keep}
+                onChange={(e) => update(i, { keep: e.target.checked })}
+              />
+              <strong>{name(s.nutrientKey)}</strong>
+            </label>
+            <div className="calc-amounts">
+              {s.kind !== "at_most" && (
+                <span className="target-input">
+                  <input
+                    type="number"
+                    min={0}
+                    step="any"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    aria-label={t(
+                      s.kind === "between"
+                        ? "calc.lowerNamed"
+                        : "calc.atLeastNamed",
+                      { name: name(s.nutrientKey) },
+                    )}
+                    value={row.min}
+                    onChange={(e) => update(i, { min: e.target.value })}
+                  />
+                  <span className="target-unit">{unitOf(s)}</span>
+                </span>
+              )}
+              {s.kind !== "at_least" && (
+                <>
+                  {s.kind === "between" && <span aria-hidden="true">–</span>}
+                  <span className="target-input">
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      aria-label={t(
+                        s.kind === "at_most"
+                          ? "calc.atMostNamed"
+                          : "calc.upperNamed",
+                        { name: name(s.nutrientKey) },
+                      )}
+                      value={row.max}
+                      onChange={(e) => update(i, { max: e.target.value })}
+                    />
+                    <span className="target-unit">{unitOf(s)}</span>
+                  </span>
+                </>
+              )}
+            </div>
+            <p className="fine">
+              {t(BASIS[s.basis], {
+                kcal: formatNutrient(
+                  "energy_kcal",
+                  res.estimate.energyKcal,
+                  "kcal",
+                ),
+                rmse: formatNutrient(
+                  "energy_kcal",
+                  res.estimate.energyRmse,
+                  "kcal",
+                ),
+                from:
+                  s.basis === "protein"
+                    ? AMDR.protein.from
+                    : s.basis === "fat"
+                      ? AMDR.fat.from
+                      : AMDR.carbohydrate.from,
+                to:
+                  s.basis === "protein"
+                    ? AMDR.protein.to
+                    : s.basis === "fat"
+                      ? AMDR.fat.to
+                      : AMDR.carbohydrate.to,
+              })}
+            </p>
+            {water && <p className="fine">{t("calc.waterNote")}</p>}
+            {row.hasGoal && <p className="fine">{t("calc.hasGoal")}</p>}
+            {bad && (
+              <p className="error" role="alert">
+                {t("goals.problem.range")}
+              </p>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   const kept = result?.rows.filter((r) => r.keep).length ?? 0;
 
   const field = (id: string, label: string, value: string, set: (v: string) => void, unit: string, step: string = "1") => (
@@ -202,69 +317,10 @@ export function GoalCalculator({ defs, onClose }: { defs: NutrientDefinition[]; 
       ) : (
         <div data-testid="calc-results">
           <p className="hint">{t("calc.resultsIntro")}</p>
-          <ul className="calc-list">
-            {result.rows.map((row, i) => {
-              const { suggestion: s } = row;
-              const water = s.nutrientKey === WATER_KEY;
-              const bad = saveTried && row.keep && rowProblem(row);
-              return (
-                <li key={s.nutrientKey} data-testid="calc-row" data-nutrient={s.nutrientKey}>
-                  <label className="check calc-keep">
-                    <input type="checkbox" checked={row.keep} onChange={(e) => update(i, { keep: e.target.checked })} />
-                    <strong>{name(s.nutrientKey)}</strong>
-                  </label>
-                  <div className="calc-amounts">
-                    <span className="target-input">
-                      <input
-                        type="number"
-                        min={0}
-                        step="any"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        aria-label={t(s.kind === "between" ? "calc.lowerNamed" : "calc.atLeastNamed", { name: name(s.nutrientKey) })}
-                        value={row.min}
-                        onChange={(e) => update(i, { min: e.target.value })}
-                      />
-                      <span className="target-unit">{unitOf(s)}</span>
-                    </span>
-                    {s.kind === "between" && (
-                      <>
-                        <span aria-hidden="true">–</span>
-                        <span className="target-input">
-                          <input
-                            type="number"
-                            min={0}
-                            step="any"
-                            inputMode="decimal"
-                            autoComplete="off"
-                            aria-label={t("calc.upperNamed", { name: name(s.nutrientKey) })}
-                            value={row.max}
-                            onChange={(e) => update(i, { max: e.target.value })}
-                          />
-                          <span className="target-unit">{unitOf(s)}</span>
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <p className="fine">
-                    {t(BASIS[s.basis], {
-                      kcal: formatNutrient("energy_kcal", result.estimate.energyKcal, "kcal"),
-                      rmse: formatNutrient("energy_kcal", result.estimate.energyRmse, "kcal"),
-                      from: s.basis === "protein" ? AMDR.protein.from : s.basis === "fat" ? AMDR.fat.from : AMDR.carbohydrate.from,
-                      to: s.basis === "protein" ? AMDR.protein.to : s.basis === "fat" ? AMDR.fat.to : AMDR.carbohydrate.to,
-                    })}
-                  </p>
-                  {water && <p className="fine">{t("calc.waterNote")}</p>}
-                  {row.hasGoal && <p className="fine">{t("calc.hasGoal")}</p>}
-                  {bad && (
-                    <p className="error" role="alert">
-                      {t("goals.problem.range")}
-                    </p>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          {renderRows(result, false)}
+          <h3>{t("calc.microTitle")}</h3>
+          <p className="fine">{t("calc.microNote")}</p>
+          {renderRows(result, true)}
           <p className="fine">
             {t("calc.sources")}{" "}
             <a href={DRI_SOURCES.energy.url} target="_blank" rel="noopener noreferrer">
@@ -273,6 +329,10 @@ export function GoalCalculator({ defs, onClose }: { defs: NutrientDefinition[]; 
             {" · "}
             <a href={DRI_SOURCES.macronutrientsAndWater.url} target="_blank" rel="noopener noreferrer">
               {t("calc.sourceTables")}
+            </a>
+            {" · "}
+            <a href={DRI_SOURCES.vitaminsAndElements.url} target="_blank" rel="noopener noreferrer">
+              {t("calc.sourceMicro")}
             </a>
           </p>
           <p className="fine">{t("calc.fine")}</p>

@@ -453,19 +453,30 @@ test("calculate goals from published tables without storing what was typed", asy
   await expect(row("fiber").getByLabel("Fiber, at least")).toHaveValue("38");
   await expect(row("water").getByLabel("Water, at least")).toHaveValue("3700");
   await expect(results.getByRole("link", { name: /Dietary Reference Intakes for Energy/ })).toHaveAttribute("href", /nap\.nationalacademies\.org\/read\/26818/);
+  // Vitamins and minerals (2019 tables, sex and age only) are offered unticked; sodium is a limit.
+  await expect(results.getByRole("heading", { name: "Vitamins and minerals" })).toBeVisible();
+  await expect(row("calcium").getByRole("checkbox")).not.toBeChecked();
+  await expect(row("calcium").getByLabel("Calcium, at least")).toHaveValue("1000");
+  await expect(row("iron").getByLabel("Iron, at least")).toHaveValue("8");
+  await expect(row("sodium").getByLabel("Sodium, no more than")).toHaveValue("2300");
+  await expect(results.getByRole("link", { name: /vitamins and elements/ })).toHaveAttribute("href", /nap\.nationalacademies\.org\/read\/25353/);
   await shot(page, info, "calc-results", "Suggested goals with how each was worked out and its source");
 
-  // Edit one number, drop two rows, keep four.
+  // Edit one number, drop two rows, opt in to two vitamin and mineral rows.
   await row("protein").getByLabel("Protein, lower amount").fill("70");
   await row("fat_total").getByRole("checkbox").uncheck();
   await row("carbohydrate").getByRole("checkbox").uncheck();
-  await sheet.getByRole("button", { name: "Save 4 goals" }).click();
+  await row("calcium").getByRole("checkbox").check();
+  await row("sodium").getByRole("checkbox").check();
+  await sheet.getByRole("button", { name: "Save 6 goals" }).click();
   await expect(sheet).toBeHidden();
-  await expect(page.getByTestId("goal-card")).toHaveCount(4);
+  await expect(page.getByTestId("goal-card")).toHaveCount(6);
   await expectSynced(page);
   const { goals } = await (await page.request.get(`${API}/v1/goals`)).json();
   const byKey = Object.fromEntries(goals.map((g: { nutrientKey: string }) => [g.nutrientKey, g]));
-  expect(Object.keys(byKey).sort()).toEqual(["energy_kcal", "fiber", "protein", "water"]);
+  expect(Object.keys(byKey).sort()).toEqual(["calcium", "energy_kcal", "fiber", "protein", "sodium", "water"]);
+  expect(byKey.calcium).toMatchObject({ kind: "at_least", min: 1000 });
+  expect(byKey.sodium).toMatchObject({ kind: "at_most", min: null, max: 2300 });
   expect(byKey.protein).toMatchObject({ kind: "between", min: 70, max: 225, period: "day" });
   expect(byKey.water).toMatchObject({ kind: "at_least", unit: "g", min: 3700 });
   await shot(page, info, "calc-goals-saved", "Only the kept goals are saved");
