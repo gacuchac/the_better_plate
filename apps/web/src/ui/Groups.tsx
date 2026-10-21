@@ -49,7 +49,6 @@ export function Groups() {
     <div className="screen">
       <header className="screen-head">
         <div>
-          <p className="eyebrow">{t("nav.you")}</p>
           <h1>{t("groups.title")}</h1>
         </div>
       </header>

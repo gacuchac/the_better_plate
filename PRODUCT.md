@@ -40,7 +40,7 @@ This file defines **what must be true for the product**, not which framework, cl
 | Report issue | Anywhere → issue sheet prefilled with activity → preview screenshot → submit | Queue offline until approved sync | Public |
 | Chef quote/order | Recipe → controlled inquiry → quote → payment/order | No | Internal staging only until release gates |
 
-**Navigation:** four public destinations: Your Kitchen (home), Create, Explore, You; nested kitchen areas Ingredients, Recipes, Meal Plan, Sync. Responsive mobile bottom nav and desktop rail. Persistent unobtrusive Report issue action and contextual AI companion overlay. No invisible controls or maze of dialogs. Avoid cart/checkout teasers when gated OFF.
+**Navigation:** five public destinations: Your Kitchen (home), Create, Explore, Groups, You; nested kitchen areas Ingredients, Recipes, Meal Plan, Sync. Responsive mobile bottom nav and desktop rail. Persistent unobtrusive Report issue action and contextual AI companion overlay. No invisible controls or maze of dialogs. Avoid cart/checkout teasers when gated OFF.
 
 **First run:** public landing → sign up with email, optional name → simple preference/safety information (no clinical profile) → starter-catalog installed indicator → Your Kitchen. Let a guest browse public examples but do not silently associate local personal records with a new account without clear import/consent.
 
@@ -169,7 +169,7 @@ Source composition data vs health claims vs cooking-safety instructions have ind
 
 ## 6. Visual design and interaction acceptance
 
-- 4 root destinations; 3-screen-transition core task target; contextual editing and sheets preferred to new pages.
+- 5 root destinations; 3-screen-transition core task target; contextual editing and sheets preferred to new pages.
 - Warm white `#FAFBF9`, white surfaces `#FFFFFF`, deep charcoal `#17211E`, restrained sage `#719B87`, accessible neutral grays. Avoid decorative gradients, dense cards, cartoon produce, whimsical mascots and uncontrolled colors. Use clean typography (Inter or appropriately licensed system font); 44px-ish touch targets.
 - Real food photography or realistic images, truthful ingredient depiction, editorial light and realistic portion sizes; label AI-generated images, never promise exact appearance.
 - Simple default nutrient bars with *Estimated* cue; optional “Learn” and “Sources” drawers. Avoid misleading single “nutrient completeness” score. Unknown not colored as zero; levels against reference aren't diagnoses.
