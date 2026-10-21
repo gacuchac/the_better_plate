@@ -1,6 +1,6 @@
 # ADR-010: Water, FDA Daily Values on the You page, and a goal calculator that stores nothing
 
-**Status:** accepted (water, Daily Values); calculator pending source access · **Date:** 2026-10-21 · **Decided by:** owner (scope, adults only, inputs never stored), agent (design)
+**Status:** accepted · **Date:** 2026-10-21 · **Decided by:** owner (scope, adults only, inputs never stored), agent (design)
 
 ## Context
 
@@ -12,7 +12,13 @@ The owner asked to compare goals and what was eaten with FDA recommended amounts
 2. **Water drunk is its own record.** `water_logs` (migration 017) holds millilitres (1–5000), the local day and the time. Drinks are create-only events like eaten meals: sync ops `water.create` and `water.delete`, change-feed entity `water_log`, never coalesced, removed with a tombstone, read with `GET /v1/water` (≤31 days), included in the account export. On the device they live in a new IndexedDB store (schema version 5) and save offline first.
 3. **Water in food is shown separately as an estimate.** The catalog now carries USDA nutrient 1051 (Water, g) per food. Food water is summed from logged meals as weighed; water a food absorbs while cooking (pasta, rice) is not counted, and the screen says so. 1 g of water is shown as 1 ml.
 4. **Water goals use the existing goal model.** A goal on nutrient `water` (unit g, shown as ml) compares with drinks plus food water per day (`waterIntake` in `@betterplate/nutrition`), on the Goals screen, the You page chart and the connector's goal progress.
-5. **Calculator (owner decision 2026-10-21, adults only).** A "Help me calculate" sheet on Goals may ask sex, age, height, weight and activity level, compute suggested goals in the browser from the National Academies DRIs (energy, macronutrient ranges, water, optionally vitamins and minerals), and save only the goals the person accepts. Inputs are never sent to the API, never written to IndexedDB, localStorage or the activity log, and are gone when the sheet closes. No calculator for child profiles, no pregnancy or medical options; results are labeled estimates with sources. **Not built yet:** the equations and tables must be copied from the published sources, which this environment cannot reach (network policy blocks nap.nationalacademies.org, ncbi.nlm.nih.gov and ods.od.nih.gov). No values are entered from memory.
+5. **Calculator (owner decision 2026-10-21, adults only).** "Help me calculate" on Goals asks sex, age (19–110), height, weight and activity level, computes suggested daily goals in the browser (`packages/nutrition/src/estimate.ts`), and saves only the goals the person keeps. The inputs live in the sheet's component state: never sent to the API, never written to IndexedDB or localStorage, never put in the activity log, gone when the sheet closes (an E2E test checks the requests, storage and sync payload keys). Suggestions, each editable and removable before saving:
+   - **Energy:** the National Academies 2023 EER equations for adults (Table S-3; for a weight-stable adult EER = TEE), by sex and the four activity levels, rounded to 10 kcal. The goal is the estimate plus or minus the equation's reported RMSE (339 kcal men, 246 kcal women), labeled as steady-weight energy, not a loss or gain target. Activity descriptions come from Table 7-1 and the PAL ranges from Table 5-4 of the same report.
+   - **Protein, fat, carbohydrate:** the adult Acceptable Macronutrient Distribution Ranges (protein 10–35%, fat 20–35%, carbohydrate 45–65% of energy) turned into grams at 4, 9 and 4 kcal per gram; the lower end of protein and carbohydrate is held at the adult RDA (56/46 g protein, 130 g carbohydrate) when higher.
+   - **Fiber:** the Adequate Intake for sex and age band (38/25 g to age 50, 30/21 g from 51).
+   - **Water:** the Adequate Intake for total water (3.7 L men, 2.7 L women), which counts food, drinks and drinking water together, matching how water goals are measured.
+   - Values were copied from the National Academies Press pages (retrieved 2026-10-21) and are cited in the code and the sheet. No calculator for child profiles, pregnancy or breastfeeding; inputs outside the equations' range are refused, not extrapolated.
+   - **Not included yet:** vitamins and minerals. The summary tables available in the same source predate newer reports for calcium and vitamin D (2011) and sodium and potassium (2019), so those need current sources first.
 
 ## Alternatives considered
 

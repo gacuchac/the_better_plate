@@ -218,7 +218,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .ingredient-name { font-weight: 600; margin-bottom: 8px; overflow-wrap: anywhere; }
 .ingredient-controls { display: grid; grid-template-columns: 96px 1fr 44px; gap: 8px; }
 .check { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-weight: 500; min-height: 44px; color: var(--ink); }
-.check input { width: 20px; min-height: 20px; height: 20px; accent-color: var(--sage-ink); }
+.check input { width: 20px; min-height: 20px; height: 20px; flex: none; accent-color: var(--sage-ink); }
 .oil label { margin-top: 4px; }
 .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 20px; }
 .banner { border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
@@ -604,3 +604,14 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .water-list { list-style: none; padding: 0; margin: 12px 0 0; }
 .water-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 44px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .water-list li:last-child { border-bottom: 0; }
+
+/* ---------- goal calculator ---------- */
+.radio-list { display: grid; gap: 8px; margin: 6px 0 0; }
+.radio-row { align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; margin: 0; }
+.radio-row input { flex: none; margin-top: 2px; }
+.radio-row .fine { display: block; margin: 2px 0 0; font-weight: 400; }
+.calc-list { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 16px; }
+.calc-keep { margin: 0; }
+.calc-keep input { flex: none; }
+.calc-amounts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.calc-list .fine { margin: 4px 0 0; }

@@ -9,6 +9,7 @@ import type { LocalGoal } from "../localdb.ts";
 import { localDate } from "../meals.ts";
 import { dateLocale, formatNutrient, formatQty, formatReference, nutrientName, t as tr, useT, type MessageKey } from "../i18n.ts";
 import { EmptyState, Sheet } from "./common.tsx";
+import { GoalCalculator } from "./GoalCalculator.tsx";
 
 /**
  * The person's own consumption goals (PRODUCT.md §2.3). Amounts are only ever what the person
@@ -60,6 +61,7 @@ export function Goals() {
   const intake = useIntake();
   const waterIn = useWaterIntake(intake);
   const [editing, setEditing] = useState<LocalGoal | "new" | null>(null);
+  const [calculating, setCalculating] = useState(false);
   const today = localDate();
 
   if (catalog.status !== "ready" || !account) return <EmptyState title={t("catalog.notReady")}>{t("common.loading")}</EmptyState>;
@@ -87,6 +89,9 @@ export function Goals() {
       <div className="stack" style={{ marginBottom: 16 }}>
         <button type="button" className="btn-primary" onClick={() => setEditing("new")}>
           {t("goals.add")}
+        </button>
+        <button type="button" className="btn-secondary" onClick={() => setCalculating(true)}>
+          {t("goals.calculate")}
         </button>
       </div>
 
@@ -157,6 +162,7 @@ export function Goals() {
       )}
       <p className="fine">{t("goals.fine")}</p>
       {editing && <GoalSheet goal={editing === "new" ? null : editing} defs={defs} onClose={() => setEditing(null)} />}
+      {calculating && <GoalCalculator defs={defs} onClose={() => setCalculating(false)} />}
     </div>
   );
 }

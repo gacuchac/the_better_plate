@@ -358,6 +358,9 @@ test("log water, set a water goal, and compare eaten with FDA Daily Values", asy
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
+  await expect
+    .poll(async () => (await (await page.request.get(`${API}/v1/meals?from=${today}&to=${today}`)).json()).eaten.length)
+    .toBe(1);
   const meals = await (await page.request.get(`${API}/v1/meals?from=${today}&to=${today}`)).json();
   const foodWater = meals.eaten[0].eaten.find((t: { key: string }) => t.key === "water").amount as number;
   expect(foodWater).toBeGreaterThan(0);
@@ -416,6 +419,84 @@ test("log water, set a water goal, and compare eaten with FDA Daily Values", asy
   await expect(card.getByTestId("water-drink")).toHaveCount(1);
   await expectSynced(page);
   expect((await (await page.request.get(`${API}/v1/water?from=${today}&to=${today}`)).json()).drinks).toHaveLength(1);
+});
+
+test("calculate goals from published tables without storing what was typed", async ({ page }, info) => {
+  await signIn(page, newEmail("calc"));
+  const sent: string[] = [];
+  page.on("request", (r) => {
+    if (r.method() !== "GET") sent.push(r.postData() ?? "");
+  });
+  await page.goto("/#/goals");
+  await page.getByRole("button", { name: "Help me calculate" }).click();
+  const sheet = page.getByRole("dialog", { name: "Help me calculate goals" });
+  await expect(sheet.getByTestId("calc-privacy")).toContainText("isn't saved, sent or added to reports");
+  await sheet.getByRole("button", { name: "Show suggestions" }).click();
+  await expect(sheet.getByRole("alert")).toContainText("Choose a sex and an activity level");
+  await sheet.getByRole("radio", { name: "Male", exact: true }).click();
+  await sheet.getByLabel("Age").fill("17");
+  await sheet.getByLabel("Height").fill("175");
+  await sheet.getByLabel("Weight").fill("70");
+  await sheet.getByRole("radio", { name: /Inactive/ }).check();
+  await sheet.getByRole("button", { name: "Show suggestions" }).click();
+  await expect(sheet.getByRole("alert")).toContainText("adults only");
+  await shot(page, info, "calc-inputs", "Calculator: adults only; what is typed stays in this sheet");
+  await sheet.getByLabel("Age").fill("30");
+  await sheet.getByRole("button", { name: "Show suggestions" }).click();
+
+  // Hand-worked from the 2023 National Academies equation: 753.07 - 10.83*30 + 6.50*175 + 14.10*70 = 2552.67, shown as 2,550.
+  const results = sheet.getByTestId("calc-results");
+  const row = (n: string) => results.locator(`[data-nutrient="${n}"]`);
+  await expect(row("energy_kcal").getByLabel("Energy, lower amount")).toHaveValue("2210");
+  await expect(row("energy_kcal").getByLabel("Energy, upper amount")).toHaveValue("2890");
+  await expect(row("protein").getByLabel("Protein, lower amount")).toHaveValue("65");
+  await expect(row("fiber").getByLabel("Fiber, at least")).toHaveValue("38");
+  await expect(row("water").getByLabel("Water, at least")).toHaveValue("3700");
+  await expect(results.getByRole("link", { name: /Dietary Reference Intakes for Energy/ })).toHaveAttribute("href", /nap\.nationalacademies\.org\/read\/26818/);
+  await shot(page, info, "calc-results", "Suggested goals with how each was worked out and its source");
+
+  // Edit one number, drop two rows, keep four.
+  await row("protein").getByLabel("Protein, lower amount").fill("70");
+  await row("fat_total").getByRole("checkbox").uncheck();
+  await row("carbohydrate").getByRole("checkbox").uncheck();
+  await sheet.getByRole("button", { name: "Save 4 goals" }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByTestId("goal-card")).toHaveCount(4);
+  await expectSynced(page);
+  const { goals } = await (await page.request.get(`${API}/v1/goals`)).json();
+  const byKey = Object.fromEntries(goals.map((g: { nutrientKey: string }) => [g.nutrientKey, g]));
+  expect(Object.keys(byKey).sort()).toEqual(["energy_kcal", "fiber", "protein", "water"]);
+  expect(byKey.protein).toMatchObject({ kind: "between", min: 70, max: 225, period: "day" });
+  expect(byKey.water).toMatchObject({ kind: "at_least", unit: "g", min: 3700 });
+  await shot(page, info, "calc-goals-saved", "Only the kept goals are saved");
+
+  // Nothing typed was sent, kept on the device, or put in the activity log.
+  const keys = new Set<string>();
+  for (const body of sent) {
+    for (const op of JSON.parse(body || "{}").operations ?? []) Object.keys(op.body ?? {}).forEach((k) => keys.add(k));
+  }
+  expect([...keys].sort()).toEqual(["endDate", "kind", "max", "min", "nutrientKey", "period", "startDate", "unit"]);
+  expect(sent.join(" ")).not.toMatch(/heightCm|weightKg|"age"|"sex"|"activity"/);
+  const stored = await page.evaluate(async () => {
+    const dumps: string[] = [JSON.stringify({ ...localStorage }), JSON.stringify({ ...sessionStorage })];
+    for (const { name } of await indexedDB.databases()) {
+      if (!name?.startsWith("betterplate-user-")) continue;
+      const db = await new Promise<IDBDatabase>((res, rej) => {
+        const r = indexedDB.open(name);
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      for (const store of Array.from(db.objectStoreNames)) {
+        dumps.push(await new Promise<string>((res) => {
+          const r = db.transaction(store).objectStore(store).getAll();
+          r.onsuccess = () => res(JSON.stringify(r.result));
+        }));
+      }
+      db.close();
+    }
+    return dumps.join(" ");
+  });
+  expect(stored).not.toMatch(/heightCm|weightKg|"sex"|"age"|"activity"/);
 });
 
 test("cook mode shows your steps one at a time, timers, and cited safe temperatures", async ({ page }, info) => {
