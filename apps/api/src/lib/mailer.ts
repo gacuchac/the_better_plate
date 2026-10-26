@@ -51,7 +51,20 @@ export async function sendEmail(message: Omit<OutgoingEmail, "sentAt">): Promise
   const req = providerRequest(config.emailProvider, config.emailProviderKey, config.emailFrom, message);
   const res = await fetch(req.url, { method: "POST", headers: req.headers, body: JSON.stringify(req.body), signal: AbortSignal.timeout(10_000) });
   if (!res.ok) {
-    // Status only: provider error bodies can echo the recipient address.
-    throw new Error(`email provider ${config.emailProvider} returned ${res.status}`);
+    // Provider bodies can echo the recipient address, so keep only the error code and a message with addresses removed.
+    throw new Error(`email provider ${config.emailProvider} returned ${res.status}${await providerReason(res)}`);
+  }
+}
+
+/** " (code: message)" from a provider error body, with email addresses redacted; empty when unreadable. */
+export async function providerReason(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { code?: unknown; name?: unknown; message?: unknown };
+    const code = typeof body.code === "string" ? body.code : typeof body.name === "string" ? body.name : "";
+    const message = typeof body.message === "string" ? body.message.replace(/[^\s<>"']+@[^\s<>"']+/g, "[address]").slice(0, 200) : "";
+    const reason = [code, message].filter(Boolean).join(": ");
+    return reason ? ` (${reason})` : "";
+  } catch {
+    return "";
   }
 }
