@@ -12,6 +12,7 @@ import { PRIVACY_NOTICE } from "@betterplate/contracts";
 import { ConsentScreen, PrivacyPage } from "./Privacy.tsx";
 import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
+import { SignOutButton } from "./SignOut.tsx";
 import { Goals } from "./Goals.tsx";
 import { AiSettings } from "./AiSettings.tsx";
 import { Groups, GroupScreen, JoinGroup } from "./Groups.tsx";
@@ -162,6 +163,7 @@ export function App() {
           <span className="topbar-actions">
             <CompanionButton />
             <SyncChip />
+            <SignOutButton />
           </span>
         </div>
         <UpdateBanner />

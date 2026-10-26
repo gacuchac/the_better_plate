@@ -242,14 +242,6 @@ export function You() {
     }
   }
 
-  async function doSignOut() {
-    const pending = (await engine?.pendingCount()) ?? 0;
-    if (pending && !confirm(t("you.signOutConfirm", { n: pending }))) return;
-    setBusy(true);
-    await signOut();
-    navigate("/kitchen");
-  }
-
   async function deleteAccount() {
     if (!confirm(t("you.deleteConfirm"))) return;
     setBusy(true);
@@ -272,7 +264,9 @@ export function You() {
       </header>
       <dl className="facts">
         <dt>{t("signin.email")}</dt>
-        <dd data-testid="account-email" data-private>{account?.email}</dd>
+        <dd data-testid="account-email" data-private>
+          {account?.email}
+        </dd>
         <dt>{t("you.onDevice")}</dt>
         <dd data-testid="storage-info">
           {storage?.usage != null ? `${t("you.mbUsed", { mb: (storage.usage / 1_000_000).toLocaleString(dateLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 }) })} ` : ""}
@@ -324,9 +318,6 @@ export function You() {
         </button>
         <button type="button" className="btn-secondary" onClick={() => void exportUnsynced()}>
           {t("you.exportUnsynced")}
-        </button>
-        <button type="button" className="btn-secondary" disabled={busy} onClick={() => void doSignOut()}>
-          {t("common.signOut")}
         </button>
         <button type="button" className="btn-link danger" disabled={busy || !online} onClick={() => void deleteAccount()}>
           {t("you.deleteAccount")}

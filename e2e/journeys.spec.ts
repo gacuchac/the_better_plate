@@ -720,3 +720,32 @@ test("use the app in Spanish: interface, Spanish food words, nutrient names and 
   await page.getByLabel("Idioma").selectOption("en");
   await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
 });
+
+test("sign out with unsynced changes offers export first", async ({ page, context }, info) => {
+  await signIn(page, newEmail("signout"));
+  await waitForServiceWorker(page);
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Unsynced soup");
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "Save recipe" }).click();
+  await expect(page.getByTestId("sync-status")).toHaveText("Offline · Saved on this device");
+
+  // Sign out lives in the app header, so it is one tap from any screen (here: right after saving a recipe).
+  await page.getByRole("button", { name: "Sign out" }).click();
+  const dialog = page.getByRole("dialog", { name: "Sign out?" });
+  await expect(dialog).toContainText("will be removed from this device");
+  await shot(page, info, "sign-out-dialog", "Sign out with unsynced changes: export, sign out anyway or cancel");
+
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("dialog").getByRole("button", { name: "Export, then sign out" }).click()]);
+  const exported = JSON.parse(readFileSync((await download.path())!, "utf8"));
+  expect(JSON.stringify(exported)).toContain("Unsynced soup");
+  await expect(page.getByRole("heading", { name: "Cook what you love, know what's in it" })).toBeVisible();
+  const leftover = await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name));
+  expect(leftover.filter((n) => n?.startsWith("betterplate-user-"))).toEqual([]);
+  await shot(page, info, "signed-out", "Back at the landing screen; this account's data is gone from the device");
+});

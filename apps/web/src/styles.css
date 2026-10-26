@@ -74,6 +74,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .btn-soft { min-height: 44px; padding: 8px 14px; border-radius: 12px; background: var(--surface-2); font-weight: 600; }
 .btn-link { background: none; padding: 10px 4px; color: var(--sage-ink); font-weight: 600; min-height: 44px; }
 .btn-link.danger { color: var(--danger); }
+.btn-link.inline { min-height: 0; padding: 0 2px; }
 .icon-btn {
   min-width: 44px; min-height: 44px; background: none; border-radius: 999px; color: var(--ink-2);
   display: inline-flex; align-items: center; justify-content: center;
@@ -615,3 +616,4 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .calc-keep input { flex: none; }
 .calc-amounts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .calc-list .fine { margin: 4px 0 0; }
+.signout-btn { min-height: 44px; padding: 0 8px; white-space: nowrap; }
