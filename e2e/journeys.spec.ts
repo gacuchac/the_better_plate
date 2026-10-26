@@ -730,8 +730,7 @@ test("sign out with unsynced changes offers export first", async ({ page, contex
   await page.getByRole("button", { name: "Save recipe" }).click();
   await expect(page.getByTestId("sync-status")).toHaveText("Offline · Saved on this device");
 
-  await page.getByRole("link", { name: "You", exact: true }).click();
-  await expect(page.getByTestId("account-email")).toContainText("@example.test");
+  // Sign out lives in the app header, so it is one tap from any screen (here: right after saving a recipe).
   await page.getByRole("button", { name: "Sign out" }).click();
   const dialog = page.getByRole("dialog", { name: "Sign out?" });
   await expect(dialog).toContainText("will be removed from this device");
@@ -739,7 +738,7 @@ test("sign out with unsynced changes offers export first", async ({ page, contex
 
   await dialog.getByRole("button", { name: "Cancel" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByTestId("account-email")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
 
   await page.getByRole("button", { name: "Sign out" }).click();
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("dialog").getByRole("button", { name: "Export, then sign out" }).click()]);

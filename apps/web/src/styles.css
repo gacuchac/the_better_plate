@@ -616,3 +616,4 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .calc-keep input { flex: none; }
 .calc-amounts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .calc-list .fine { margin: 4px 0 0; }
+.signout-btn { min-height: 44px; padding: 0 8px; white-space: nowrap; }
