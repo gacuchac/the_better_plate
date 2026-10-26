@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSender, providerRequest } from "../src/lib/mailer.ts";
+import { parseSender, providerReason, providerRequest } from "../src/lib/mailer.ts";
 
 const msg = { to: "cook@example.test", subject: "Your Better Plate code: 123456", text: "Your sign-in code is 123456." };
 
@@ -21,5 +21,11 @@ describe("email providers", () => {
     expect(r.url).toBe("https://api.brevo.com/v3/smtp/email");
     expect(r.headers).toMatchObject({ "api-key": "k" });
     expect(r.body).toEqual({ sender: { name: "Plate", email: "a@example.test" }, to: [{ email: "cook@example.test" }], subject: msg.subject, textContent: msg.text });
+  });
+
+  it("keeps a provider's error code and message but redacts addresses", async () => {
+    const res = new Response(JSON.stringify({ code: "invalid_parameter", message: "Sender a@example.test is not valid for cook@example.test" }), { status: 400 });
+    expect(await providerReason(res)).toBe(" (invalid_parameter: Sender [address] is not valid for [address])");
+    expect(await providerReason(new Response("not json", { status: 400 }))).toBe("");
   });
 });
