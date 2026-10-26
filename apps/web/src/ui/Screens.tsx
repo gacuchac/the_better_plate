@@ -225,6 +225,7 @@ export function You() {
   const status = useSyncStatus(engine);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [pending, setPending] = useState(0);
   const [storage, setStorage] = useState<Awaited<ReturnType<typeof storageInfo>> | null>(null);
   useEffect(() => void storageInfo().then(setStorage), []);
 
@@ -242,10 +243,15 @@ export function You() {
     }
   }
 
-  async function doSignOut() {
-    const pending = (await engine?.pendingCount()) ?? 0;
-    if (pending && !confirm(t("you.signOutConfirm", { n: pending }))) return;
+  async function requestSignOut() {
+    const count = (await engine?.pendingCount()) ?? 0;
+    if (count) setPending(count);
+    else await finishSignOut();
+  }
+
+  async function finishSignOut() {
     setBusy(true);
+    setPending(0);
     await signOut();
     navigate("/kitchen");
   }
@@ -272,7 +278,12 @@ export function You() {
       </header>
       <dl className="facts">
         <dt>{t("signin.email")}</dt>
-        <dd data-testid="account-email" data-private>{account?.email}</dd>
+        <dd data-testid="account-email" data-private>
+          {account?.email} ·{" "}
+          <button type="button" className="btn-link inline" disabled={busy} onClick={() => void requestSignOut()}>
+            {t("common.signOut")}
+          </button>
+        </dd>
         <dt>{t("you.onDevice")}</dt>
         <dd data-testid="storage-info">
           {storage?.usage != null ? `${t("you.mbUsed", { mb: (storage.usage / 1_000_000).toLocaleString(dateLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 }) })} ` : ""}
@@ -325,14 +336,33 @@ export function You() {
         <button type="button" className="btn-secondary" onClick={() => void exportUnsynced()}>
           {t("you.exportUnsynced")}
         </button>
-        <button type="button" className="btn-secondary" disabled={busy} onClick={() => void doSignOut()}>
-          {t("common.signOut")}
-        </button>
         <button type="button" className="btn-link danger" disabled={busy || !online} onClick={() => void deleteAccount()}>
           {t("you.deleteAccount")}
         </button>
       </div>
       {note && <p className="error">{note}</p>}
+      {pending > 0 && (
+        <Sheet title={t("you.signOutTitle")} onClose={() => setPending(0)}>
+          <p>{t("you.signOutConfirm", { n: pending })}</p>
+          <div className="stack">
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                void exportUnsynced().then(finishSignOut);
+              }}
+            >
+              {t("you.signOutExport")}
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => void finishSignOut()}>
+              {t("you.signOutAnyway")}
+            </button>
+            <button type="button" className="btn-link" onClick={() => setPending(0)}>
+              {t("common.cancel")}
+            </button>
+          </div>
+        </Sheet>
+      )}
       <p className="fine">
         {t("you.fine")} <a href="#/privacy">{t("signin.privacyLink")}</a>
       </p>

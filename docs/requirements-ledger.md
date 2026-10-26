@@ -8,7 +8,7 @@ Test references: `API` = `apps/api/test/api.test.ts`, `ENG` = `packages/nutritio
 |---|---|---|---|---|
 | §2.1 | Email sign-in with verification (one-time code) | `apps/api/src/auth.ts`, `apps/web/src/ui/SignIn.tsx` | API "signs in…", "rejects a wrong code"; E2E all journeys | verified (local; real email provider blocked on S5) |
 | §2.1 | Google sign-in (OIDC) | `apps/api/src/auth.ts`, redirect guard in `apps/api/src/app.ts`, `apps/web/src/ui/SignIn.tsx` | API "Google sign-in" (methods, redirect to Google with PKCE, foreign callback rejected); E2E "Continue with Google sends you to Google…" (Google stubbed) | verified (dev: owner signed in with Google, 2026-10-19) |
-| §2.1 | Session revocation / sign-out | Better Auth sign-out; web clears personal DB | E2E "accounts are isolated" | verified |
+| §2.1 | Session revocation / sign-out | Better Auth sign-out; web clears personal DB | E2E "accounts are isolated", "sign out with unsynced changes offers export first" (email row on You, export/sign-out-anyway/cancel dialog) | verified |
 | §2.1 | Per-record ownership, no cross-user access | `modules/recipes.ts`, `modules/sync.ts` | API "account isolation"; E2E isolation | verified |
 | §2.1 | CSRF / CORS / cookies | `lib/http.ts`, `app.ts`, ADR-002 | API "request safety" | verified |
 | §2.1 | Rate limiting | `lib/http.ts` (memory), Better Auth limits | API "rate limiting" (429 + Retry-After) | verified (single instance; shared store needed before scaling out) |
