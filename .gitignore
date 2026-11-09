@@ -17,3 +17,6 @@ artifacts/
 dist-e2e/
 
 __pycache__/
+
+# Saved hosted-test session (a live login cookie): never commit
+.auth/
