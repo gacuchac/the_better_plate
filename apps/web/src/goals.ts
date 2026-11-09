@@ -6,6 +6,7 @@ import type { LocalGoal, LocalLog, LocalWater } from "./localdb.ts";
 import { localDate, logEaten } from "./meals.ts";
 import { useApp } from "./store.tsx";
 import { formatNutrient, t } from "./i18n.ts";
+import { useGentle } from "./gentle.ts";
 
 /** Daily goals in effect today, as the amount percentages compare with (the lower bound, else the upper). */
 export function dailyTargets(goals: LocalGoal[], today = localDate()): DailyValue[] {
@@ -16,7 +17,9 @@ export function dailyTargets(goals: LocalGoal[], today = localDate()): DailyValu
 
 export function useDailyTargets(): DailyValue[] {
   const { goals } = useApp();
-  return useMemo(() => dailyTargets(goals), [goals]);
+  const gentle = useGentle();
+  // Gentle mode hides every goal percentage and mark; the goals themselves are kept.
+  return useMemo(() => (gentle ? [] : dailyTargets(goals)), [goals, gentle]);
 }
 
 /** Water each day: drinks logged plus water in logged meals, for water goals. */

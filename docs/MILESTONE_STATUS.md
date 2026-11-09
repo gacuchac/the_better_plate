@@ -81,3 +81,22 @@
 5. **Defects and limitations:** allergen tags come from USDA names, not labels (stated in the UI); counsel review of self-reported allergies and children's profiles (R-groups); owner transfer and profile renaming in the app not built; Instacart/store integration not started; Spanish strings drafted by the agent.
 6. **Plan changes:** ADR-009.
 7. **Next:** merge into `dev` and the hosted pass; native-speaker review of the new Spanish text; then store export of the shopping list when the owner wants it.
+
+
+---
+
+## Hybrid redesign (Orchard + Trail) (2026-11-09)
+
+1. **Status:** PARTIAL. Local pass done for all six slices; the hosted pass on dev has not been run for them yet. Production: not deployed.
+2. **Delivered:**
+   - Tokens (PR #41): Manrope (self-hosted, offline) on the existing sage green, a radius scale, and a goal meter whose mark appears only with a personal goal and whose bar continues in a deeper green past the mark. Unknown is never drawn as zero.
+   - Bottom nav (#44): flat bar with a raised round Create button; the desktop rail keeps the same five destinations.
+   - Today (#45): "Let's cook something" row and Today's trail with one-tap Eat and Undo; empty-day state with a recipe grid; plans waiting for approval kept out of the trail and noted quietly; calm wording past a personal calorie goal, no red, banner or "remaining" number.
+   - Recipes, Explore, Recipe detail (#46): large-radius cards, photo recipe grid, tinted nutrition summary.
+   - Meal plan week strip, Shopping card (#47). Cook mode already matched; numbered step pins from the mock were not added.
+   - Goals (this PR): "This is your own goal, not advice.", "Help me choose" (opens the existing calculator), and Gentle mode (per-device) that hides goal marks, goal progress and percentages of daily goals. "About" in the mock maps to the existing "Between" kind (two typed numbers); no API change.
+3. **Verification:** `pnpm test` (nutrition 93, web 45, API 116) passes. `pnpm e2e`: all journeys pass locally except the connector journey's "Open Claude" popup, which cannot reach claude.ai from the sandbox (it passes in CI). New journeys in `e2e/today.spec.ts`. Screenshots in `artifacts/qa/hybrid-*` were inspected on mobile and desktop. Not run: hosted pass on dev, manual screen-reader check, review of the gentle-mode copy by someone with the right expertise.
+4. **Deployment:** local; each slice reaches the cloud dev environment when merged into `dev`.
+5. **Defects and limitations:** Groups restyle deferred; Landing and sign-in only pick up the shared tokens; the Recipe detail nutrient bars keep their existing Daily Value behaviour; gentle mode is per device and not synced; the empty-day grid repeats recipes also listed below.
+6. **Plan changes:** none beyond `docs/adr/` notes.
+7. **Next:** hosted Playwright pass on dev, then Groups restyle and numbered Cook step pins if wanted.
