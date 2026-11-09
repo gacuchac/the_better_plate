@@ -108,7 +108,7 @@ test("a family group: admins plan for a member and a child, alerts show, members
   // Mom starts the group and adds a child without a login.
   await signIn(page, newEmail("mom"));
   await page.goto("/#/you");
-  await page.getByTestId("groups-summary").getByRole("link", { name: "Manage" }).click();
+  await page.getByTestId("groups-summary").click();
   await page.getByLabel("Group name").fill("The Garcias");
   await page.getByLabel("Your name in the group").fill("Mom");
   await shot(page, info, "groups-start", "Start a group: a name others see, never an email");

@@ -8,7 +8,7 @@ test("the AI companion builds a recipe, logs a meal and asks before deleting, wi
 
   await page.getByRole("link", { name: "You", exact: true }).click();
   await expect(page.getByTestId("ai-summary")).toContainText("Off");
-  await page.getByTestId("ai-summary").getByRole("link", { name: "Manage" }).click();
+  await page.getByTestId("ai-summary").click();
   await expect(page.getByRole("heading", { name: "AI companion" })).toBeVisible();
   const anthropic = page.getByTestId("ai-provider-anthropic");
   await anthropic.getByLabel("Anthropic (Claude) API key").fill("fake-local-e2e-0000");

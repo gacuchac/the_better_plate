@@ -13,7 +13,6 @@ import { ConsentScreen, PrivacyPage } from "./Privacy.tsx";
 import { SharedRecipePage } from "./Share.tsx";
 import { SignIn } from "./SignIn.tsx";
 import { SignOutButton } from "./SignOut.tsx";
-import { Goals } from "./Goals.tsx";
 import { AiSettings } from "./AiSettings.tsx";
 import { Groups, GroupScreen, JoinGroup } from "./Groups.tsx";
 import { Preferences } from "./Preferences.tsx";
@@ -115,8 +114,7 @@ export function App() {
   if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;
   else if (route === "/explore") screen = <Explore />;
-  else if (route === "/you") screen = <You />;
-  else if (route === "/goals" || route === "/targets") screen = <Goals />;
+  else if (route === "/you" || route === "/goals" || route === "/targets") screen = <You />;
   else if (route === "/ai") screen = <AiSettings />;
   else if (shoppingMatch) screen = <Shopping key={shoppingMatch[1] ?? "own"} groupId={shoppingMatch[1]} />;
   else if (route === "/preferences") screen = <Preferences />;
@@ -153,7 +151,7 @@ export function App() {
             <a className="back" href="#/groups">
               <Icon name="back" /> {t("groups.title")}
             </a>
-          ) : inYou ? (
+          ) : inYou && route !== "/goals" && route !== "/targets" ? (
             <a className="back" href="#/you">
               <Icon name="back" /> {t("nav.you")}
             </a>
