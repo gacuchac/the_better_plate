@@ -135,7 +135,7 @@ export function App() {
           The Better Plate
         </span>
         {NAV.map((n) => (
-          <a key={n.path} href={`#${n.path}`} className="nav-item" aria-current={section === n.path ? "page" : undefined}>
+          <a key={n.path} href={`#${n.path}`} className={`nav-item${n.path === "/create" ? " nav-create" : ""}`} aria-current={section === n.path ? "page" : undefined}>
             <span className="nav-icon">
               <Icon name={n.icon} size={22} />
             </span>
