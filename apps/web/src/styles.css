@@ -15,9 +15,12 @@
   --amber: #8a5a1c; /* "Estimated", "Saved on this device", "Incomplete": calm, not alarming */
   --amber-soft: #fbf1e4;
   --danger: #a33a2c;
+  --sage-deep: #2c4f3f; /* the bar past a personal goal mark: same green, deeper */
+  --radius-sm: 8px;
   --radius: 16px;
   --radius-lg: 20px;
-  --font: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-xl: 28px;
+  --font: "Manrope Variable", "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
 }
 
@@ -617,3 +620,11 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .calc-amounts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .calc-list .fine { margin: 4px 0 0; }
 .signout-btn { min-height: 44px; padding: 0 8px; white-space: nowrap; }
+
+/* ---------- meter: amount against an optional personal goal mark ---------- */
+.meter { position: relative; height: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.meter-fill { position: absolute; inset: 0 auto 0 0; background: var(--sage); }
+.meter-over { position: absolute; inset: 0 auto 0 0; background: var(--sage-deep); }
+.meter-mark { position: absolute; top: -2px; bottom: -2px; width: 3px; margin-left: -1px; background: var(--ink); border-radius: 2px; }
+.meter.unknown { background-image: repeating-linear-gradient(135deg, var(--line-strong) 0 4px, transparent 4px 8px); }
+@media (prefers-reduced-motion: no-preference) { .meter-fill, .meter-over, .meter-mark { transition: width 200ms ease, left 200ms ease; } }

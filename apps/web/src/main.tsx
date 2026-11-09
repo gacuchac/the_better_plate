@@ -5,7 +5,7 @@ import { isQuotaError, STORAGE_FULL_EVENT } from "./localdb.ts";
 import { AppProvider } from "./store.tsx";
 import { registerAppUpdates } from "./update.ts";
 import { App } from "./ui/App.tsx";
-import "@fontsource-variable/plus-jakarta-sans/wght.css";
+import "@fontsource-variable/manrope/wght.css";
 import "./styles.css";
 
 // Remember the last error (message and code location only) for issue reports.
