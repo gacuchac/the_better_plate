@@ -15,7 +15,7 @@ Rules this list follows: `START_HERE.md` (required first step), `AGENTS.md` (pre
 | Branch protection | Ruleset on `main` (N3). **None on `dev` yet** (see N5). History was force-pushed once during setup, before the ruleset. | GitHub (earlier project thread) |
 | CI | No `.github/workflows/` yet. The GitGuardian GitHub App already scans pushes and PRs for secrets (passed on PR #1). | file listing, PR #1 check runs |
 | Agent push access | Works via the Claude GitHub App. Agents push to their own work branches and open PRs into `dev`. | `git push` |
-| Local toolchain | Node 22, pnpm 10, Python 3.13, PostgreSQL 16 server (cluster `16/main`, stopped until needed), Playwright 1.56 with Chromium. Docker CLI present but no Docker daemon, so local services run natively, not in containers. No Railway CLI, no secret scanner installed. 4 CPUs, 15 GB RAM, ~31 GB free disk. | `--version`, `docker info`, `pg_lsclusters`, `nproc`, `free`, `df` |
+| Local toolchain | Node 22, pnpm 10, Python 3.13, PostgreSQL 16 server (cluster `16/main`, stopped until needed), Playwright 1.65 with Chromium. Docker CLI present but no Docker daemon, so local services run natively, not in containers. No Railway CLI, no secret scanner installed. 4 CPUs, 15 GB RAM, ~31 GB free disk. | `--version`, `docker info`, `pg_lsclusters`, `nproc`, `free`, `df` |
 | `.gitignore` | Ignores `.env`, `.env.*` (keeps `*.example`), `*.pem`, `*.p12`, `*service-account*.json`. | file read |
 | Secrets in repo | None found; `.env.example` holds names only. | file read |
 
