@@ -10,6 +10,7 @@ import { localDate } from "../meals.ts";
 import { dateLocale, formatNutrient, formatQty, formatReference, nutrientName, t as tr, useT, type MessageKey } from "../i18n.ts";
 import { EmptyState, Sheet } from "./common.tsx";
 import { GoalCalculator } from "./GoalCalculator.tsx";
+import { setGentle, useGentle } from "../gentle.ts";
 
 /**
  * The person's own consumption goals (PRODUCT.md §2.3). Amounts are only ever what the person
@@ -62,6 +63,7 @@ export function Goals() {
   const waterIn = useWaterIntake(intake);
   const [editing, setEditing] = useState<LocalGoal | "new" | null>(null);
   const [calculating, setCalculating] = useState(false);
+  const gentle = useGentle();
   const today = localDate();
 
   if (catalog.status !== "ready" || !account) return <EmptyState title={t("catalog.notReady")}>{t("common.loading")}</EmptyState>;
@@ -95,6 +97,14 @@ export function Goals() {
         </button>
       </div>
 
+      <label className="check gentle-toggle">
+        <input type="checkbox" checked={gentle} onChange={(e) => setGentle(e.target.checked)} />
+        <span>
+          {t("gentle.label")}
+          <small className="fine" style={{ display: "block" }}>{t("gentle.hint")}</small>
+        </span>
+      </label>
+
       {withProgress.length === 0 ? (
         <EmptyState title={t("goals.emptyTitle")}>
           <p>{t("goals.emptyBody")}</p>
@@ -116,7 +126,7 @@ export function Goals() {
               </div>
               {progress.state === "upcoming" ? (
                 <p className="hint">{t("goals.startsOn", { date: shortDate(goal.body.startDate) })}</p>
-              ) : (
+              ) : gentle ? null : (
                 <>
                   <p className="goal-now" data-testid="goal-status">
                     <strong>{windowLabel(goal.body, w, progress.state)}:</strong> {w.amount === null ? "" : `${formatNutrient(goal.body.nutrientKey, w.amount, goal.body.unit)} · `}
@@ -161,7 +171,7 @@ export function Goals() {
         })
       )}
       <p className="fine">{t("goals.fine")}</p>
-      {editing && <GoalSheet goal={editing === "new" ? null : editing} defs={defs} onClose={() => setEditing(null)} />}
+      {editing && <GoalSheet goal={editing === "new" ? null : editing} defs={defs} onClose={() => setEditing(null)} onHelp={() => { setEditing(null); setCalculating(true); }} />}
       {calculating && <GoalCalculator defs={defs} onClose={() => setCalculating(false)} />}
     </div>
   );
@@ -174,7 +184,7 @@ const PROBLEM_KEYS: Record<string, MessageKey> = {
   "The end date must be on or after the start date": "goals.problem.dates",
 };
 
-function GoalSheet({ goal, defs, onClose }: { goal: LocalGoal | null; defs: NutrientDefinition[]; onClose: () => void }) {
+function GoalSheet({ goal, defs, onClose, onHelp }: { goal: LocalGoal | null; defs: NutrientDefinition[]; onClose: () => void; onHelp: () => void }) {
   const { engine } = useApp();
   const t = useT();
   const start = goal?.body;
@@ -230,6 +240,7 @@ function GoalSheet({ goal, defs, onClose }: { goal: LocalGoal | null; defs: Nutr
 
   return (
     <Sheet title={goal ? t("goals.editTitle") : t("goals.addTitle")} onClose={onClose}>
+      <p className="fine" data-testid="own-goal-note">{t("goals.ownGoal")}</p>
       <label htmlFor="goal-nutrient">{t("goals.nutrient")}</label>
       <select id="goal-nutrient" value={nutrientKey} onChange={(e) => setNutrientKey(e.target.value)}>
         {defs.map((d) => (
@@ -244,6 +255,11 @@ function GoalSheet({ goal, defs, onClose }: { goal: LocalGoal | null; defs: Nutr
         <option value="at_most">{t("goals.kind.atMost")}</option>
         <option value="between">{t("goals.kind.between")}</option>
       </select>
+      {!goal && (
+        <button type="button" className="btn-link" onClick={onHelp}>
+          {t("goals.helpChoose")}
+        </button>
+      )}
       {kind !== "at_most" && amountInput("goal-min", kind === "between" ? t("goals.lower") : t("goals.amount"), min, setMin)}
       {kind !== "at_least" && amountInput("goal-max", kind === "between" ? t("goals.upper") : t("goals.amount"), max, setMax)}
       <label id="goal-period-label">{t("goals.period")}</label>
@@ -290,6 +306,7 @@ export function PeriodTotals() {
   const intake = useIntake();
   const waterIn = useWaterIntake(intake);
   const today = localDate();
+  const gentle = useGentle();
   const [range, setRange] = useState<Range>("7");
   const [from, setFrom] = useState(shiftDate(today, -6));
   const [to, setTo] = useState(today);
@@ -345,12 +362,12 @@ export function PeriodTotals() {
             <p className="hint">{t("summary.empty")}</p>
           ) : (
             <>
-            <GoalChart
+            {!gentle && <GoalChart
               bars={goalBars(goals, intake, window.from, window.to, FDA_DAILY_VALUES, waterIn)}
               references={referenceBars(goals, intake, window.from, window.to, FDA_DAILY_VALUES)}
               otherGoals={goals.some((g) => !g.deleted && g.body.period !== "day")}
               defs={defs}
-            />
+            />}
             <table className="totals-table">
               <thead>
                 <tr>

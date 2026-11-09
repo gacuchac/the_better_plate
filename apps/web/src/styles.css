@@ -696,3 +696,9 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 /* Shopping list: the same cards as the trail. */
 .shopping-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 4px 16px 8px; }
 .strip-day[aria-current="date"] .strip-num { color: #fff; }
+
+/* ---------- gentle mode toggle ---------- */
+.gentle-toggle { align-items: flex-start; margin: 4px 0 16px; padding: 10px 0; color: var(--ink); }
+.gentle-toggle input { margin-top: 4px; }
+.gentle-toggle > span { display: grid; gap: 2px; font-weight: 600; }
+.gentle-toggle small { font-weight: 400; }

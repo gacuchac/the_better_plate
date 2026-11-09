@@ -5,6 +5,7 @@ import { eatenAtFor, formatDay, localDate, logEaten, slotLabel } from "../meals.
 import { formatQty, useT } from "../i18n.ts";
 import { amountOver, energyMark, todayTrail, type TrailItem } from "../today.ts";
 import { useApp } from "../store.tsx";
+import { useGentle } from "../gentle.ts";
 import type { LocalRecipe } from "../localdb.ts";
 import { Meter } from "./Meter.tsx";
 import { Icon } from "./icons.tsx";
@@ -59,7 +60,8 @@ export function Today() {
     const per = calculateRecipe(recipe.body, foods, defs).perServing;
     return scaleTotals(per, plan.body.servings).find((x) => x.key === "energy_kcal")?.amount ?? null;
   };
-  const mark = energyMark(goals, today);
+  const gentle = useGentle();
+  const mark = gentle ? null : energyMark(goals, today);
   const over = amountOver(eatenKcal, mark?.ceiling ?? null);
   const recipeFor = (id: string | null | undefined) => recipes.find((r) => r.id === id);
   const chips = recipes.slice(0, 3);
@@ -117,7 +119,7 @@ export function Today() {
                 <div className="stat-label">
                   {t("today.kcalEaten", { amount: formatQty(eatenKcal, "kcal") })} · <span className="estimated">{t("common.estimated")}</span>
                 </div>
-                <Meter amount={eatenKcal} goal={mark?.mark ?? null} />
+                {mark && <Meter amount={eatenKcal} goal={mark.mark} />}
                 {over !== null && <p className="calm">{t("today.over", { amount: over })}</p>}
               </div>
             )}

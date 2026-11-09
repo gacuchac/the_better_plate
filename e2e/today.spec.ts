@@ -76,3 +76,49 @@ test("meal plan week strip: seven days, pick one", async ({ page }, info) => {
   await strip.getByRole("button").first().click();
   await expect(strip.locator('[aria-current="date"]')).toHaveCount(1);
 });
+
+test("goals: own-goal note, Help me choose, and gentle mode hides marks and over wording", async ({ page }, info) => {
+  await signIn(page, newEmail("gentle"));
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Plain rice");
+  await page.getByLabel("Servings", { exact: true }).fill("1");
+  await addIngredient(page, "rice white cooked", RICE);
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Unit").selectOption("g");
+  await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Amount").fill("400");
+  await saveAndSync(page);
+  await page.getByRole("button", { name: "I ate this" }).click();
+  await page.getByRole("dialog", { name: "I ate this" }).getByRole("button", { name: "Save as eaten" }).click();
+  await expectSynced(page);
+
+  await page.goto("/#/goals");
+  await page.getByRole("button", { name: "Add a goal" }).click();
+  const sheet = page.getByRole("dialog", { name: "New goal" });
+  await expect(sheet.getByTestId("own-goal-note")).toHaveText("This is your own goal, not advice.");
+  await shot(page, info, "set-a-goal-sheet", "Set a goal: own-goal note, Help me choose, nutrient, kind and your number");
+  await sheet.getByRole("button", { name: "Help me choose" }).click();
+  await expect(page.getByRole("dialog", { name: /calculate/i })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.goto("/#/goals");
+  await page.getByRole("button", { name: "Add a goal" }).click();
+  const again = page.getByRole("dialog", { name: "New goal" });
+  await again.getByLabel("Nutrient").selectOption("energy_kcal");
+  await again.getByLabel("Goal").selectOption("at_most");
+  await again.getByLabel("Amount").fill("100");
+  await again.getByRole("button", { name: "Save goal" }).click();
+  await expectSynced(page);
+  await page.goto("/#/kitchen");
+  await expect(page.locator(".calm")).toBeVisible();
+
+  await page.goto("/#/goals");
+  await page.getByLabel("Gentle mode").check();
+  await expect(page.getByTestId("goal-status")).toHaveCount(0);
+  await shot(page, info, "gentle-mode-goals", "Gentle mode on: goals kept, progress words hidden");
+  await page.goto("/#/kitchen");
+  await expect(page.locator(".calm")).toHaveCount(0);
+  await expect(page.locator(".meter-mark")).toHaveCount(0);
+  await shot(page, info, "gentle-mode-today", "Gentle mode: no mark and no over wording on Today");
+  await page.goto("/#/goals");
+  await page.getByLabel("Gentle mode").uncheck();
+  await page.goto("/#/kitchen");
+  await expect(page.locator(".meter-mark")).toHaveCount(1);
+});
