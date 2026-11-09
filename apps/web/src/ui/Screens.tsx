@@ -9,6 +9,7 @@ import { useApp, useSyncStatus } from "../store.tsx";
 import { localDate, formatDay } from "../meals.ts";
 import { downloadJson, EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
+import { Today } from "./Today.tsx";
 import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
 import { PeriodTotals } from "./Goals.tsx";
@@ -58,24 +59,7 @@ export function Kitchen() {
         </div>
       </header>
 
-      <a className="card today-card" href="#/meals" data-testid="today-card">
-        <div className="card-head" style={{ marginBottom: 0 }}>
-          <h2>{t("day.today")}</h2>
-          <span className="hint" style={{ margin: 0 }}>
-            {formatDay(today, { weekday: "short", day: "numeric", month: "short" })}
-          </span>
-        </div>
-        <div className="today-stats">
-          <div>
-            <div className="stat-label">{t("meals.planned")}</div>
-            <div className="stat-value">{count(planned)}</div>
-          </div>
-          <div>
-            <div className="stat-label">{t("meals.eaten")}</div>
-            <div className="stat-value">{count(eaten)}</div>
-          </div>
-        </div>
-      </a>
+      <Today />
 
       {askAllergies && (
         <a className="card ask-card" href="#/preferences" data-testid="allergy-prompt">

@@ -639,3 +639,27 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .meter-mark { position: absolute; top: -2px; bottom: -2px; width: 3px; margin-left: -1px; background: var(--ink); border-radius: 2px; }
 .meter.unknown { background-image: repeating-linear-gradient(135deg, var(--line-strong) 0 4px, transparent 4px 8px); }
 @media (prefers-reduced-motion: no-preference) { .meter-fill, .meter-over, .meter-mark { transition: width 200ms ease, left 200ms ease; } }
+
+/* ---------- Today: cook row and the day's trail ---------- */
+.today { display: grid; gap: 14px; margin-bottom: 16px; }
+.cook-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 650; min-height: 44px; }
+.cook-row .chip-row { display: inline-flex; gap: 6px; flex-wrap: wrap; font-weight: 550; }
+.mini-chip { display: inline-block; padding: 4px 10px; border-radius: 999px; background: var(--sage-soft); color: var(--sage-ink); font-size: 0.8125rem; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cook-head { font-size: 1.375rem; }
+.tile-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { display: grid; gap: 8px; text-decoration: none; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 8px 8px 12px; }
+.tile .trail-photo { width: 100%; height: 110px; border-radius: var(--radius); }
+.tile-title { font-weight: 650; padding: 0 6px; }
+.today-kcal { display: grid; gap: 6px; }
+.calm { margin: 4px 0 0; color: var(--ink-2); font-size: 0.9375rem; }
+.empty-trail { display: grid; gap: 12px; justify-items: start; }
+.trail { list-style: none; margin: 0; padding: 0 0 0 14px; display: grid; gap: 12px; border-left: 2px dashed var(--line-strong); margin-left: 9px; }
+.trail-item { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 10px; }
+.trail-item .pin { position: absolute; left: -29px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--bg); border: 2px solid var(--sage-ink); display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+.trail-item.is-eaten .pin { background: var(--sage-ink); }
+.trail-photo { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; background: var(--sage-soft); color: var(--sage-ink); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+.trail-body { display: grid; gap: 2px; min-width: 0; }
+.trail-title { font-weight: 650; overflow: hidden; text-overflow: ellipsis; }
+.trail-meta { font-size: 0.8125rem; color: var(--ink-3); }
+.trail-btn { min-width: 64px; justify-content: center; }
+@media (min-width: 700px) { .tile-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
