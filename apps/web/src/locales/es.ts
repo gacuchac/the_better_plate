@@ -609,6 +609,8 @@ export const es: Messages = {
   "goals.problem.dates": "La fecha de término debe ser igual o posterior a la de inicio.",
   "goals.problem.start": "Elige una fecha de inicio.",
   "goals.problem.range": "Usa un número mayor que cero y menor que 1.000.000.",
+  "you.account": "Ajustes",
+  "you.yourData": "Tus datos",
   "goals.count": "{n|1 activa|# activas}",
   "goals.noneSet": "Ninguna definida",
   "goals.manage": "Administrar metas",

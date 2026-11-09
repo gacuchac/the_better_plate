@@ -1,6 +1,6 @@
 /* The Better Plate: tokens follow the Claude Design canvas (Your Kitchen pilot). */
 :root {
-  --bg: #fafbf9;
+  --bg: #ffffff;
   --surface: #ffffff;
   --surface-2: #f2f5f3;
   --ink: #17211e;
@@ -702,3 +702,21 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .gentle-toggle input { margin-top: 4px; }
 .gentle-toggle > span { display: grid; gap: 2px; font-weight: 600; }
 .gentle-toggle small { font-weight: 400; }
+
+/* You: profile header, goals inline, account rows */
+.profile-card { display: flex; align-items: center; gap: 16px; padding: 20px; margin: 4px 0 20px; background: var(--sage-soft); border-radius: var(--radius-xl); }
+.avatar { flex: none; width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--sage-deep); font-size: 1.75rem; font-weight: 700; border: 3px solid var(--sage); }
+.profile-text { min-width: 0; }
+.profile-text h1 { font-size: 1.5rem; overflow-wrap: anywhere; }
+.profile-email { margin: 2px 0 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.section-h { margin: 24px 0 10px; }
+.goals-section > .section-h { margin-top: 4px; }
+.row-list { list-style: none; margin: 0 0 8px; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.row-list > li + li { border-top: 1px solid var(--line); }
+.row-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; color: var(--ink); text-decoration: none; }
+.row-link:hover { background: var(--surface-2); color: var(--ink); }
+.row-icon { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--sage-soft); color: var(--sage-ink); }
+.row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.row-label { font-weight: 650; }
+.row-value { color: var(--ink-2); font-size: 0.9375rem; overflow-wrap: anywhere; }
+.row-item .language-picker { margin: 0; }

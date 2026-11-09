@@ -7,7 +7,7 @@ test("an invited account uses the included companion without its own key", async
   await signIn(page, `included-${info.project.name}@example.test`);
   await page.getByRole("link", { name: "You", exact: true }).click();
   await expect(page.getByTestId("ai-summary")).toContainText("On (included)");
-  await page.getByTestId("ai-summary").getByRole("link", { name: "Manage" }).click();
+  await page.getByTestId("ai-summary").click();
   const included = page.getByTestId("ai-included");
   await expect(included).toContainText("Included companion");
   await expect(included).toContainText("In use");
@@ -31,7 +31,7 @@ test("an account that isn't invited is told so and can still connect its own key
   await signIn(page, `not-invited-${Date.now()}-${info.project.name}@example.test`);
   await page.getByRole("link", { name: "You", exact: true }).click();
   await expect(page.getByTestId("ai-summary")).toContainText("Off");
-  await page.getByTestId("ai-summary").getByRole("link", { name: "Manage" }).click();
+  await page.getByTestId("ai-summary").click();
   await expect(page.getByTestId("ai-included")).toContainText("isn't available for your account yet");
   await expect(page.getByTestId("ai-provider-openai")).toBeVisible();
 });

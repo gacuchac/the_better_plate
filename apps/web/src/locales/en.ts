@@ -621,6 +621,8 @@ export const en = {
   "goals.problem.dates": "The end date must be on or after the start date.",
   "goals.problem.start": "Choose a start date.",
   "goals.problem.range": "Use a number above zero and below 1,000,000.",
+  "you.account": "Settings",
+  "you.yourData": "Your data",
   "goals.count": "{n|1 active|# active}",
   "goals.noneSet": "None set",
   "goals.manage": "Manage goals",

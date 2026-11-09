@@ -3,7 +3,7 @@ import type { GoalBody } from "@betterplate/contracts";
 import { DAILY_VALUE_SOURCE, DIETARY_GUIDELINES_SOURCE, FDA_DAILY_VALUES, WATER_KEY, dayCount, goalProblem, goalProgress, periodWindow, shiftDate, summarizePeriod } from "@betterplate/nutrition";
 import type { GoalProgress, GoalWindowProgress, NutrientDefinition } from "@betterplate/nutrition";
 import { useApp } from "../store.tsx";
-import { goalSentence, intakeByDay, waterIntakeByDay } from "../goals.ts";
+import { goalSentence, intakeByDay, isActive, waterIntakeByDay } from "../goals.ts";
 import { barScale, goalBars, referenceBars, referenceScale, type GoalBar, type ReferenceBar } from "../goalBars.ts";
 import type { LocalGoal } from "../localdb.ts";
 import { localDate } from "../meals.ts";
@@ -56,7 +56,8 @@ const HISTORY = { day: "goals.history.day", week: "goals.history.week", month: "
 const PERIOD = { day: "goals.period.day", week: "goals.period.week", month: "goals.period.month" } as const;
 const RANGE = { "7": "summary.range.7", "30": "summary.range.30", month: "summary.range.month", custom: "summary.range.custom" } as const;
 
-export function Goals() {
+/** The goals part of the You page: list, add, calculate and gentle mode. */
+export function GoalsSection() {
   const { catalog, goals, engine, account } = useApp();
   const t = useT();
   const intake = useIntake();
@@ -73,13 +74,9 @@ export function Goals() {
   withProgress.sort((a, b) => order[a.progress.state] - order[b.progress.state] || a.goal.body.startDate.localeCompare(b.goal.body.startDate));
 
   return (
-    <div className="screen">
-      <header className="screen-head">
-        <div>
-          <p className="eyebrow">{t("nav.you")}</p>
-          <h1>{t("goals.title")}</h1>
-        </div>
-      </header>
+    <section className="goals-section" id="goals" aria-labelledby="goals-heading">
+      <h2 className="section-h" id="goals-heading">{t("goals.title")}</h2>
+      <p className="fine" data-testid="goals-summary">{goals.some((g) => !g.deleted && isActive(g.body)) ? t("goals.count", { n: goals.filter((g) => !g.deleted && isActive(g.body)).length }) : t("goals.noneSet")}</p>
       <p className="hint">{t("goals.intro")}</p>
       <p className="hint" data-testid="guidelines-link">
         {t("targets.guideBefore")}{" "}
@@ -173,7 +170,7 @@ export function Goals() {
       <p className="fine">{t("goals.fine")}</p>
       {editing && <GoalSheet goal={editing === "new" ? null : editing} defs={defs} onClose={() => setEditing(null)} onHelp={() => { setEditing(null); setCalculating(true); }} />}
       {calculating && <GoalCalculator defs={defs} onClose={() => setCalculating(false)} />}
-    </div>
+    </section>
   );
 }
 

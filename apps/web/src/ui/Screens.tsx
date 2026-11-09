@@ -12,9 +12,8 @@ import { Icon } from "./icons.tsx";
 import { Today } from "./Today.tsx";
 import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
-import { PeriodTotals } from "./Goals.tsx";
+import { GoalsSection, PeriodTotals } from "./Goals.tsx";
 import { WaterToday } from "./Water.tsx";
-import { isActive } from "../goals.ts";
 import { dateLocale, formatQty, nutrientName, t as translate, useT, type MessageKey } from "../i18n.ts";
 
 const STATE_LABEL: Record<LocalRecipe["state"], MessageKey> = {
@@ -202,8 +201,7 @@ export function Explore() {
 }
 
 export function You() {
-  const { account, engine, signOut, online, goals, groups, profiles } = useApp();
-  const activeGoals = goals.filter((g) => isActive(g.body)).length;
+  const { account, engine, signOut, online, groups, profiles } = useApp();
   const ai = useAiSettings(account?.id, online);
   const t = useT();
   const status = useSyncStatus(engine);
@@ -238,61 +236,75 @@ export function You() {
     }
   }
 
+  const who = account?.displayName?.trim() || account?.email || "";
+  const initial = (who.match(/[\p{L}\p{N}]/u)?.[0] ?? "?").toUpperCase();
+  const storageText = `${storage?.usage != null ? `${t("you.mbUsed", { mb: (storage.usage / 1_000_000).toLocaleString(dateLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 }) })} ` : ""}${storage?.persisted ? t("you.persisted") : t("you.notPersisted")}`;
+  const syncText = `${t(!online ? "sync.offline" : SYNC_WORDS[status])}${engine?.lastSyncedAt ? `, ${t("you.lastChecked", { time: new Date(engine.lastSyncedAt).toLocaleTimeString(dateLocale()) })}` : ""}`;
+
+  useEffect(() => {
+    if (location.hash === "#/goals" || location.hash === "#/targets") document.getElementById("goals")?.scrollIntoView({ behavior: "auto" });
+  }, []);
+
   return (
     <div className="screen">
-      <header className="screen-head">
-        <div>
+      <header className="profile-card" data-testid="profile-card">
+        <span className="avatar" aria-hidden="true">{initial}</span>
+        <div className="profile-text">
           <p className="eyebrow">{t("nav.you")}</p>
-          <h1>{t("you.title")}</h1>
+          <h1 data-private>{account?.displayName?.trim() || t("you.title")}</h1>
+          <p className="profile-email" data-testid="account-email" data-private>
+            {account?.email}
+          </p>
         </div>
       </header>
-      <dl className="facts">
-        <dt>{t("signin.email")}</dt>
-        <dd data-testid="account-email" data-private>
-          {account?.email}
-        </dd>
-        <dt>{t("you.onDevice")}</dt>
-        <dd data-testid="storage-info">
-          {storage?.usage != null ? `${t("you.mbUsed", { mb: (storage.usage / 1_000_000).toLocaleString(dateLocale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 }) })} ` : ""}
-          {storage?.persisted ? t("you.persisted") : t("you.notPersisted")}
-        </dd>
-        <dt>{t("you.sync")}</dt>
-        <dd>
-          {t(!online ? "sync.offline" : SYNC_WORDS[status])}
-          {engine?.lastSyncedAt ? `, ${t("you.lastChecked", { time: new Date(engine.lastSyncedAt).toLocaleTimeString(dateLocale()) })}` : ""}
-        </dd>
-        <dt>{t("goals.title")}</dt>
-        <dd data-testid="goals-summary">
-          {activeGoals ? t("goals.count", { n: activeGoals }) : t("goals.noneSet")} <a href="#/goals">{goals.length ? t("goals.manage") : t("targets.set")}</a>
-        </dd>
-        <dt>{t("groups.title")}</dt>
-        <dd data-testid="groups-summary">
-          {groups?.length ? t("groups.count", { n: groups.length }) : t("groups.none")}
-          {profiles.length ? ` · ${t("groups.profilesCount", { n: profiles.length })}` : ""} <a href="#/groups">{t("groups.manage")}</a>
-        </dd>
-        <dt>{t("prefs.title")}</dt>
-        <dd>
-          <a href="#/preferences">{t("prefs.manage")}</a>
-        </dd>
-        {ai !== false && (
-          <>
-            <dt>{t("ai.status")}</dt>
-            <dd data-testid="ai-summary">
-              {ai?.activeProvider
-                ? t("ai.statusOn", { provider: ai.activeProvider === "anthropic" ? "Anthropic" : "OpenAI" })
-                : ai?.house.status === "available"
-                  ? t("ai.statusIncluded")
-                  : t("ai.statusOff")} <a href="#/ai">{t("ai.manage")}</a>
-            </dd>
-          </>
-        )}
-        <dt>{t("lang.label")}</dt>
-        <dd>
-          <LanguagePicker id="you-language" hideLabel />
-        </dd>
-      </dl>
+
+      <GoalsSection />
+
       <WaterToday />
       <PeriodTotals />
+
+      <section aria-labelledby="account-heading">
+        <h2 className="section-h" id="account-heading">{t("you.account")}</h2>
+        <ul className="row-list">
+          <li className="row-item">
+            <span className="row-icon"><Icon name="image" size={20} /></span>
+            <span className="row-text"><span className="row-label">{t("you.onDevice")}</span><span className="row-value" data-testid="storage-info">{storageText}</span></span>
+          </li>
+          <li className="row-item">
+            <span className="row-icon"><Icon name="undo" size={20} /></span>
+            <span className="row-text"><span className="row-label">{t("you.sync")}</span><span className="row-value">{syncText}</span></span>
+          </li>
+          <li>
+            <a className="row-item row-link" href="#/groups" data-testid="groups-summary">
+              <span className="row-icon"><Icon name="people" size={20} /></span>
+              <span className="row-text"><span className="row-label">{t("groups.title")}</span><span className="row-value">{groups?.length ? t("groups.count", { n: groups.length }) : t("groups.none")}{profiles.length ? ` · ${t("groups.profilesCount", { n: profiles.length })}` : ""}</span></span>
+              <Icon name="forward" size={18} />
+            </a>
+          </li>
+          <li>
+            <a className="row-item row-link" href="#/preferences">
+              <span className="row-icon"><Icon name="check" size={20} /></span>
+              <span className="row-text"><span className="row-label">{t("prefs.title")}</span><span className="row-value">{t("prefs.manage")}</span></span>
+              <Icon name="forward" size={18} />
+            </a>
+          </li>
+          {ai !== false && (
+            <li>
+              <a className="row-item row-link" href="#/ai" data-testid="ai-summary">
+                <span className="row-icon"><Icon name="sparkle" size={20} /></span>
+                <span className="row-text"><span className="row-label">{t("ai.status")}</span><span className="row-value">{ai?.activeProvider ? t("ai.statusOn", { provider: ai.activeProvider === "anthropic" ? "Anthropic" : "OpenAI" }) : ai?.house.status === "available" ? t("ai.statusIncluded") : t("ai.statusOff")}</span></span>
+                <Icon name="forward" size={18} />
+              </a>
+            </li>
+          )}
+          <li className="row-item">
+            <span className="row-icon"><Icon name="search" size={20} /></span>
+            <span className="row-text"><span className="row-label">{t("lang.label")}</span><LanguagePicker id="you-language" hideLabel /></span>
+          </li>
+        </ul>
+      </section>
+
+      <h2 className="section-h">{t("you.yourData")}</h2>
       <div className="stack">
         <button type="button" className="btn-secondary" onClick={() => void engine?.syncNow()}>
           {t("sync.now")}
