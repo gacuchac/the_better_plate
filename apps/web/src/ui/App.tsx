@@ -24,8 +24,8 @@ import { useT, type MessageKey } from "../i18n.ts";
 
 const NAV: { path: string; label: MessageKey; icon: IconName }[] = [
   { path: "/kitchen", label: "nav.kitchen", icon: "kitchen" },
-  { path: "/create", label: "nav.create", icon: "plus" },
   { path: "/explore", label: "nav.explore", icon: "search" },
+  { path: "/create", label: "nav.create", icon: "plus" },
   { path: "/groups", label: "groups.title", icon: "people" },
   { path: "/you", label: "nav.you", icon: "user" },
 ];

@@ -198,11 +198,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .recipe-meta { color: var(--ink-3); font-size: 0.8125rem; }
 .state { font-size: 0.75rem; font-weight: 650; color: var(--amber); }
 .state-synced { color: var(--sage-ink); }
-.fab {
-  position: fixed; z-index: 9; right: 20px; bottom: calc(76px + env(safe-area-inset-bottom));
-  border-radius: 999px; box-shadow: 0 6px 20px rgba(23, 33, 30, 0.18);
-}
-@media (min-width: 900px) { .fab { position: static; box-shadow: none; } }
 
 /* ---------- screen headers ---------- */
 .screen-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 4px 0 18px; }
