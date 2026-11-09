@@ -220,6 +220,7 @@ export const es: Messages = {
   "meals.day": "Día",
   "meals.sevenDays": "7 días",
   "meals.planMeal": "Planificar una comida",
+  "meals.weekStrip": "Semana",
   "meals.whatYouAte": "{day}: lo que comiste",
   "meals.sumHint": "Suma de las comidas marcadas como consumidas. No incluye lo planificado. Estimado con datos del USDA.",
   "meals.inProgress": "Día en curso",

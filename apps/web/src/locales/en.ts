@@ -229,6 +229,7 @@ export const en = {
   "meals.day": "Day",
   "meals.sevenDays": "7 days",
   "meals.planMeal": "Plan a meal",
+  "meals.weekStrip": "Week",
   "meals.whatYouAte": "{day}: what you ate",
   "meals.sumHint": "Sum of meals marked as eaten. Plans are not included. Estimated from USDA data.",
   "meals.inProgress": "Day in progress",
