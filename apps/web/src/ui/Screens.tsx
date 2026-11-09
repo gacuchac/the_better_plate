@@ -79,7 +79,7 @@ export function Kitchen() {
 
       <div className="section-title">
         <h2>{t("kitchen.recipes")}</h2>
-        <button type="button" className="btn-primary fab" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
+        <button type="button" className="btn-primary" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
           <Icon name="plus" /> {t("kitchen.newRecipe")}
         </button>
       </div>
