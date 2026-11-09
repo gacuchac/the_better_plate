@@ -679,3 +679,20 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .bar > span { border-radius: 10px; }
 .nutrient-list { background: var(--surface); border-radius: var(--radius-lg); padding: 4px 14px; }
 .ingredient { border-radius: var(--radius-lg); }
+
+/* ---------- Trail: week strip on the meal plan ---------- */
+.week-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 0 0 16px; }
+.strip-day { display: grid; justify-items: center; gap: 2px; padding: 8px 0 10px; min-height: 64px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); cursor: pointer; }
+.strip-name { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); font-weight: 650; }
+.strip-num { font-size: 1.0625rem; font-weight: 700; }
+.strip-day.is-today .strip-num { color: var(--sage-ink); }
+.strip-day[aria-current="date"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.strip-day[aria-current="date"] .strip-name { color: #cbd3cf; }
+.strip-dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid transparent; }
+.strip-dot.planned { border-color: var(--sage-ink); }
+.strip-dot.eaten { background: var(--sage-ink); border-color: var(--sage-ink); }
+.strip-day[aria-current="date"] .strip-dot.planned { border-color: var(--sage-night); }
+.strip-day[aria-current="date"] .strip-dot.eaten { background: var(--sage-night); border-color: var(--sage-night); }
+/* Shopping list: the same cards as the trail. */
+.shopping-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 4px 16px 8px; }
+.strip-day[aria-current="date"] .strip-num { color: #fff; }

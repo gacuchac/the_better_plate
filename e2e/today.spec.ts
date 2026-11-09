@@ -63,3 +63,16 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   await expect(page.locator(".calm")).toContainText("above your goal today. Tomorrow is a fresh day.");
   await shot(page, info, "today-over-goal", "Past a personal goal: same green, a dark mark, deeper green beyond it, plain words, no red or banner");
 });
+
+test("meal plan week strip: seven days, pick one", async ({ page }, info) => {
+  await signIn(page, newEmail("strip"));
+  await page.goto("/#/meals");
+  const strip = page.getByRole("navigation", { name: "Week" });
+  await expect(strip.getByRole("button")).toHaveCount(7);
+  await expect(strip.locator('[aria-current="date"]')).toHaveCount(1);
+  await shot(page, info, "meal-plan-week-strip", "Meal plan: the week as a strip, the chosen day filled");
+  await page.getByRole("button", { name: "Next day" }).click();
+  await expect(page.getByRole("heading", { name: "Tomorrow" })).toBeVisible();
+  await strip.getByRole("button").first().click();
+  await expect(strip.locator('[aria-current="date"]')).toHaveCount(1);
+});

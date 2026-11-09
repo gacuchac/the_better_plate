@@ -3,7 +3,7 @@ import { type DayTotal } from "@betterplate/nutrition";
 import { formatQty, nutrientName, t as translate, useT } from "../i18n.ts";
 import { MACROS } from "./RecipeEditor.tsx";
 import type { LocalFeedback, LocalLog, LocalPlan } from "../localdb.ts";
-import { addDays, dayName, formatDay, localDate, logEaten, slotLabel, summarizeDay, type DaySummary } from "../meals.ts";
+import { addDays, dayName, formatDay, localDate, logEaten, slotLabel, summarizeDay, weekOf, type DaySummary } from "../meals.ts";
 import { useApp } from "../store.tsx";
 import { EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
@@ -55,6 +55,21 @@ export function Meals({ date: routeDate }: { date?: string }) {
           <Icon name="forward" />
         </button>
       </div>
+      {range === "day" && (
+        <nav className="week-strip" aria-label={t("meals.weekStrip")}>
+          {weekOf(date).map((d) => {
+            const hasPlan = plans.some((p) => !p.deleted && p.body.date === d && (p.meta?.status ?? "planned") === "planned");
+            const hasEaten = logs.some((l) => !l.deleted && l.body.localDate === d);
+            return (
+              <button key={d} type="button" className={`strip-day${d === today ? " is-today" : ""}`} aria-current={d === date ? "date" : undefined} aria-label={formatDay(d)} onClick={() => go(d)}>
+                <span className="strip-name">{formatDay(d, { weekday: "short" })}</span>
+                <span className="strip-num">{formatDay(d, { day: "numeric" })}</span>
+                <span className={`strip-dot${hasEaten ? " eaten" : hasPlan ? " planned" : ""}`} aria-hidden="true" />
+              </button>
+            );
+          })}
+        </nav>
+      )}
       <SubjectChips value={subject} onChange={setSubject} />
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
         <div className="segmented" role="tablist" aria-label={t("meals.range")}>

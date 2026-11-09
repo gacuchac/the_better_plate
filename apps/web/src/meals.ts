@@ -79,3 +79,10 @@ export function summarizeDay(date: string, logs: LocalLog[], plans: LocalPlan[],
     totals: dayLogs.length ? sumMeals(dayLogs.map((l) => logEaten(l, foods, defs))) : null,
   };
 }
+
+/** The seven days of the week (Monday first) that contains `date`. */
+export function weekOf(date: string): string[] {
+  const [y, m, d] = date.split("-").map(Number);
+  const dow = (new Date(y!, m! - 1, d!).getDay() + 6) % 7; // Monday = 0
+  return Array.from({ length: 7 }, (_, i) => addDays(date, i - dow));
+}
