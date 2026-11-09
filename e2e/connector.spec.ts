@@ -71,7 +71,7 @@ test("a person signs in, approves an assistant, then disconnects it", async ({ p
   const foodId = JSON.parse(found.result.content[0].text).foods[0].id as string;
   const saved = await mcp(2, "tools/call", { name: "save_recipe", arguments: { title: "Recipe from my assistant", servings: 2, ingredients: [{ foodId, grams: 300 }] } });
   expect((await saved.json()).result.isError).toBeFalsy();
-  await expect(page.getByText("Recipe from my assistant")).toBeVisible({ timeout: 12_000 });
+  await expect(page.getByTestId("recipe-card").filter({ hasText: "Recipe from my assistant" })).toBeVisible({ timeout: 12_000 });
   await shot(page, info, "assistant-recipe-live", "Kitchen: a recipe saved by the connected assistant appears without reloading");
 
   // The companion stays first and offers the person's own Claude or ChatGPT as the alternative.
