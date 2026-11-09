@@ -22,7 +22,7 @@ concurrency:
 jobs:
   secrets:
     name: Secret scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,7 +33,7 @@ jobs:
 
   test:
     name: Typecheck, unit and API
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:16
@@ -66,7 +66,7 @@ jobs:
 
   changes:
     name: Decide on browser journeys
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       e2e: ${{ steps.decide.outputs.e2e }}
     steps:
@@ -84,7 +84,7 @@ jobs:
     name: Browser journeys
     needs: changes
     if: needs.changes.outputs.e2e == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:16
