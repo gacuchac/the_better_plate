@@ -18,7 +18,7 @@ jobs:
   hosted:
     name: Playwright against Railway dev
     if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     env:
       HOSTED_URL: https://thebetterplate-dev.up.railway.app
       E2E_OUT: ${{ github.workspace }}/artifacts/qa/hosted/${{ github.run_id }}
