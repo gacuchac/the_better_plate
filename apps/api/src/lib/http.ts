@@ -74,7 +74,8 @@ export function rateLimit(name: string, limit: number, windowSeconds: number): M
   const max = Math.round(limit * config.rateLimitMultiplier);
   return async (c, next) => {
     const user = c.get("user");
-    const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+    // Railway's edge sets X-Real-IP; the first X-Forwarded-For entry is whatever the client sent.
+    const ip = c.req.header("x-real-ip")?.trim() || c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "local";
     const key = user ? `u:${user.id}` : `ip:${ip}`;
     const now = Date.now();
     let bucket = buckets.get(key);

@@ -613,6 +613,10 @@ describe("rate limiting", () => {
     expect(Number(limited.headers.get("retry-after"))).toBeGreaterThan(0);
     // Another client is unaffected.
     expect((await mini.request("/x", { headers: { "x-forwarded-for": "203.0.113.10" } })).status).toBe(200);
+    // Behind Railway's edge X-Real-IP wins, so a made-up X-Forwarded-For can't dodge the limit.
+    const edge = (spoof: string) => mini.request("/x", { headers: { "x-real-ip": "203.0.113.11", "x-forwarded-for": `${spoof}, 203.0.113.11` } });
+    for (let i = 0; i < max; i++) expect((await edge(`198.51.100.${i}`)).status).toBe(200);
+    expect((await edge("198.51.100.250")).status).toBe(429);
   });
 });
 
