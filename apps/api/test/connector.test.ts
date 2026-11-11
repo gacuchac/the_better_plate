@@ -5,7 +5,8 @@ import { config } from "../src/config.ts";
 import { pool } from "../src/db/pool.ts";
 import { photoDownloads } from "../src/modules/connector.ts";
 import { PublicFetchError } from "../src/lib/public-fetch.ts";
-import { call, type Client, signIn } from "./helpers.ts";
+import { Client as McpClient, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { app, call, type Client, signIn } from "./helpers.ts";
 
 // The whole connector path as Claude or ChatGPT would run it: discovery, dynamic client
 // registration, authorization with PKCE and consent, token exchange, then MCP tool calls.
@@ -151,6 +152,36 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     // The app sees the change through its normal sync feed.
     const changes = await (await alice.request("/v1/sync/changes?cursor=0")).json();
     expect(JSON.stringify(changes)).toContain(recipeId);
+  });
+
+  it("serves both MCP protocol eras: 2026-07-28 clients and 2025 clients", async () => {
+    const { access_token: token } = await connect(alice);
+    // The official SDK client, talking to the in-process app with the person's access token.
+    const transport = () =>
+      new StreamableHTTPClientTransport(new URL(MCP), {
+        requestInit: { headers: { authorization: `Bearer ${token}` } },
+        fetch: async (url, init) => app.request(String(url), init as RequestInit),
+      });
+    const use = async (mode: "legacy" | { pin: string }) => {
+      const client = new McpClient({ name: "test", version: "1" }, { versionNegotiation: { mode } });
+      await client.connect(transport());
+      try {
+        const tools = (await client.listTools()).tools.map((t) => t.name);
+        const found = await client.callTool({ name: "search_foods", arguments: { query: "chicken breast raw" } });
+        const text = (found.content as { type: string; text: string }[])[0]!.text;
+        return { version: client.getNegotiatedProtocolVersion(), instructions: client.getInstructions(), tools, isError: !!found.isError, foods: JSON.parse(text).foods };
+      } finally {
+        await client.close();
+      }
+    };
+    for (const [mode, version] of [[{ pin: "2026-07-28" }, "2026-07-28"], ["legacy", "2025-11-25"]] as const) {
+      const r = await use(mode);
+      expect(r.version).toBe(version);
+      expect(r.instructions).toContain("Never invent food ids");
+      expect(r.tools).toEqual(expect.arrayContaining(["search_foods", "save_recipe", "upload_recipe_photo"]));
+      expect(r.isError).toBe(false);
+      expect(r.foods[0].id).toMatch(/^fdc:\d+$/);
+    }
   });
 
   it("takes the person's photo as a chat attachment, link or base64, checks the bytes and confirms where it went", async () => {

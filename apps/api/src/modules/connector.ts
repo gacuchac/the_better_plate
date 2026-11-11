@@ -1,6 +1,5 @@
 import { Hono } from "hono";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { createMcpHandler, isLegacyRequest, McpServer, WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/server";
 import { oauthProviderAuthServerMetadata } from "@better-auth/oauth-provider";
 import { createLocalJWKSet, errors as joseErrors, type JSONWebKeySet, jwtVerify } from "jose";
 import { z } from "zod";
@@ -496,7 +495,7 @@ function createServer(session: ConnectorAuth) {
       name,
       {
         description: DESCRIPTIONS[name] ?? tool.description,
-        inputSchema: tool.input.shape,
+        inputSchema: tool.input,
         annotations: { readOnlyHint: !write, destructiveHint: DESTRUCTIVE.has(name), idempotentHint: !write, openWorldHint: name === "find_photos" || name === "set_recipe_photo" },
       },
       (async (input: unknown) => {
@@ -522,7 +521,7 @@ function createServer(session: ConnectorAuth) {
         `imageUrl (a public https link straight to the image file), or imageBase64 (the file itself; ${ASSISTANT_FORMATS}, under 9 MB). ` +
         "Paths inside your own sandbox (such as /mnt/data/...) can't be opened by this server. Only for photos they gave you and said they took, made or may use; " +
         "they are responsible for its copyright. The photo is resized, its metadata (including location) removed, and only they can see it.",
-      inputSchema: UploadPhotoInput,
+      inputSchema: z.object(UploadPhotoInput),
       _meta: { "openai/fileParams": UPLOAD_FILE_PARAMS },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
@@ -596,12 +595,11 @@ connectorRoutes.all("/mcp", async (c, next) => {
 connectorRoutes.all("/mcp", rateLimit("connector", 120, 60));
 connectorRoutes.all("/mcp", async (c) => {
   const session = c.get("connector")!;
-  // Stateless: a fresh server and transport per request, answering with plain JSON.
-  const server = createServer(session);
-  const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+  const request = c.req.raw;
+  const authInfo = { token: "", clientId: session.clientId, scopes: [...session.scopes], extra: { userId: session.userId } };
   // Why a request was refused (protocol version, malformed message…): no bodies or tokens, only
-  // the transport's own short reason and the version header the client sent.
-  transport.onerror = (err) =>
+  // the SDK's own short reason and the version header the client sent.
+  const onerror = (err: Error) =>
     console.warn(
       JSON.stringify({
         level: "warn",
@@ -612,10 +610,25 @@ connectorRoutes.all("/mcp", async (c) => {
         hasSessionId: !!c.req.header("mcp-session-id"),
       }),
     );
-  await server.connect(transport);
+  // Stateless either way: a fresh server per request, answering with plain JSON.
+  if (await isLegacyRequest(request)) {
+    // 2025-era clients (initialize handshake, protocol 2024-10-07 to 2025-11-25).
+    const server = createServer(session);
+    const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+    transport.onerror = onerror;
+    await server.connect(transport);
+    try {
+      return await transport.handleRequest(request, { authInfo });
+    } finally {
+      void server.close();
+    }
+  }
+  // 2026-07-28 clients: every request carries its own protocol envelope. Our tools send no
+  // progress messages, so answers stay single JSON bodies.
+  const modern = createMcpHandler(() => createServer(session), { legacy: "reject", onerror });
   try {
-    return await transport.handleRequest(c.req.raw, { authInfo: { token: "", clientId: session.clientId, scopes: [...session.scopes], extra: { userId: session.userId } } });
+    return await modern.fetch(request, { authInfo });
   } finally {
-    void server.close();
+    void modern.close();
   }
 });
