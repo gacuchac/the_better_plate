@@ -19,9 +19,13 @@ jobs:
     name: Playwright against Railway dev
     if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
+    # Same image as CI's browser journeys: Chromium and its libraries are baked in, so nothing is
+    # installed from Ubuntu's package mirrors. Keep the tag equal to @playwright/test.
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      options: --ipc=host
     env:
       HOSTED_URL: https://thebetterplate-dev.up.railway.app
-      E2E_OUT: ${{ github.workspace }}/artifacts/qa/hosted/${{ github.run_id }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,9 +34,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
       - name: Playwright hosted suite (desktop + mobile)
-        run: pnpm exec playwright test -c playwright.hosted.config.ts
+        # $GITHUB_WORKSPACE, not github.workspace: in a container job the expression gives the
+        # runner's path, which does not exist inside the container.
+        run: E2E_OUT="$GITHUB_WORKSPACE/artifacts/qa/hosted/$GITHUB_RUN_ID" pnpm exec playwright test -c playwright.hosted.config.ts
       - name: Upload QA evidence
         if: always()
         uses: actions/upload-artifact@v4
