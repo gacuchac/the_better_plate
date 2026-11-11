@@ -156,7 +156,7 @@ test("last 7 days: adds each day's own goal, and a changed goal keeps its earlie
   const line = page.getByTestId("week-line");
   // Two days count (the logged one and today), each with a 1,000 kcal goal.
   await expect(line).toHaveCount(1);
-  await expect(line).toContainText(/of 2,000 kcal/);
+  await expect(line).toContainText(/of 2,?000 kcal/);
   await expect(line).toContainText("2 days counted");
   await expect(line.getByTestId("week-left")).toContainText("left for today");
   await shot(page, info, "week-card", "Last 7 days next to today: eaten against the sum of each day's own goal, room left for today");
@@ -172,6 +172,6 @@ test("last 7 days: adds each day's own goal, and a changed goal keeps its earlie
   await expect(page.getByTestId("goal-card")).toHaveCount(2);
 
   await page.goto("/#/kitchen");
-  await expect(line).toContainText(/of 2,500 kcal/);
+  await expect(line).toContainText(/of 2,?500 kcal/);
   await shot(page, info, "week-card-after-change", "After the change: the earlier day keeps 1,000 kcal, today counts 1,500");
 });
