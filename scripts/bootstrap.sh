@@ -42,7 +42,13 @@ ENV
 fi
 
 # --- database ----------------------------------------------------------------
-bash scripts/db-up.sh
+# BP_DB_EXTERNAL=1: DATABASE_URL points at a server run elsewhere (CI's service container), so
+# don't start or provision a local one. The environment's DATABASE_URL wins over .env.
+if [[ "${BP_DB_EXTERNAL:-}" == 1 ]]; then
+  say "using the PostgreSQL server at DATABASE_URL"
+else
+  bash scripts/db-up.sh
+fi
 say "migrating and loading the USDA starter catalog"
 pnpm --silent --filter @betterplate/api db:setup
 
