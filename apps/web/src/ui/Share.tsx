@@ -201,11 +201,84 @@ function amountLabel(i: SharedRecipe["ingredients"][number]) {
   return i.quantity === 1 ? label : `${qty(i.quantity)} × ${label}`;
 }
 
+/** Ingredients, method and the estimated nutrition of a reviewed snapshot (share link or community). */
+export function SnapshotDetails({ recipe }: { recipe: Omit<SharedRecipe, "shareId" | "expiresAt"> }) {
+  const [perServing, setPerServing] = useState(true);
+  const t = useT();
+  return (
+    <div className="shared-grid">
+      <section>
+        <h2>{t("editor.ingredients")}</h2>
+        <ul className="shared-ingredients">
+          {recipe.ingredients.map((i) => (
+            <li key={i.id}>
+              <span className="shared-amount">{amountLabel(i)}</span>
+              <span>
+                {i.name}
+                {i.role === "cooking_oil" && (
+                  <span className="meal-meta">
+                    {" "}
+                    · {i.oilDiscardedGrams != null ? t("shared.oilDiscarded", { g: qty(i.oilDiscardedGrams) }) : t("shared.oil")}
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {recipe.method && (
+          <>
+            <h2>{t("editor.method")}</h2>
+            <p className="shared-method">{recipe.method}</p>
+          </>
+        )}
+      </section>
+
+      <section className="nutrition" aria-labelledby="shared-nutrition">
+        <header className="nutrition-head">
+          <h2 id="shared-nutrition">
+            {t("nutrition.title")} <span className="tag">{t("common.estimated")}</span>
+          </h2>
+          <div className="segmented" role="group" aria-label={t("nutrition.amountShown")}>
+            <button type="button" aria-pressed={perServing} onClick={() => setPerServing(true)}>
+              {t("nutrition.perServing")}
+            </button>
+            <button type="button" aria-pressed={!perServing} onClick={() => setPerServing(false)}>
+              {t("nutrition.wholeRecipe")}
+            </button>
+          </div>
+        </header>
+        <ul className="nutrient-list">
+          {(perServing ? recipe.nutrition.perServing : recipe.nutrition.totals)
+            .filter((r) => MAIN_NUTRIENTS.includes(r.key))
+            .map((row) => (
+              <li key={row.key} className="nutrient-row static" data-testid={`shared-nutrient-${row.key}`}>
+                <NutrientLine row={row} name={nutrientName(row.key, recipe.nutrientNames[row.key] ?? row.key)} />
+              </li>
+            ))}
+        </ul>
+        {recipe.nutrition.disclosures.length > 0 && (
+          <ul className="disclosures">
+            {recipe.nutrition.disclosures.map((d, idx) => (
+              <li key={idx}>{disclosureText(d.code, recipe.ingredients.find((i) => i.id === d.ingredientId)?.name ?? t("editor.anIngredient"))}</li>
+            ))}
+          </ul>
+        )}
+        <p className="fine">
+          {t("shared.estimatedFrom")}{" "}
+          <a href={recipe.source.url} target="_blank" rel="noopener noreferrer">
+            {recipe.source.name}
+          </a>{" "}
+          {t("shared.fine", { version: recipe.nutrition.catalogVersion })}
+        </p>
+      </section>
+    </div>
+  );
+}
+
 /** What a link holder sees. Works without an account; nothing from this device is shown. */
 export function SharedRecipePage({ shareId }: { shareId: string }) {
   const { account, engine } = useApp();
   const [state, setState] = useState<{ status: "loading" } | { status: "ok"; recipe: SharedRecipe } | { status: "gone" } | { status: "error"; message: string }>({ status: "loading" });
-  const [perServing, setPerServing] = useState(true);
   const t = useT();
   const [saved, setSaved] = useState<string | null>(null);
 
@@ -272,72 +345,7 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
               {t("shared.sharedOn", { date: new Date(state.recipe.sharedAt).toLocaleDateString(dateLocale(), { day: "numeric", month: "long", year: "numeric" }) })}
             </p>
 
-            <div className="shared-grid">
-              <section>
-                <h2>{t("editor.ingredients")}</h2>
-                <ul className="shared-ingredients">
-                  {state.recipe.ingredients.map((i) => (
-                    <li key={i.id}>
-                      <span className="shared-amount">{amountLabel(i)}</span>
-                      <span>
-                        {i.name}
-                        {i.role === "cooking_oil" && (
-                          <span className="meal-meta">
-                            {" "}
-                            · {i.oilDiscardedGrams != null ? t("shared.oilDiscarded", { g: qty(i.oilDiscardedGrams) }) : t("shared.oil")}
-                          </span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {state.recipe.method && (
-                  <>
-                    <h2>{t("editor.method")}</h2>
-                    <p className="shared-method">{state.recipe.method}</p>
-                  </>
-                )}
-              </section>
-
-              <section className="nutrition" aria-labelledby="shared-nutrition">
-                <header className="nutrition-head">
-                  <h2 id="shared-nutrition">
-                    {t("nutrition.title")} <span className="tag">{t("common.estimated")}</span>
-                  </h2>
-                  <div className="segmented" role="group" aria-label={t("nutrition.amountShown")}>
-                    <button type="button" aria-pressed={perServing} onClick={() => setPerServing(true)}>
-                      {t("nutrition.perServing")}
-                    </button>
-                    <button type="button" aria-pressed={!perServing} onClick={() => setPerServing(false)}>
-                      {t("nutrition.wholeRecipe")}
-                    </button>
-                  </div>
-                </header>
-                <ul className="nutrient-list">
-                  {(perServing ? state.recipe.nutrition.perServing : state.recipe.nutrition.totals)
-                    .filter((r) => MAIN_NUTRIENTS.includes(r.key))
-                    .map((row) => (
-                      <li key={row.key} className="nutrient-row static" data-testid={`shared-nutrient-${row.key}`}>
-                        <NutrientLine row={row} name={nutrientName(row.key, state.recipe.nutrientNames[row.key] ?? row.key)} />
-                      </li>
-                    ))}
-                </ul>
-                {state.recipe.nutrition.disclosures.length > 0 && (
-                  <ul className="disclosures">
-                    {state.recipe.nutrition.disclosures.map((d, idx) => (
-                      <li key={idx}>{disclosureText(d.code, state.recipe.ingredients.find((i) => i.id === d.ingredientId)?.name ?? t("editor.anIngredient"))}</li>
-                    ))}
-                  </ul>
-                )}
-                <p className="fine">
-                  {t("shared.estimatedFrom")}{" "}
-                  <a href={state.recipe.source.url} target="_blank" rel="noopener noreferrer">
-                    {state.recipe.source.name}
-                  </a>{" "}
-                  {t("shared.fine", { version: state.recipe.nutrition.catalogVersion })}
-                </p>
-              </section>
-            </div>
+            <SnapshotDetails recipe={state.recipe} />
 
             <div className="public-cta">
               {account && engine ? (

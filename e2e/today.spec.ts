@@ -25,11 +25,19 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Unit").selectOption("g");
   await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Amount").fill("400");
   await saveAndSync(page);
+  const heart = page.getByTestId("favorite-toggle");
+  await expect(heart).toHaveAttribute("aria-pressed", "false");
+  await heart.click();
+  await expect(heart).toHaveAttribute("aria-pressed", "true");
+  await expectSynced(page);
   await page.getByRole("link", { name: "Back to Kitchen" }).click();
   await expect(page.getByTestId("today-card")).toContainText("Nothing planned yet");
-  await expect(page.locator(".tile")).toHaveCount(1);
-  await shot(page, info, "today-empty-with-recipes", "Empty day with a saved recipe: empty plan first, then the recipe grid");
-  await page.locator(".tile").click();
+  // Home no longer lists every recipe: only favorites, trending and one adventure pick.
+  const favorites = page.getByTestId("favorites-section");
+  await expect(favorites.locator(".tile")).toHaveCount(1);
+  await expect(page.getByTestId("adventure-card")).toBeVisible();
+  await shot(page, info, "today-empty-with-favorite", "Empty day with a favorite: empty plan first, then favorites, trending and an adventure pick");
+  await favorites.locator(".tile").click();
   await page.getByRole("button", { name: "Plan" }).click();
   const plan = page.getByRole("dialog", { name: "Plan this meal" });
   await plan.getByRole("button", { name: "Dinner" }).click();

@@ -60,6 +60,8 @@ interface AppState {
   goals: LocalGoal[];
   /** Water the account logged drinking. */
   water: LocalWater[];
+  /** Ids of recipes this person marked as favorites. */
+  favorites: Set<string>;
   preferences: LocalPreferences[];
   feedback: LocalFeedback[];
   profiles: LocalProfile[];
@@ -139,6 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<LocalLog[]>([]);
   const [goals, setGoals] = useState<LocalGoal[]>([]);
   const [water, setWater] = useState<LocalWater[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
   const [preferences, setPreferences] = useState<LocalPreferences[]>([]);
   const [feedback, setFeedback] = useState<LocalFeedback[]>([]);
   const [profiles, setProfiles] = useState<LocalProfile[]>([]);
@@ -194,6 +197,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLogs([]);
       setGoals([]);
       setWater([]);
+      setFavorites(new Set());
       setPreferences([]);
       setFeedback([]);
       setProfiles([]);
@@ -207,8 +211,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (disposed) return db.close();
       const e = new SyncEngine(db);
       const refresh = () =>
-        void Promise.all([e.listRecipes(), e.listAllPlans(), e.listAllLogs(), e.listGoals(), e.listPreferences(), e.listFeedback(), e.listProfiles(), e.listWater()]).then(
-          ([r, p, l, g, prefs, fb, profs, w]) => {
+        void Promise.all([e.listRecipes(), e.listAllPlans(), e.listAllLogs(), e.listGoals(), e.listPreferences(), e.listFeedback(), e.listProfiles(), e.listWater(), e.listFavorites()]).then(
+          ([r, p, l, g, prefs, fb, profs, w, favs]) => {
             if (disposed) return;
             setRecipes(r);
             setPlans(p);
@@ -218,6 +222,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setFeedback(fb);
             setProfiles(profs);
             setWater(w);
+            setFavorites(new Set(favs.map((f) => f.body.recipeId)));
             setKitchenLoaded(true);
           },
         );
@@ -315,10 +320,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(() => {
     const own = <T extends { body: { profileId?: string | null } }>(list: T[]) => list.filter((x) => !x.body.profileId);
     return {
-      account, accountChecked, engine, catalog, recipes, plans: own(plans), logs: own(logs), allPlans: plans, allLogs: logs, goals, water,
+      account, accountChecked, engine, catalog, recipes, plans: own(plans), logs: own(logs), allPlans: plans, allLogs: logs, goals, water, favorites,
       preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice,
       dismissStorageNotice: () => setStorageNotice(null),
     };
-  }, [account, accountChecked, engine, catalog, recipes, plans, logs, goals, water, preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice]);
+  }, [account, accountChecked, engine, catalog, recipes, plans, logs, goals, water, favorites, preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

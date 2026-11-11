@@ -10,6 +10,8 @@ import type { LocalRecipe } from "../localdb.ts";
 import { Meter } from "./Meter.tsx";
 import { Icon } from "./icons.tsx";
 import { navigate } from "./common.tsx";
+import { CommunityTile, useCommunityHome } from "./Community.tsx";
+import { ownAdventure } from "../picks.ts";
 
 function Thumb({ recipe, title }: { recipe: LocalRecipe | undefined; title: string }) {
   return recipe?.body.image ? (
@@ -29,6 +31,67 @@ function RecipeTile({ recipe }: { recipe: LocalRecipe }) {
         <span className="tile-title">{recipe.body.title}</span>
       </a>
     </li>
+  );
+}
+
+/**
+ * What to cook, instead of every recipe: your favorites, what's trending in the community (most
+ * saved by different people lately) and one pick unlike what you've been eating.
+ */
+function HomePicks() {
+  const { recipes, logs, favorites, catalog } = useApp();
+  const t = useT();
+  const { home, available, offline } = useCommunityHome();
+  const favs = recipes.filter((r) => favorites.has(r.id));
+  const own = useMemo(
+    () => (catalog.status === "ready" ? ownAdventure(recipes, logs, localDate(), catalog.foods) : null),
+    [recipes, logs, catalog],
+  );
+  const adventure = home?.adventure ?? null;
+  return (
+    <>
+      <section className="home-picks" aria-labelledby="favorites-title" data-testid="favorites-section">
+        <h3 id="favorites-title">{t("favorites.title")}</h3>
+        {favs.length > 0 ? (
+          <ul className="tile-grid">
+            {favs.slice(0, 8).map((r) => (
+              <RecipeTile key={r.id} recipe={r} />
+            ))}
+          </ul>
+        ) : (
+          <p className="hint" style={{ margin: 0 }}>{recipes.length > 0 ? t("favorites.empty") : t("favorites.emptyNoRecipes")}</p>
+        )}
+      </section>
+
+      {available !== false && (
+        <section className="home-picks" aria-labelledby="trending-title" data-testid="trending-section">
+          <h3 id="trending-title">{t("community.trending")}</h3>
+          {home && home.trending.length > 0 ? (
+            <ul className="tile-grid">
+              {home.trending.map((c) => (
+                <CommunityTile key={c.communityId} card={c} />
+              ))}
+            </ul>
+          ) : (
+            <p className="hint" style={{ margin: 0 }}>{offline ? t("community.trendingOffline") : home ? t("community.trendingEmpty") : t("common.loading")}</p>
+          )}
+        </section>
+      )}
+
+      {(adventure || own) && (
+        <a
+          className="card adventure-card"
+          href={adventure ? `#/community/${adventure.communityId}` : `#/recipe/${own!.id}`}
+          data-testid="adventure-card"
+        >
+          <span className="eyebrow">
+            <Icon name="sparkle" size={16} /> {t("adventure.title")}
+          </span>
+          <strong>{adventure ? adventure.title : own!.body.title}</strong>
+          <span className="hint" style={{ margin: 0 }}>{adventure ? t("adventure.community") : t("adventure.own")}</span>
+        </a>
+      )}
+    </>
   );
 }
 
@@ -169,13 +232,7 @@ export function Today() {
             <Icon name="plus" /> {t("kitchen.newRecipe")}
           </button>
         </div>
-        {recipes.length > 0 && (
-          <ul className="tile-grid">
-            {recipes.slice(0, 4).map((r) => (
-              <RecipeTile key={r.id} recipe={r} />
-            ))}
-          </ul>
-        )}
+        <HomePicks />
       </div>
     </section>
   );

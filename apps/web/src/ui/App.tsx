@@ -8,6 +8,7 @@ import { Meals } from "./Meals.tsx";
 import { ReportIssue } from "./ReportIssue.tsx";
 import { RecipeEditor } from "./RecipeEditor.tsx";
 import { Explore, Kitchen, Recipes, You } from "./Screens.tsx";
+import { CommunityRecipePage } from "./Community.tsx";
 import { PRIVACY_NOTICE } from "@betterplate/contracts";
 import { ConsentScreen, PrivacyPage } from "./Privacy.tsx";
 import { SharedRecipePage } from "./Share.tsx";
@@ -106,7 +107,8 @@ export function App() {
   const shoppingMatch = /^\/shopping(?:\/group\/([0-9a-f-]{36}))?$/.exec(route);
   const groupMatch = /^\/groups\/([0-9a-f-]{36})$/.exec(route);
   const joinMatch = /^\/join\/([0-9a-f-]{36})$/.exec(route);
-  const inKitchen = !!(recipeMatch || mealsMatch || shoppingMatch) || route === "/recipes";
+  const communityMatch = /^\/community\/([0-9a-f-]{36})$/.exec(route);
+  const inKitchen = !!(recipeMatch || mealsMatch || shoppingMatch || communityMatch) || route === "/recipes";
   const inYou = ["/goals", "/targets", "/ai", "/preferences"].includes(route);
   const inGroups = route === "/groups" || !!groupMatch || !!joinMatch;
   const section = inKitchen ? "/kitchen" : inYou ? "/you" : inGroups ? "/groups" : route;
@@ -114,6 +116,7 @@ export function App() {
   if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;
   else if (route === "/recipes") screen = <Recipes />;
+  else if (communityMatch) screen = <CommunityRecipePage key={communityMatch[1]} id={communityMatch[1]!} />;
   else if (route === "/explore") screen = <Explore />;
   else if (route === "/you" || route === "/goals" || route === "/targets") screen = <You />;
   else if (route === "/ai") screen = <AiSettings />;

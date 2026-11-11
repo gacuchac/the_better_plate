@@ -11,7 +11,7 @@ import type {
   PlannedMeal,
   ShoppingList,
 } from "@betterplate/contracts";
-import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse } from "@betterplate/contracts";
+import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse, CommunityHome, CommunityRecipe, CommunityReason, CommunityShare, CommunityStatus } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
 import { API_URL } from "./env.ts";
@@ -146,6 +146,13 @@ export const api = {
   shares: (recipeId: string) => request<{ shares: Share[] }>(`/v1/shares?recipeId=${recipeId}`),
   revokeShare: (shareId: string) => request<void>(`/v1/shares/${shareId}`, { method: "DELETE" }),
   shared: (shareId: string) => request<SharedRecipe>(`/v1/shared/${shareId}`, { cache: "no-store" }),
+  communityStatus: (recipeId: string) => request<CommunityStatus>(`/v1/recipes/${recipeId}/community`, { cache: "no-store" }),
+  shareWithCommunity: (recipeId: string, body: CommunityShare) => request<CommunityStatus>(`/v1/recipes/${recipeId}/community`, { method: "PUT", json: body }),
+  unshareFromCommunity: (recipeId: string) => request<void>(`/v1/recipes/${recipeId}/community`, { method: "DELETE" }),
+  communityHome: (today: string) => request<CommunityHome>(`/v1/community/home?today=${today}`, { cache: "no-store" }),
+  communityRecipe: (id: string) => request<CommunityRecipe>(`/v1/community/${id}`, { cache: "no-store" }),
+  saveCommunityCopy: (id: string) => request<{ recipeId: string }>(`/v1/community/${id}/save`, { method: "POST" }),
+  reportCommunity: (id: string, reason: CommunityReason) => request<void>(`/v1/community/${id}/report`, { method: "POST", json: { reason } }),
   aiSettings: () => request<AiSettings>("/v1/ai/settings", { cache: "no-store" }),
   updateAiSettings: (body: AiSettingsUpdate) => request<AiSettings>("/v1/ai/settings", { method: "PUT", json: body }),
   connectAi: (provider: AiProvider, apiKey: string) => request<AiSettings>(`/v1/ai/credentials/${provider}`, { method: "PUT", json: { apiKey } }),

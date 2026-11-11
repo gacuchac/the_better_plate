@@ -17,6 +17,7 @@ import type {
   RecipeNutritionDto,
   SyncOperation,
   WaterLogBody,
+  RecipeFavoriteBody,
 } from "@betterplate/contracts";
 import type { CatalogBundle } from "./api.ts";
 
@@ -98,6 +99,15 @@ export interface LocalWater {
   createdAt: string;
 }
 
+/** A recipe this person marked as a favorite. Created once; "deleted" marks an unfavorite waiting to sync. */
+export interface LocalFavorite {
+  id: string;
+  body: RecipeFavoriteBody;
+  state: "pending" | "synced" | "rejected";
+  deleted?: boolean;
+  createdAt: string;
+}
+
 /** Allergies, likes and dislikes as a person told us; id is the account's own id or a profile's. */
 export interface LocalPreferences {
   id: string;
@@ -127,7 +137,7 @@ export interface OutboxOp {
   entityId: string;
   type: SyncOperation["type"];
   baseVersion: number | null;
-  body?: RecipeBody | PlannedMealBody | MealLogBody | GoalBody | FoodPreferencesBody | MealFeedbackBody | WaterLogBody;
+  body?: RecipeBody | PlannedMealBody | MealLogBody | GoalBody | FoodPreferencesBody | MealFeedbackBody | WaterLogBody | RecipeFavoriteBody;
   createdAt: string;
   seq: number;
 }
@@ -138,6 +148,7 @@ export interface UserDB extends DBSchema {
   logs: { key: string; value: LocalLog };
   goals: { key: string; value: LocalGoal };
   water: { key: string; value: LocalWater };
+  favorites: { key: string; value: LocalFavorite };
   prefs: { key: string; value: LocalPreferences };
   feedback: { key: string; value: LocalFeedback };
   profiles: { key: string; value: LocalProfile };
@@ -163,7 +174,7 @@ const seenKey = (userId: string) => `bp.db-seen.${userId}`;
  * it comes back empty, the browser evicted it; onEvicted lets the app tell the person.
  */
 export function openUserDb(userId: string, onEvicted?: () => void): Promise<UserDatabase> {
-  return openDB<UserDB>(userDbName(userId), 5, {
+  return openDB<UserDB>(userDbName(userId), 6, {
     upgrade(db, oldVersion) {
       if (oldVersion === 0) {
         try {
@@ -191,6 +202,7 @@ export function openUserDb(userId: string, onEvicted?: () => void): Promise<User
         db.createObjectStore("profiles", { keyPath: "id" });
       }
       if (oldVersion < 5) db.createObjectStore("water", { keyPath: "id" });
+      if (oldVersion < 6) db.createObjectStore("favorites", { keyPath: "id" });
     },
   });
 }
