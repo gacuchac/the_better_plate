@@ -16355,6 +16355,2023 @@
         }
       }
     },
+    "/v1/recipes/{id}/community": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Whether I shared this recipe with the community",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "communityId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipeVersion": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "includeMethod": {
+                      "type": "boolean"
+                    },
+                    "includeImage": {
+                      "type": "boolean"
+                    },
+                    "sharedAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "hidden": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "communityId",
+                    "recipeId",
+                    "recipeVersion",
+                    "includeMethod",
+                    "includeImage",
+                    "sharedAt",
+                    "updatedAt",
+                    "hidden"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Share my recipe's current saved version with the community, or refresh what is shared",
+        "description": "Online only, my own recipes only (not group recipes). Everyone signed in can read the snapshot: title, description, servings, ingredients, the USDA-based estimate and, if chosen, the method and the photo. Never my name, email, meals or other recipes.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "includeMethod": {
+                    "type": "boolean"
+                  },
+                  "includeImage": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "includeMethod"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "communityId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipeVersion": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "includeMethod": {
+                      "type": "boolean"
+                    },
+                    "includeImage": {
+                      "type": "boolean"
+                    },
+                    "sharedAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "hidden": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "communityId",
+                    "recipeId",
+                    "recipeVersion",
+                    "includeMethod",
+                    "includeImage",
+                    "sharedAt",
+                    "updatedAt",
+                    "hidden"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Recipe not ready to share",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {}
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Stop sharing with the community; the snapshot is erased",
+        "description": "Copies other people already saved stay in their kitchens.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Not shared any more (also when it was not shared)"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/community/home": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Trending community recipes and something completely different, for the home page",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": false,
+            "name": "today",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Picks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "trending": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "communityId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "servings": {
+                            "type": "number"
+                          },
+                          "kcalPerServing": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "image": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              },
+                              "alt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "alt"
+                            ]
+                          },
+                          "mine": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "communityId",
+                          "title",
+                          "servings",
+                          "kcalPerServing",
+                          "image",
+                          "mine"
+                        ]
+                      }
+                    },
+                    "windowDays": {
+                      "type": "integer"
+                    },
+                    "adventure": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "communityId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "servings": {
+                          "type": "number"
+                        },
+                        "kcalPerServing": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "image": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "url": {
+                              "type": "string"
+                            },
+                            "alt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "url",
+                            "alt"
+                          ]
+                        },
+                        "mine": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "communityId",
+                        "title",
+                        "servings",
+                        "kcalPerServing",
+                        "image",
+                        "mine"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "trending",
+                    "windowDays",
+                    "adventure"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/community/{communityId}": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Read a community recipe",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "communityId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recipe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "servings": {
+                      "type": "number"
+                    },
+                    "ingredients": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "foodId": {
+                            "type": "string",
+                            "pattern": "^fdc:\\d{1,9}$"
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 100000
+                          },
+                          "unit": {
+                            "type": "string",
+                            "enum": [
+                              "g",
+                              "kg",
+                              "oz",
+                              "lb",
+                              "portion"
+                            ]
+                          },
+                          "portionIndex": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "ingredient",
+                              "cooking_oil"
+                            ]
+                          },
+                          "oilDiscardedGrams": {
+                            "type": [
+                              "number",
+                              "null"
+                            ],
+                            "minimum": 0,
+                            "maximum": 100000
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "portionLabel": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "foodId",
+                          "quantity",
+                          "unit",
+                          "role",
+                          "name",
+                          "portionLabel"
+                        ]
+                      }
+                    },
+                    "method": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "image": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "alt": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo",
+                            "generated",
+                            "upload"
+                          ]
+                        },
+                        "credit": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "openverse"
+                              ]
+                            },
+                            "sourceId": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "title": {
+                              "type": "string",
+                              "maxLength": 300
+                            },
+                            "creator": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 200
+                            },
+                            "license": {
+                              "type": "string",
+                              "enum": [
+                                "cc0",
+                                "pdm",
+                                "by",
+                                "by-sa"
+                              ]
+                            },
+                            "licenseVersion": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 20
+                            },
+                            "licenseUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 500,
+                              "format": "uri"
+                            },
+                            "sourceUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 1000,
+                              "format": "uri"
+                            },
+                            "provider": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "sourceId",
+                            "title",
+                            "creator",
+                            "license",
+                            "licenseVersion",
+                            "licenseUrl",
+                            "sourceUrl",
+                            "provider"
+                          ]
+                        },
+                        "generator": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "openai"
+                              ]
+                            },
+                            "model": {
+                              "type": "string",
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "model"
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "alt",
+                        "kind",
+                        "credit",
+                        "generator",
+                        "url"
+                      ]
+                    },
+                    "nutrition": {
+                      "type": "object",
+                      "properties": {
+                        "engineVersion": {
+                          "type": "string"
+                        },
+                        "catalogVersion": {
+                          "type": "string"
+                        },
+                        "servings": {
+                          "type": "number"
+                        },
+                        "totals": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "amount": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "unit": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "known",
+                                  "partial",
+                                  "unknown"
+                                ]
+                              },
+                              "missingFrom": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "amount",
+                              "unit",
+                              "status",
+                              "missingFrom"
+                            ]
+                          }
+                        },
+                        "perServing": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "amount": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "unit": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "known",
+                                  "partial",
+                                  "unknown"
+                                ]
+                              },
+                              "missingFrom": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "amount",
+                              "unit",
+                              "status",
+                              "missingFrom"
+                            ]
+                          }
+                        },
+                        "disclosures": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "ingredientId": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "code",
+                              "ingredientId"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "engineVersion",
+                        "catalogVersion",
+                        "servings",
+                        "totals",
+                        "perServing",
+                        "disclosures"
+                      ]
+                    },
+                    "nutrientNames": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "source": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "url"
+                      ]
+                    },
+                    "sharedAt": {
+                      "type": "string"
+                    },
+                    "communityId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "mine": {
+                      "type": "boolean"
+                    },
+                    "savedRecipeId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "description",
+                    "servings",
+                    "ingredients",
+                    "method",
+                    "image",
+                    "nutrition",
+                    "nutrientNames",
+                    "source",
+                    "sharedAt",
+                    "communityId",
+                    "mine",
+                    "savedRecipeId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/community/{communityId}/image": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "summary": "The photo of a community recipe",
+        "description": "Only when the author shared the photo; stops working when the recipe is unshared or hidden.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "communityId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image bytes",
+            "content": {
+              "image/webp": {
+                "schema": {}
+              },
+              "image/jpeg": {
+                "schema": {}
+              },
+              "image/png": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/community/{communityId}/save": {
+      "post": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Save a copy of a community recipe into my kitchen",
+        "description": "The copy is my own recipe from then on (without the author's photo). Saving again returns the copy I already have.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "communityId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recipeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "recipeId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/community/{communityId}/report": {
+      "post": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Report a community recipe",
+        "description": "One report per person. After 3 different people report it, it is hidden from everyone but its author.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "communityId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_food",
+                      "offensive",
+                      "unsafe",
+                      "spam",
+                      "other"
+                    ]
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Reported"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/sync/batch": {
       "post": {
         "tags": [
@@ -17159,6 +19176,67 @@
                               "type": "string",
                               "enum": [
                                 "water.delete"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "favorite.create"
+                              ]
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "body": {
+                              "type": "object",
+                              "properties": {
+                                "recipeId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                }
+                              },
+                              "required": [
+                                "recipeId"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "opId",
+                            "type",
+                            "entityId",
+                            "body"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "opId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "favorite.delete"
                               ]
                             },
                             "entityId": {
@@ -18282,7 +20360,7 @@
           "sync"
         ],
         "summary": "Pull changes after a cursor, including deletion tombstones",
-        "description": "Recipes (mine and my groups'), planned meals (including those my groups' admins planned for me), eaten logs, goals, food preferences, meal feedback, water I logged and the profiles I own. When I join a group its recipes are sent again; when I leave one, clients drop its recipes.",
+        "description": "Recipes (mine and my groups'), planned meals (including those my groups' admins planned for me), eaten logs, goals, food preferences, meal feedback, water I logged, my favorite recipes and the profiles I own. When I join a group its recipes are sent again; when I leave one, clients drop its recipes.",
         "parameters": [
           {
             "schema": {
@@ -18329,7 +20407,8 @@
                               "preferences",
                               "meal_feedback",
                               "profile",
-                              "water_log"
+                              "water_log",
+                              "recipe_favorite"
                             ]
                           },
                           "entityId": {
@@ -19421,6 +21500,30 @@
                               "amountMl",
                               "localDate",
                               "drankAt",
+                              "id",
+                              "createdAt"
+                            ]
+                          },
+                          "favorite": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "recipeId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "recipeId",
                               "id",
                               "createdAt"
                             ]
@@ -23082,7 +25185,7 @@
           "account"
         ],
         "summary": "Download all my data as JSON",
-        "description": "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, meal feedback, profiles, group memberships, share links and issue reports. Rate limited to 10 per hour.",
+        "description": "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, and issue reports. Rate limited to 10 per hour.",
         "responses": {
           "200": {
             "description": "Export (betterplate.export/1)",

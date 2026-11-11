@@ -93,7 +93,7 @@ export const es: Messages = {
   "today.kcalEaten": "{amount} comidas",
   "today.over": "Unas {amount} kcal por encima de tu meta hoy. Mañana es un día nuevo.",
   "today.waiting": "Esperando aprobación: {n|1 plan|# planes}",
-  "kitchen.recipes": "Recetas",
+  "kitchen.yourRecipes": "Tus recetas",
   "kitchen.newRecipe": "Nueva receta",
   "kitchen.emptyTitle": "Aún no tienes recetas",
   "kitchen.emptyBody": "Empieza con algo que ya te encante cocinar. Se guarda primero en este dispositivo y se sincroniza cuando tengas conexión.",

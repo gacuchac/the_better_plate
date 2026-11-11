@@ -9,7 +9,7 @@ const API = process.env.HOSTED_API_URL ?? "";
 test("hosted: log water, calculate goals including vitamins and minerals, goals sync", async ({ page }, info) => {
   await page.goto("/");
   await acceptPrivacyNotice(page, info);
-  await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Let's cook something", exact: true })).toBeVisible();
   await expect(page.getByTestId("catalog-status")).toContainText("USDA foods saved on this device");
   await shot(page, info, "hosted-kitchen", "Signed in on the hosted app, starter catalog on the device");
 

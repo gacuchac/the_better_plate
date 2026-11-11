@@ -59,6 +59,7 @@ test("create a recipe with live nutrition, sources and oil handling, then sync",
   expect(saved.nutrition.disclosures).toEqual([]);
 
   await page.getByRole("link", { name: "Back to Kitchen" }).click();
+  await page.getByTestId("recipes-link").click();
   await expect(page.getByTestId("recipe-card")).toContainText("Lemon rice with broccoli");
   await expect(page.getByTestId("recipe-card")).toContainText("Synced");
   await shot(page, info, "kitchen-with-recipe", "Kitchen list with synced recipe");
@@ -137,6 +138,7 @@ test("conflicting edits from two devices ask before overwriting", async ({ brows
   const url = new URL(p.url());
 
   await signIn(l, email);
+  await l.getByTestId("recipes-link").click();
   await expect(l.getByTestId("recipe-card")).toContainText("Shared pasta");
   await l.goto(`/${url.hash}`);
   await expect(l.getByLabel("Recipe name")).toHaveValue("Shared pasta");
@@ -157,6 +159,7 @@ test("conflicting edits from two devices ask before overwriting", async ({ brows
   await l.getByRole("button", { name: "Keep both" }).click();
   await expectSynced(l);
   await l.getByRole("link", { name: "Back to Kitchen" }).click();
+  await l.getByTestId("recipes-link").click();
   await expect(l.getByTestId("recipe-card")).toHaveCount(2);
   await shot(l, info, "conflict-kept-both", "Both versions kept as separate recipes");
   const { recipes } = await (await l.request.get(`${API}/v1/recipes`)).json();
@@ -583,6 +586,7 @@ test("recipe names with markup are shown as text, never run", async ({ page }, i
   await page.getByLabel("Recipe name").fill(evil);
   await saveAndSync(page);
   await page.getByRole("link", { name: "Back to Kitchen" }).click();
+  await page.getByTestId("recipes-link").click();
   await expect(page.getByTestId("recipe-card")).toContainText(evil);
   expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
   await shot(page, info, "xss-name-as-text", "Markup in a recipe name is displayed literally");
@@ -661,6 +665,7 @@ test("when the browser clears local data or runs out of space, the app says so a
   });
   await page.reload();
   await expect(page.getByTestId("storage-banner")).toContainText("This browser cleared your kitchen from this device");
+  await page.getByTestId("recipes-link").click();
   await expect(page.getByTestId("recipe-card")).toContainText("Survives eviction");
   await shot(page, info, "storage-evicted", "After eviction: plain notice, synced recipes restored from the account");
   await page.getByRole("button", { name: "Got it" }).click();

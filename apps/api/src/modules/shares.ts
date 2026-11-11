@@ -10,7 +10,7 @@ import { getRecipe } from "./recipes.ts";
 
 // ---------- service ----------
 
-type ShareRow = {
+export type ShareRow = {
   id: string;
   user_id: string;
   recipe_id: string;
@@ -44,7 +44,7 @@ function toShare(r: ShareRow): Share {
 }
 
 /** Builds the snapshot from the server's copy only: the fields the owner reviewed, nothing about the owner. */
-async function buildSnapshot(userId: string, recipe: Recipe, includeMethod: boolean, includeImage: boolean): Promise<ShareRow["snapshot"]> {
+export async function buildSnapshot(userId: string, recipe: Recipe, includeMethod: boolean, includeImage: boolean): Promise<ShareRow["snapshot"]> {
   if (!recipe.nutrition) throw new ApiError(409, "not_ready", "This recipe has no nutrition estimate yet; save it again and retry");
   const [foods, catalog, image] = await Promise.all([
     foodsByIds([...new Set(recipe.ingredients.map((i) => i.foodId))]),

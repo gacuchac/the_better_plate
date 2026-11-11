@@ -13,10 +13,10 @@ test("hosted: redesigned screens, signed in", async ({ page }, info) => {
   expect(labels).toEqual(["Kitchen", "Explore", "Create", "Groups", "You"]);
   await expect(page.locator(".nav-create")).toBeVisible();
 
-  // Today: the cook row, then the trail.
-  // With nothing planned the headline itself is "Let's cook something"; otherwise it is a row above the trail.
-  await expect(page.getByTestId("cook-row").or(page.getByRole("heading", { name: "Let's cook something" }))).toBeVisible();
-  await shot(page, info, "hosted-today", "Today: Let's cook something row and the trail");
+  // Today: the plan first (empty or not), then "Let's cook something".
+  await expect(page.getByTestId("today-card")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Let's cook something" })).toBeVisible();
+  await shot(page, info, "hosted-today", "Today: the plan, then Let's cook something");
 
   await page.goto("/#/explore");
   await expect(page.getByRole("heading", { name: "Foods", exact: true })).toBeVisible();

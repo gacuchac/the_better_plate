@@ -3,13 +3,20 @@ import { addIngredient, expectSynced, newEmail, saveAndSync, shot, signIn } from
 
 const RICE = "Rice, white, long-grain, regular, enriched, cooked";
 
-// Today on Your Kitchen: an empty day leads with cooking; a day with a plan shows the trail with
-// one-tap Eat and Undo; a goal the person set gets a mark, and going past it is stated calmly.
+// Today on Your Kitchen: the plan always comes first (an empty-plan card when nothing is planned),
+// then "Let's cook something"; a day with a plan shows the trail with one-tap Eat and Undo; a goal the person set gets a mark, and going past it is stated calmly.
+async function expectPlanFirst(page: import("@playwright/test").Page) {
+  const plan = await page.getByTestId("today-card").boundingBox();
+  const cook = await page.getByTestId("cook-section").boundingBox();
+  expect(plan && cook && plan.y < cook.y).toBe(true);
+}
+
 test("today: empty day, planned trail with Eat and Undo, and a calm note past a calorie goal", async ({ page }, info) => {
   await signIn(page, newEmail("today"));
   await expect(page.getByTestId("today-card")).toContainText("Nothing planned yet");
   await expect(page.getByRole("heading", { name: "Let's cook something" })).toBeVisible();
-  await shot(page, info, "today-empty", "Empty day: cooking leads, the trail is one quiet card");
+  await expectPlanFirst(page);
+  await shot(page, info, "today-empty", "Empty day: the empty plan comes first, then Let's cook something");
 
   await page.getByRole("button", { name: "New recipe" }).click();
   await page.getByLabel("Recipe name").fill("Plain rice");
@@ -21,8 +28,8 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   await page.getByRole("link", { name: "Back to Kitchen" }).click();
   await expect(page.getByTestId("today-card")).toContainText("Nothing planned yet");
   await expect(page.locator(".tile")).toHaveCount(1);
-  await shot(page, info, "today-empty-with-recipes", "Empty day with a saved recipe: cooking leads with a recipe grid");
-  await page.getByTestId("recipe-card").click();
+  await shot(page, info, "today-empty-with-recipes", "Empty day with a saved recipe: empty plan first, then the recipe grid");
+  await page.locator(".tile").click();
   await page.getByRole("button", { name: "Plan" }).click();
   const plan = page.getByRole("dialog", { name: "Plan this meal" });
   await plan.getByRole("button", { name: "Dinner" }).click();
@@ -33,7 +40,8 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   const items = page.getByTestId("trail-item");
   await expect(items).toHaveCount(1);
   await expect(items.first()).toHaveClass(/is-planned/);
-  await expect(page.getByTestId("cook-row")).toContainText("Let's cook something");
+  await expect(page.getByRole("heading", { name: "Let's cook something" })).toBeVisible();
+  await expectPlanFirst(page);
   await shot(page, info, "today-planned", "Day with a plan: dashed trail, outlined pin, Eat button");
 
   await page.getByRole("button", { name: "Mark Plain rice as eaten" }).click();

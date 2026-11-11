@@ -171,6 +171,18 @@ export const MealLogSchema = MealLogBodySchema.extend({
   eaten: z.array(NutrientTotalSchema),
 });
 
+// ---------- favorites: recipes a person marked with a heart ----------
+
+/** A favorite recipe. Personal even for a group recipe. Create-only; unfavoriting removes it. */
+export const RecipeFavoriteBodySchema = z.object({
+  recipeId: z.uuid(),
+});
+
+export const RecipeFavoriteSchema = RecipeFavoriteBodySchema.extend({
+  id: z.uuid(),
+  createdAt: z.string(),
+});
+
 // ---------- water: drinks the person logs ----------
 
 /** A drink of water the person logged. Create-only like eaten meals; separate drinks are never coalesced. */
@@ -385,6 +397,18 @@ export const SyncOperationSchema = z.discriminatedUnion("type", [
     type: z.literal("water.delete"),
     entityId: z.uuid(),
   }),
+  /** Create-only, like water: one record per favorite; unfavoriting removes it. */
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("favorite.create"),
+    entityId: z.uuid(),
+    body: RecipeFavoriteBodySchema,
+  }),
+  z.object({
+    opId: z.uuid(),
+    type: z.literal("favorite.delete"),
+    entityId: z.uuid(),
+  }),
   /** entityId is the person: the account's own id, or one of its profiles' ids (with body.profileId). */
   z.object({
     opId: z.uuid(),
@@ -435,7 +459,7 @@ export const SyncBatchResponseSchema = z.object({
 });
 
 export const SyncChangeSchema = z.object({
-  entity: z.enum(["recipe", "planned_meal", "meal_log", "goal", "preferences", "meal_feedback", "profile", "water_log"]),
+  entity: z.enum(["recipe", "planned_meal", "meal_log", "goal", "preferences", "meal_feedback", "profile", "water_log", "recipe_favorite"]),
   entityId: z.uuid(),
   seq: z.string(),
   deleted: z.boolean(),
@@ -447,6 +471,7 @@ export const SyncChangeSchema = z.object({
   feedback: MealFeedbackSchema.nullable().optional(),
   profile: ProfileSchema.nullable().optional(),
   waterLog: WaterLogSchema.nullable().optional(),
+  favorite: RecipeFavoriteSchema.nullable().optional(),
 });
 
 export const SyncChangesResponseSchema = z.object({
@@ -502,6 +527,60 @@ export const ShareSchema = z.object({
   expiresAt: z.string().nullable(),
 });
 
+// ---------- community recipes: shared with everyone signed in, by the author's choice ----------
+
+export const CommunityShareSchema = z.object({
+  /** The method is the cook's own words; it is shared only when the author ticks it. */
+  includeMethod: z.boolean(),
+  /** The recipe's photo, with its credit or AI label; shared only when the author ticks it. */
+  includeImage: z.boolean().default(false),
+});
+
+/** What the author sees about their own listing. Never who saved or reported it. */
+export const CommunityStatusSchema = z.object({
+  communityId: z.uuid(),
+  recipeId: z.uuid(),
+  recipeVersion: z.number().int().positive(),
+  includeMethod: z.boolean(),
+  includeImage: z.boolean(),
+  sharedAt: z.string(),
+  updatedAt: z.string(),
+  /** Hidden after several people reported it; the author can still unshare it. */
+  hidden: z.boolean(),
+});
+
+export const CommunityReasonSchema = z.enum(["not_food", "offensive", "unsafe", "spam", "other"]);
+
+export const CommunityReportSchema = z.object({ reason: CommunityReasonSchema });
+
+/** A small card for lists. No author name, account or activity of any person. */
+export const CommunityCardSchema = z.object({
+  communityId: z.uuid(),
+  title: z.string(),
+  servings: z.number(),
+  /** Estimated kcal per serving from the snapshot's USDA-based estimate; null when not reported. */
+  kcalPerServing: z.number().nullable(),
+  image: z.object({ url: z.string(), alt: z.string() }).nullable(),
+  /** The signed-in person wrote it. */
+  mine: z.boolean(),
+});
+
+/** A community recipe as a signed-in reader sees it: the reviewed snapshot only. */
+export const CommunityRecipeSchema = SharedRecipeSchema.omit({ shareId: true, expiresAt: true }).extend({
+  communityId: z.uuid(),
+  mine: z.boolean(),
+  /** The id of the copy in the reader's kitchen, if they saved one. */
+  savedRecipeId: z.uuid().nullable(),
+});
+
+export const CommunityHomeSchema = z.object({
+  /** Most saved by different people over the last `windowDays` days, newest listings as a fallback. */
+  trending: z.array(CommunityCardSchema),
+  windowDays: z.number().int(),
+  /** A community recipe least like what the reader ate lately; null when there is none to suggest. */
+  adventure: CommunityCardSchema.nullable(),
+});
+
 export const ErrorSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -544,3 +623,11 @@ export type Profile = z.infer<typeof ProfileSchema>;
 export type ShoppingList = z.infer<typeof ShoppingListSchema>;
 export type SharedRecipe = z.infer<typeof SharedRecipeSchema>;
 export type Share = z.infer<typeof ShareSchema>;
+export type RecipeFavoriteBody = z.infer<typeof RecipeFavoriteBodySchema>;
+export type RecipeFavorite = z.infer<typeof RecipeFavoriteSchema>;
+export type CommunityShare = z.input<typeof CommunityShareSchema>;
+export type CommunityStatus = z.infer<typeof CommunityStatusSchema>;
+export type CommunityReason = z.infer<typeof CommunityReasonSchema>;
+export type CommunityCard = z.infer<typeof CommunityCardSchema>;
+export type CommunityRecipe = z.infer<typeof CommunityRecipeSchema>;
+export type CommunityHome = z.infer<typeof CommunityHomeSchema>;

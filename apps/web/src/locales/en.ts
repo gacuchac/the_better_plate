@@ -97,7 +97,7 @@ export const en = {
   "today.kcalEaten": "{amount} eaten",
   "today.over": "About {amount} kcal above your goal today. Tomorrow is a fresh day.",
   "today.waiting": "Waiting for approval: {n|1 plan|# plans}",
-  "kitchen.recipes": "Recipes",
+  "kitchen.yourRecipes": "Your recipes",
   "kitchen.newRecipe": "New recipe",
   "kitchen.emptyTitle": "No recipes yet",
   "kitchen.emptyBody": "Start with something you already love to cook. It saves on this device first and syncs when you're online.",
