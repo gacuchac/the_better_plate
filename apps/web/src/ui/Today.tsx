@@ -12,6 +12,7 @@ import { Icon } from "./icons.tsx";
 import { navigate } from "./common.tsx";
 import { CommunityTile, useCommunityHome } from "./Community.tsx";
 import { ownAdventure } from "../picks.ts";
+import { Week } from "./Week.tsx";
 
 function Thumb({ recipe, title }: { recipe: LocalRecipe | undefined; title: string }) {
   return recipe?.body.image ? (
@@ -95,7 +96,7 @@ function HomePicks() {
   );
 }
 
-/** Today on Your Kitchen: the day's plan first (an empty-plan card when nothing is planned), then "Let's cook something". */
+/** Today on Your Kitchen: the day's plan first (an empty-plan card when nothing is planned), the last 7 days, then "Let's cook something". */
 export function Today() {
   const { recipes, plans, logs, goals, engine, catalog } = useApp();
   const t = useT();
@@ -224,6 +225,8 @@ export function Today() {
           {t("today.waiting", { n: trail.waiting })}
         </p>
       )}
+      <Week />
+
       {/* Cooking comes after the plan, whether or not anything is planned. */}
       <div className="cook-section" data-testid="cook-section">
         <div className="section-title">

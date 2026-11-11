@@ -172,6 +172,10 @@ test("last 7 days: adds each day's own goal, and a changed goal keeps its earlie
   const line = page.getByTestId("week-line");
   // Two days count (the logged one and today), each with a 1,000 kcal goal.
   await expect(line).toHaveCount(1);
+  // The week sits with the plan, above "Let's cook something".
+  const week = await page.getByTestId("week-card").boundingBox();
+  const cook = await page.getByTestId("cook-section").boundingBox();
+  expect(week && cook && week.y < cook.y).toBe(true);
   await expect(line).toContainText(/of 2,?000 kcal/);
   await expect(line).toContainText("2 days counted");
   await expect(line.getByTestId("week-left")).toContainText("left for today");
