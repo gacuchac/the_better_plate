@@ -2,8 +2,8 @@ name: CI
 
 # Fast checks (typecheck, unit and API tests against PostgreSQL) on every PR push. Browser
 # journeys (the Playwright local pass) run on a PR only when it touches files behind app flows,
-# or carries the "e2e" label; and always, in full, on every push to dev (each merge), which also
-# keeps the Chromium cache warm for PRs. Owner decision 2026-10-20 (AGENTS.md, two-pass gate).
+# or carries the "e2e" label; and always, in full, on every push to dev (each merge). They run inside
+# Playwright's Docker image, which already has Chromium. Owner decision 2026-10-20 (AGENTS.md, two-pass gate).
 on:
   pull_request:
     branches: [dev, main]
@@ -85,6 +85,13 @@ jobs:
     needs: changes
     if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
+    # Playwright's own image ships Chromium and every system library it needs, so this job installs
+    # nothing from Ubuntu's package mirrors (PR 53's run died for 10 minutes failing to reach
+    # archive.ubuntu.com). Keep the tag equal to @playwright/test in package.json; on a mismatch
+    # Playwright stops with a message asking for the matching image.
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      options: --ipc=host
     services:
       postgres:
         image: postgres:16
@@ -92,11 +99,14 @@ jobs:
           POSTGRES_USER: betterplate
           POSTGRES_PASSWORD: betterplate
           POSTGRES_DB: betterplate
-        ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U betterplate" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      PGPASSWORD: betterplate
+      # Inside a container job the database is reached by its service name, not localhost. The image
+      # has no PostgreSQL client tools, so bootstrap skips scripts/db-up.sh (BP_DB_EXTERNAL).
+      BP_DB_EXTERNAL: "1"
+      DATABASE_URL: postgresql://betterplate:betterplate@postgres:5432/betterplate
+      E2E_DATABASE_URL: postgresql://betterplate:betterplate@postgres:5432/betterplate_e2e
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -104,31 +114,21 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - name: Create test databases
-        run: |
-          for db in betterplate_test betterplate_e2e; do
-            psql -h localhost -U betterplate -d betterplate -c "create database $db" || true
-          done
-      - name: Install dependencies and databases
+      - name: Install dependencies and migrate
         run: bash scripts/bootstrap.sh
-      - name: Playwright version
-        id: pw
-        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright Chromium
-        id: pw-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - name: Install Playwright Chromium
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Install Chromium system libraries
-        if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+      - name: Create the E2E database
+        working-directory: apps/api
+        run: |
+          node -e '
+            const { Client } = require("pg");
+            (async () => {
+              const c = new Client({ connectionString: process.env.DATABASE_URL });
+              await c.connect();
+              const { rowCount } = await c.query("select 1 from pg_database where datname = $1", ["betterplate_e2e"]);
+              if (!rowCount) await c.query("create database betterplate_e2e");
+              await c.end();
+            })().catch((e) => { console.error(e); process.exit(1); });
+          '
       - name: Playwright journeys (desktop + mobile)
         run: bash scripts/e2e.sh
         env:
