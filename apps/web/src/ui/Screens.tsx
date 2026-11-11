@@ -10,6 +10,7 @@ import { localDate, formatDay } from "../meals.ts";
 import { downloadJson, EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
 import { Today } from "./Today.tsx";
+import { Week } from "./Week.tsx";
 import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
 import { GoalsSection, PeriodTotals } from "./Goals.tsx";
@@ -59,6 +60,7 @@ export function Kitchen() {
       </header>
 
       <Today />
+      <Week />
 
       {askAllergies && (
         <a className="card ask-card" href="#/preferences" data-testid="allergy-prompt">

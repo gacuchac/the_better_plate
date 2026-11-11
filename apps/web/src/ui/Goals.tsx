@@ -3,7 +3,7 @@ import type { GoalBody } from "@betterplate/contracts";
 import { DAILY_VALUE_SOURCE, DIETARY_GUIDELINES_SOURCE, FDA_DAILY_VALUES, WATER_KEY, dayCount, goalProblem, goalProgress, periodWindow, shiftDate, summarizePeriod } from "@betterplate/nutrition";
 import type { GoalProgress, GoalWindowProgress, NutrientDefinition } from "@betterplate/nutrition";
 import { useApp } from "../store.tsx";
-import { goalSentence, intakeByDay, isActive, waterIntakeByDay } from "../goals.ts";
+import { goalRevision, goalSentence, intakeByDay, isActive, saveGoalKeepingHistory, waterIntakeByDay } from "../goals.ts";
 import { barScale, goalBars, referenceBars, referenceScale, type GoalBar, type ReferenceBar } from "../goalBars.ts";
 import type { LocalGoal } from "../localdb.ts";
 import { localDate } from "../meals.ts";
@@ -212,10 +212,12 @@ function GoalSheet({ goal, defs, onClose, onHelp }: { goal: LocalGoal | null; de
     return p ? (PROBLEM_KEYS[p] ?? "goals.problem.range") : null;
   })();
 
+  const revision = problem ? null : goalRevision(goal, body);
+
   async function save() {
     setTried(true);
     if (problem || !engine) return;
-    await engine.saveGoal(goal?.id ?? crypto.randomUUID(), body);
+    await saveGoalKeepingHistory(engine, goal, body);
     onClose();
   }
 
@@ -274,6 +276,11 @@ function GoalSheet({ goal, defs, onClose, onHelp }: { goal: LocalGoal | null; de
       <label htmlFor="goal-end">{t("goals.end")}</label>
       <input id="goal-end" type="date" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)} />
       <p className="fine">{t("goals.endNote")}</p>
+      {revision?.kind === "split" && (
+        <p className="hint" data-testid="goal-keeps-history">
+          {t("goals.keepsHistory", { date: shortDate(revision.next.startDate) })}
+        </p>
+      )}
       {tried && problem && (
         <p className="error" role="alert">
           {t(problem)}

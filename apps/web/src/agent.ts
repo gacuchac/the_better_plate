@@ -7,7 +7,7 @@ import { track } from "./activity.ts";
 import { getLang, nutrientName, t } from "./i18n.ts";
 import { eatenAtFor, localDate, summarizeDay } from "./meals.ts";
 import type { SyncEngine } from "./sync.ts";
-import { goalSentence, intakeByDay } from "./goals.ts";
+import { goalRevision, goalSentence, intakeByDay } from "./goals.ts";
 import { searchFoods } from "./ui/FoodPicker.tsx";
 
 /**
@@ -243,14 +243,23 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
     };
     const problem = goalProblem(body);
     if (problem) throw new Error(problem);
-    const id = goalId ?? uid();
-    await env.engine.saveGoal(id, body);
+    // A changed amount on a goal already in effect starts a new goal, so earlier days keep theirs.
+    const revision = previous ? goalRevision(previous, body) : null;
+    const id = revision?.kind === "split" ? uid() : (goalId ?? uid());
+    if (previous && revision?.kind === "split") {
+      await env.engine.saveGoal(previous.id, revision.ended);
+      await env.engine.saveGoal(id, revision.next);
+    } else await env.engine.saveGoal(id, body);
     track("Companion saved a goal");
     const detail = `${nutrientName(def.key, def.name)}: ${goalSentence(body)}`;
     return {
       output: { goalId: id, saved: true },
       detail,
-      undo: async () => (previous ? env.engine.saveGoal(id, previous.body) : env.engine.deleteGoal(id)),
+      undo: async () => {
+        if (!previous) return env.engine.deleteGoal(id);
+        await env.engine.saveGoal(previous.id, previous.body);
+        if (id !== previous.id) await env.engine.deleteGoal(id);
+      },
     };
   },
 

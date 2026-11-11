@@ -256,6 +256,28 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     expect((await (await alice.request("/v1/goals")).json()).goals).toEqual([]);
   });
 
+  it("keeps a goal's earlier days when an assistant changes its amount", async () => {
+    const { access_token: token } = await connect(alice);
+    const lastWeek = new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const first = (await tool(token, "set_goal", { nutrientKey: "energy_kcal", kind: "at_most", max: 2000, period: "day", startDate: lastWeek })).data;
+    const changed = (await tool(token, "set_goal", { goalId: first.goalId, nutrientKey: "energy_kcal", kind: "at_most", max: 1800, period: "day" })).data;
+    expect(changed).toMatchObject({ saved: true, max: 1800, startDate: today, previousGoal: { goalId: first.goalId, endDate: yesterday } });
+    expect(changed.goalId).not.toBe(first.goalId);
+    const goals = (await (await alice.request("/v1/goals")).json()).goals;
+    expect(goals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: first.goalId, max: 2000, startDate: lastWeek, endDate: yesterday }),
+        expect.objectContaining({ id: changed.goalId, max: 1800, startDate: today, endDate: null }),
+      ]),
+    );
+    // Only the dates changing still edits the goal in place.
+    const dated = (await tool(token, "set_goal", { goalId: changed.goalId, nutrientKey: "energy_kcal", kind: "at_most", max: 1800, period: "day", startDate: today, endDate: today })).data;
+    expect(dated).toMatchObject({ goalId: changed.goalId, endDate: today });
+    expect(dated.previousGoal).toBeUndefined();
+    for (const g of goals) await tool(token, "delete_goal", { goalId: g.id });
+  });
+
   it("keeps people apart: one person's token can't read or change another's recipes", async () => {
     const aliceToken = (await connect(alice)).access_token;
     const saved = await tool(aliceToken, "save_recipe", { title: "Alice only", servings: 1, ingredients: [] });
