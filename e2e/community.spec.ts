@@ -33,7 +33,7 @@ test("community: share a recipe, another person finds it on home, saves a copy a
   const recipe = reader.getByTestId("community-recipe");
   await expect(recipe.getByRole("heading", { name: title })).toBeVisible();
   await expect(recipe).not.toContainText("@example.test");
-  await reader.getByRole("button", { name: "Report" }).click();
+  await recipe.getByRole("button", { name: "Report", exact: true }).click();
   const report = reader.getByRole("dialog", { name: "Report this recipe" });
   await report.getByLabel("Spam or advertising").check();
   await report.getByRole("button", { name: "Send report" }).click();

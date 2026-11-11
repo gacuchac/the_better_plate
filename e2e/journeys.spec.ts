@@ -118,6 +118,8 @@ test("accounts are isolated on a shared device and on the server", async ({ page
   expect(leftover.filter((n) => n?.startsWith("betterplate-user-"))).toEqual([]);
 
   await signIn(page, newEmail("bob"));
+  await expect(page.getByText("Alice's private stew")).toHaveCount(0);
+  await page.getByTestId("recipes-link").click();
   await expect(page.getByRole("heading", { name: "No recipes yet" })).toBeVisible();
   await expect(page.getByText("Alice's private stew")).toHaveCount(0);
   await shot(page, info, "second-account-empty", "Different account on the same browser sees none of the first account's data");
@@ -685,7 +687,7 @@ test("when the browser clears local data or runs out of space, the app says so a
 
 test("use the app in Spanish: interface, Spanish food words, nutrient names and safety chart", async ({ page }, info) => {
   await signIn(page, newEmail("es"));
-  await page.getByRole("link", { name: "You" }).click();
+  await page.getByRole("link", { name: "You", exact: true }).click();
   await page.getByLabel("Language").selectOption("es");
   await expect(page.getByRole("heading", { name: "Cuenta" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
