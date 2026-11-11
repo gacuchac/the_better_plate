@@ -59,8 +59,10 @@ export const authOptions = {
     storage: "memory" as const,
   },
   advanced: {
-    // Railway and most managed proxies set X-Forwarded-For; locally there is no proxy.
-    ipAddress: { ipAddressHeaders: ["x-forwarded-for"] },
+    // Railway's edge puts the visitor's address in X-Real-IP (one address). Its X-Forwarded-For
+    // holds a chain, which Better Auth refuses without trustedProxies, so every visitor shared one
+    // rate-limit bucket. Locally there is no proxy and Better Auth falls back to 127.0.0.1.
+    ipAddress: { ipAddressHeaders: ["x-real-ip"] },
     database: { generateId: "uuid" as const },
     useSecureCookies: !config.isLocal,
     defaultCookieAttributes: { sameSite: "lax" as const, httpOnly: true },

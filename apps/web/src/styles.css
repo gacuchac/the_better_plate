@@ -721,3 +721,11 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .row-label { font-weight: 650; }
 .row-value { color: var(--ink-2); font-size: 0.9375rem; overflow-wrap: anywhere; }
 .row-item .language-picker { margin: 0; }
+
+/* Last 7 days on Your Kitchen */
+.week-card { display: grid; gap: 12px; }
+.week-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.week-line { display: grid; gap: 4px; }
+.week-line-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.week-amount { font-variant-numeric: tabular-nums; }
+.week-line .fine { margin: 0; }

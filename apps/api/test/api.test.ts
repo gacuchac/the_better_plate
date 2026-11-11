@@ -438,9 +438,15 @@ describe("consumption goals and period totals", () => {
     const res = await hal.request("/v1/sync/batch", { method: "POST", json: { protocol: 1, operations: [put(uuid(), null, { min: -5 })] } });
     expect(res.status).toBe(400);
 
-    await batch(hal, Array.from({ length: MAX_GOALS }, () => put(uuid(), null)));
+    const ids = Array.from({ length: MAX_GOALS }, () => uuid());
+    await batch(hal, ids.map((id) => put(id, null)));
     const [over] = await batch(hal, [put(uuid(), null)]);
     expect(over).toMatchObject({ status: "rejected", error: { code: "goal_limit" } });
+    // Ended goals are history (an edited amount ends one and starts another), so they don't count.
+    const [ended] = await batch(hal, [put(ids[0]!, 1, { endDate: "2026-10-31" })]);
+    expect(ended).toMatchObject({ status: "applied" });
+    const [room] = await batch(hal, [put(uuid(), null)]);
+    expect(room).toMatchObject({ status: "applied" });
   });
 
   it("never exposes or touches another person's goals", async () => {
@@ -613,6 +619,10 @@ describe("rate limiting", () => {
     expect(Number(limited.headers.get("retry-after"))).toBeGreaterThan(0);
     // Another client is unaffected.
     expect((await mini.request("/x", { headers: { "x-forwarded-for": "203.0.113.10" } })).status).toBe(200);
+    // Behind Railway's edge X-Real-IP wins, so a made-up X-Forwarded-For can't dodge the limit.
+    const edge = (spoof: string) => mini.request("/x", { headers: { "x-real-ip": "203.0.113.11", "x-forwarded-for": `${spoof}, 203.0.113.11` } });
+    for (let i = 0; i < max; i++) expect((await edge(`198.51.100.${i}`)).status).toBe(200);
+    expect((await edge("198.51.100.250")).status).toBe(429);
   });
 });
 

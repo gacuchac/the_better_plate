@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import type pg from "pg";
-import { GoalSchema, LocalDateSchema, MAX_GOALS, NutritionSummarySchema, type Goal, type GoalBody } from "@betterplate/contracts";
+import { GoalSchema, LocalDateSchema, MAX_GOAL_HISTORY, MAX_GOALS, NutritionSummarySchema, type Goal, type GoalBody } from "@betterplate/contracts";
 import { dayCount, goalProblem, goalProgress, shiftDate, summarizePeriod, sumMeals, WATER_KEY, waterIntake, type DayIntake } from "@betterplate/nutrition";
 import { pool } from "../db/pool.ts";
 import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
@@ -58,8 +58,15 @@ export async function putGoal(client: pg.PoolClient, userId: string, id: string,
   if (row && row.deleted_at) return { status: "conflict", server: null };
   if (row && baseVersion !== row.version) return { status: "conflict", server: toGoal(row) };
   if (!row) {
-    const { rows } = await client.query<{ n: string }>("select count(*) as n from goals where user_id = $1 and deleted_at is null", [userId]);
-    if (Number(rows[0]!.n) >= MAX_GOALS) return { status: "rejected", code: "goal_limit", message: `You can have up to ${MAX_GOALS} goals; remove one first` };
+    // Ended goals are history (each changed amount ends one), so only running and upcoming goals
+    // count toward the limit. The server doesn't know the person's date: a day of slack covers time zones.
+    const { rows } = await client.query<{ total: string; current: string }>(
+      `select count(*) as total, count(*) filter (where end_date is null or end_date >= current_date - 1) as current
+         from goals where user_id = $1 and deleted_at is null`,
+      [userId],
+    );
+    if (Number(rows[0]!.current) >= MAX_GOALS) return { status: "rejected", code: "goal_limit", message: `You can have up to ${MAX_GOALS} goals; remove one first` };
+    if (Number(rows[0]!.total) >= MAX_GOAL_HISTORY) return { status: "rejected", code: "goal_limit", message: `You can keep up to ${MAX_GOAL_HISTORY} goals, past ones included; remove some old ones first` };
   }
   const version = row ? row.version + 1 : 1;
   await client.query(

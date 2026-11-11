@@ -5,7 +5,8 @@ import { config } from "../src/config.ts";
 import { pool } from "../src/db/pool.ts";
 import { photoDownloads } from "../src/modules/connector.ts";
 import { PublicFetchError } from "../src/lib/public-fetch.ts";
-import { call, type Client, signIn } from "./helpers.ts";
+import { Client as McpClient, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { app, call, type Client, signIn } from "./helpers.ts";
 
 // The whole connector path as Claude or ChatGPT would run it: discovery, dynamic client
 // registration, authorization with PKCE and consent, token exchange, then MCP tool calls.
@@ -153,6 +154,36 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     expect(JSON.stringify(changes)).toContain(recipeId);
   });
 
+  it("serves both MCP protocol eras: 2026-07-28 clients and 2025 clients", async () => {
+    const { access_token: token } = await connect(alice);
+    // The official SDK client, talking to the in-process app with the person's access token.
+    const transport = () =>
+      new StreamableHTTPClientTransport(new URL(MCP), {
+        requestInit: { headers: { authorization: `Bearer ${token}` } },
+        fetch: async (url, init) => app.request(String(url), init as RequestInit),
+      });
+    const use = async (mode: "legacy" | { pin: string }) => {
+      const client = new McpClient({ name: "test", version: "1" }, { versionNegotiation: { mode } });
+      await client.connect(transport());
+      try {
+        const tools = (await client.listTools()).tools.map((t) => t.name);
+        const found = await client.callTool({ name: "search_foods", arguments: { query: "chicken breast raw" } });
+        const text = (found.content as { type: string; text: string }[])[0]!.text;
+        return { version: client.getNegotiatedProtocolVersion(), instructions: client.getInstructions(), tools, isError: !!found.isError, foods: JSON.parse(text).foods };
+      } finally {
+        await client.close();
+      }
+    };
+    for (const [mode, version] of [[{ pin: "2026-07-28" }, "2026-07-28"], ["legacy", "2025-11-25"]] as const) {
+      const r = await use(mode);
+      expect(r.version).toBe(version);
+      expect(r.instructions).toContain("Never invent food ids");
+      expect(r.tools).toEqual(expect.arrayContaining(["search_foods", "save_recipe", "upload_recipe_photo"]));
+      expect(r.isError).toBe(false);
+      expect(r.foods[0].id).toMatch(/^fdc:\d+$/);
+    }
+  });
+
   it("takes the person's photo as a chat attachment, link or base64, checks the bytes and confirms where it went", async () => {
     const token = (await connect(alice)).access_token;
     const listed = await (await mcp(token, "tools/list")).json();
@@ -254,6 +285,28 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     expect(tools.find((t) => t.name === "delete_goal")!.annotations.destructiveHint).toBe(true);
     expect((await tool(token, "delete_goal", { goalId: set.goalId })).data.deleted).toBe(true);
     expect((await (await alice.request("/v1/goals")).json()).goals).toEqual([]);
+  });
+
+  it("keeps a goal's earlier days when an assistant changes its amount", async () => {
+    const { access_token: token } = await connect(alice);
+    const lastWeek = new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const first = (await tool(token, "set_goal", { nutrientKey: "energy_kcal", kind: "at_most", max: 2000, period: "day", startDate: lastWeek })).data;
+    const changed = (await tool(token, "set_goal", { goalId: first.goalId, nutrientKey: "energy_kcal", kind: "at_most", max: 1800, period: "day" })).data;
+    expect(changed).toMatchObject({ saved: true, max: 1800, startDate: today, previousGoal: { goalId: first.goalId, endDate: yesterday } });
+    expect(changed.goalId).not.toBe(first.goalId);
+    const goals = (await (await alice.request("/v1/goals")).json()).goals;
+    expect(goals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: first.goalId, max: 2000, startDate: lastWeek, endDate: yesterday }),
+        expect.objectContaining({ id: changed.goalId, max: 1800, startDate: today, endDate: null }),
+      ]),
+    );
+    // Only the dates changing still edits the goal in place.
+    const dated = (await tool(token, "set_goal", { goalId: changed.goalId, nutrientKey: "energy_kcal", kind: "at_most", max: 1800, period: "day", startDate: today, endDate: today })).data;
+    expect(dated).toMatchObject({ goalId: changed.goalId, endDate: today });
+    expect(dated.previousGoal).toBeUndefined();
+    for (const g of goals) await tool(token, "delete_goal", { goalId: g.id });
   });
 
   it("keeps people apart: one person's token can't read or change another's recipes", async () => {
