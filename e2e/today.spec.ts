@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { addIngredient, expectSynced, newEmail, saveAndSync, shot, signIn } from "./helpers.ts";
+import { addIngredient, API, expectSynced, newEmail, saveAndSync, shot, signIn } from "./helpers.ts";
 
 const RICE = "Rice, white, long-grain, regular, enriched, cooked";
 
@@ -59,7 +59,7 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   await sheet.getByRole("button", { name: "Save goal" }).click();
   await expectSynced(page);
   await page.goto("/#/kitchen");
-  await expect(page.locator(".meter-mark")).toHaveCount(1);
+  await expect(page.getByTestId("today-card").locator(".meter-mark")).toHaveCount(1);
   await expect(page.locator(".calm")).toContainText("above your goal today. Tomorrow is a fresh day.");
   await shot(page, info, "today-over-goal", "Past a personal goal: same green, a dark mark, deeper green beyond it, plain words, no red or banner");
 });
@@ -116,9 +116,62 @@ test("goals: own-goal note, Help me choose, and gentle mode hides marks and over
   await page.goto("/#/kitchen");
   await expect(page.locator(".calm")).toHaveCount(0);
   await expect(page.locator(".meter-mark")).toHaveCount(0);
-  await shot(page, info, "gentle-mode-today", "Gentle mode: no mark and no over wording on Today");
+  await expect(page.getByTestId("week-card")).toHaveCount(0);
+  await shot(page, info, "gentle-mode-today", "Gentle mode: no mark, no over wording and no weekly card on Today");
   await page.goto("/#/goals");
   await page.getByLabel("Gentle mode").uncheck();
   await page.goto("/#/kitchen");
-  await expect(page.locator(".meter-mark")).toHaveCount(1);
+  await expect(page.getByTestId("today-card").locator(".meter-mark")).toHaveCount(1);
+  await expect(page.getByTestId("week-card").locator(".meter-mark")).toHaveCount(1);
+});
+
+// Weekly tracking: the last 7 days next to today, each day counted with the goal it had then,
+// so changing a goal mid-week keeps the earlier days at their old amount.
+test("last 7 days: adds each day's own goal, and a changed goal keeps its earlier days", async ({ page }, info) => {
+  await signIn(page, newEmail("week"));
+  const day = (offset: number) =>
+    page.evaluate((o) => {
+      const d = new Date();
+      d.setDate(d.getDate() + o);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }, offset);
+  const [sixAgo, twoAgo] = [await day(-6), await day(-2)];
+  const rice = ((await (await page.request.get(`${API}/v1/foods?query=${encodeURIComponent(RICE)}&limit=1`)).json()) as { foods: { id: string }[] }).foods[0]!.id;
+  const seeded = await page.request.post(`${API}/v1/sync/batch`, {
+    headers: { origin: new URL(page.url()).origin },
+    data: {
+      protocol: 1,
+      operations: [
+        { opId: crypto.randomUUID(), type: "goal.put", entityId: crypto.randomUUID(), baseVersion: null,
+          body: { nutrientKey: "energy_kcal", unit: "kcal", kind: "at_most", min: null, max: 1000, period: "day", startDate: sixAgo, endDate: null } },
+        { opId: crypto.randomUUID(), type: "log.create", entityId: crypto.randomUUID(),
+          body: { plannedMealId: null, recipeId: crypto.randomUUID(), recipe: { title: "Plain rice", servings: 1, ingredients: [{ id: crypto.randomUUID(), foodId: rice, quantity: 200, unit: "g", role: "ingredient" }] },
+            servings: 1, slot: "lunch", localDate: twoAgo, eatenAt: `${twoAgo}T12:00:00Z` } },
+      ],
+    },
+  });
+  expect(seeded.ok()).toBe(true);
+  await page.goto("/#/kitchen");
+  await page.reload();
+  const line = page.getByTestId("week-line");
+  // Two days count (the logged one and today), each with a 1,000 kcal goal.
+  await expect(line).toHaveCount(1);
+  await expect(line).toContainText(/of 2,000 kcal/);
+  await expect(line).toContainText("2 days counted");
+  await expect(line.getByTestId("week-left")).toContainText("left for today");
+  await shot(page, info, "week-card", "Last 7 days next to today: eaten against the sum of each day's own goal, room left for today");
+
+  await page.goto("/#/goals");
+  await page.getByRole("button", { name: /^Edit .* goal$/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Edit goal" });
+  await sheet.getByLabel("Amount").fill("1500");
+  await expect(sheet.getByTestId("goal-keeps-history")).toContainText("keep the old amount");
+  await shot(page, info, "goal-edit-keeps-history", "Changing a running goal's amount: earlier days keep the old one");
+  await sheet.getByRole("button", { name: "Save goal" }).click();
+  await expectSynced(page);
+  await expect(page.getByTestId("goal-card")).toHaveCount(2);
+
+  await page.goto("/#/kitchen");
+  await expect(line).toContainText(/of 2,500 kcal/);
+  await shot(page, info, "week-card-after-change", "After the change: the earlier day keeps 1,000 kcal, today counts 1,500");
 });

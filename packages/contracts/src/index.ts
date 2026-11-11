@@ -299,7 +299,10 @@ export const GoalSchema = GoalBodySchema.extend({
   updatedAt: z.string(),
 });
 
+/** Goals still running or yet to start; ended goals are history and don't count. */
 export const MAX_GOALS = 50;
+/** Every goal kept, ended ones included (an edited amount ends the old goal and starts a new one). */
+export const MAX_GOAL_HISTORY = 1000;
 
 /** What was eaten over a range of days: logged meals only, plans never count. */
 export const NutritionSummarySchema = z.object({
