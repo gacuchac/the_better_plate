@@ -4,7 +4,7 @@
  * by a lawyer (preflight P3), and says so.
  */
 export const PRIVACY_NOTICE = {
-  version: "2026-10-19",
+  version: "2026-11-12",
   reviewStatus: "draft" as "draft" | "reviewed",
   title: "How The Better Plate handles your data",
   sections: [
@@ -17,7 +17,8 @@ export const PRIVACY_NOTICE = {
       body:
         "Your email address, and a display name if you add one or sign in with Google. The recipes you save, with each saved version. " +
         "Meals you plan and meals you mark as eaten, with the day and meal. Share links you create. Issue reports you send, " +
-        "including a screenshot only if you choose to attach one. For security, each sign-in session keeps the browser's " +
+        "including a screenshot only if you choose to attach one. Recipes you mark as favorites. Recipes you share with the " +
+        "community, copies you save from it and reports you send about it. For security, each sign-in session keeps the browser's " +
         "description and IP address.",
     },
     {
@@ -34,12 +35,15 @@ export const PRIVACY_NOTICE = {
       heading: "Sharing",
       body:
         "A share link shows only what you reviewed before creating it: the recipe, its amounts and the estimate, and your method if you choose. " +
-        "Anyone with the link can read it until you revoke it or it expires. It never shows your name, email or meals.",
+        "Anyone with the link can read it until you revoke it or it expires. " +
+        "You can also share a recipe with the community. Everyone signed in to The Better Plate can then read the version you reviewed and save a copy to their own kitchen. " +
+        "Copies people already saved stay with them if you stop sharing. Popular recipes are picked by how many different people saved them; nobody sees who saved or reported a recipe. " +
+        "Neither a share link nor a community recipe ever shows your name, email or meals.",
     },
     {
       heading: "Your choices",
       body:
-        "You can download everything we keep about you at any time, revoke share links, and delete your account, which deletes your data from our database.",
+        "You can download everything we keep about you at any time, revoke share links, stop sharing community recipes, and delete your account, which deletes your data from our database.",
     },
     {
       heading: "About the numbers",
