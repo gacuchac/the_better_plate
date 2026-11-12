@@ -1,6 +1,6 @@
 # Draft: privacy notice change for community recipes
 
-Status: **draft for the owner's review. Not published.** `packages/contracts/src/privacy.ts` is unchanged.
+Status: **approved by the owner 2026-11-12** and published as notice version `2026-11-12` in `packages/contracts/src/privacy.ts` (people are asked to agree again).
 AGENTS.md requires explicit owner approval for any change to privacy or data-collection scope.
 
 ## Why it changes
