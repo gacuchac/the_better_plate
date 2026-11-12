@@ -15,12 +15,14 @@ import type {
   SyncResult,
   WaterLog,
   WaterLogBody,
+  RecipeFavorite,
+  RecipeFavoriteBody,
 } from "@betterplate/contracts";
 import { MAX_SYNC_OPS } from "@betterplate/contracts";
 import { track } from "./activity.ts";
 import { ApiRequestError, NetworkError, api } from "./api.ts";
 import type { IDBPTransaction, StoreNames } from "idb";
-import type { LocalFeedback, LocalGoal, LocalLog, LocalPlan, LocalPreferences, LocalProfile, LocalRecipe, LocalWater, OutboxOp, UserDatabase, UserDB } from "./localdb.ts";
+import type { LocalFavorite, LocalFeedback, LocalGoal, LocalLog, LocalPlan, LocalPreferences, LocalProfile, LocalRecipe, LocalWater, OutboxOp, UserDatabase, UserDB } from "./localdb.ts";
 
 /**
  * Status words shown to people (PRODUCT.md §6): never claim "Synced" before the server
@@ -248,6 +250,38 @@ export class SyncEngine {
       await tx.objectStore("water").put({ ...existing, deleted: true, state: "pending" });
     }
     await tx.done;
+    this.changed();
+  }
+
+  // ---------- favorites: personal hearts on recipes (create-only, like water) ----------
+
+  async listFavorites(): Promise<LocalFavorite[]> {
+    return (await this.db.getAll("favorites")).filter((f) => !f.deleted);
+  }
+
+  /** Hearts or un-hearts a recipe. An unsent favorite is simply dropped when un-hearted. */
+  async setFavorite(recipeId: string, on: boolean): Promise<void> {
+    const tx = this.db.transaction(["favorites", "outbox"], "readwrite");
+    const live = (await tx.objectStore("favorites").getAll()).filter((f) => f.body.recipeId === recipeId && !f.deleted);
+    if (on && live.length === 0) {
+      const id = uuid();
+      await tx.objectStore("outbox").put(this.op(id, "favorite.create", null, { recipeId }));
+      await tx.objectStore("favorites").put({ id, body: { recipeId }, state: "pending", createdAt: now() });
+    } else if (!on) {
+      for (const f of live) {
+        const ops = await tx.objectStore("outbox").index("byEntity").getAll(f.id);
+        const unsentCreate = ops.find((o) => o.type === "favorite.create" && !this.inFlight.has(o.opId));
+        if (unsentCreate) {
+          for (const op of ops) if (!this.inFlight.has(op.opId)) await tx.objectStore("outbox").delete(op.opId);
+          await tx.objectStore("favorites").delete(f.id);
+        } else {
+          await tx.objectStore("outbox").put(this.op(f.id, "favorite.delete", null));
+          await tx.objectStore("favorites").put({ ...f, deleted: true, state: "pending" });
+        }
+      }
+    }
+    await tx.done;
+    track(on ? "Marked a recipe as a favorite" : "Removed a favorite");
     this.changed();
   }
 
@@ -570,13 +604,22 @@ export class SyncEngine {
   }
 
   private async applyResult(result: SyncResult) {
-    const tx = this.db.transaction(["recipes", "plans", "logs", "water", "goals", "prefs", "feedback", "outbox"], "readwrite");
+    const tx = this.db.transaction(["recipes", "plans", "logs", "water", "favorites", "goals", "prefs", "feedback", "outbox"], "readwrite");
     const outbox = tx.objectStore("outbox");
     const sent = await outbox.get(result.opId);
     await outbox.delete(result.opId);
     const kind = sent?.type.split(".")[0] ?? "recipe";
     // Later operations on the same record (feedback and its eaten log share an id, so match the kind).
     const later = (await outbox.index("byEntity").getAll(result.entityId)).filter((o) => o.type.split(".")[0] === kind);
+
+    if (kind === "favorite") {
+      // A favorite the server refused (the recipe is gone or out of reach) just goes away.
+      const local = await tx.objectStore("favorites").get(result.entityId);
+      if (local && (result.status === "rejected" || (local.deleted && later.length === 0))) await tx.objectStore("favorites").delete(local.id);
+      else if (local && result.status === "applied" && !local.deleted) await tx.objectStore("favorites").put({ ...local, state: "synced" });
+      await tx.done;
+      return;
+    }
 
     if (kind === "log" || kind === "water") {
       // Create-only records: applied, or rejected and kept in view with the reason.
@@ -631,7 +674,7 @@ export class SyncEngine {
     let cursor = ((await this.db.get("meta", "cursor")) as string | undefined) ?? "0";
     for (let guard = 0; guard < 100; guard++) {
       const page = await this.client.changes(cursor);
-      const tx = this.db.transaction(["recipes", "plans", "logs", "water", "goals", "prefs", "feedback", "profiles", "outbox", "meta"], "readwrite");
+      const tx = this.db.transaction(["recipes", "plans", "logs", "water", "favorites", "goals", "prefs", "feedback", "profiles", "outbox", "meta"], "readwrite");
       if (page.changes.length) changed = true;
       for (const change of page.changes) {
         if (change.entity === "recipe") {
@@ -666,6 +709,11 @@ export class SyncEngine {
             await tx.objectStore("profiles").delete(change.entityId);
             await this.purgeProfile(tx, change.entityId);
           } else await tx.objectStore("profiles").put(change.profile);
+        } else if (change.entity === "recipe_favorite") {
+          const local = await tx.objectStore("favorites").get(change.entityId);
+          if (local && local.state !== "synced") continue;
+          if (change.deleted || !change.favorite) await tx.objectStore("favorites").delete(change.entityId);
+          else await tx.objectStore("favorites").put(favoriteFromServer(change.favorite));
         } else if (change.entity === "water_log") {
           const local = await tx.objectStore("water").get(change.entityId);
           if (local && local.state !== "synced") continue;
@@ -748,6 +796,10 @@ export function logFromServer(l: MealLog): LocalLog {
   return { id, body, nutrition, state: "synced", createdAt };
 }
 
+export function favoriteFromServer(f: RecipeFavorite): LocalFavorite {
+  return { id: f.id, body: { recipeId: f.recipeId }, state: "synced", createdAt: f.createdAt };
+}
+
 export function waterFromServer(w: WaterLog): LocalWater {
   const { id, createdAt, ...body } = w;
   return { id, body, state: "synced", createdAt };
@@ -774,8 +826,11 @@ function toWire(o: OutboxOp): SyncOperation {
       return { opId: o.opId, type: o.type, entityId: o.entityId, body: o.body as MealLogBody };
     case "log.delete":
     case "water.delete":
+    case "favorite.delete":
       return { opId: o.opId, type: o.type, entityId: o.entityId };
     case "water.create":
       return { opId: o.opId, type: o.type, entityId: o.entityId, body: o.body as WaterLogBody };
+    case "favorite.create":
+      return { opId: o.opId, type: o.type, entityId: o.entityId, body: o.body as RecipeFavoriteBody };
   }
 }

@@ -635,11 +635,17 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .meter.unknown { background-image: repeating-linear-gradient(135deg, var(--line-strong) 0 4px, transparent 4px 8px); }
 @media (prefers-reduced-motion: no-preference) { .meter-fill, .meter-over, .meter-mark { transition: width 200ms ease, left 200ms ease; } }
 
-/* ---------- Today: cook row and the day's trail ---------- */
+/* ---------- Today: the day's plan, then cooking ---------- */
 .today { display: grid; gap: 14px; margin-bottom: 16px; }
-.cook-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 650; min-height: 44px; }
-.cook-row .chip-row { display: inline-flex; gap: 6px; flex-wrap: wrap; font-weight: 550; }
-.mini-chip { display: inline-block; padding: 4px 10px; border-radius: 999px; background: var(--sage-soft); color: var(--sage-ink); font-size: 0.8125rem; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cook-section { display: grid; gap: 12px; }
+.home-picks { display: grid; gap: 10px; }
+.home-picks h3 { margin: 0; font-size: 1.0625rem; }
+.adventure-card { display: grid; gap: 4px; text-decoration: none; color: inherit; background: var(--sage-soft); border-color: transparent; }
+.adventure-card:hover { border-color: var(--sage); }
+.adventure-card .eyebrow { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+.favorite-toggle.is-on { color: var(--sage-ink); background: var(--sage-soft); }
+.favorite-toggle.is-on .icon path { fill: currentColor; }
+.radio-list { border: 0; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }
 .cook-head { font-size: 1.375rem; }
 .tile-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .tile { display: grid; gap: 8px; text-decoration: none; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 8px 8px 12px; }

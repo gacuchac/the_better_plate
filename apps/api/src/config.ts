@@ -115,6 +115,11 @@ function loadConfig() {
   const connectorEnabled = process.env.FEATURE_MCP_CONNECTOR_ENABLED === "true";
   const byokKey = byokEncryptionKey(isLocal, aiEnabled, sessionSecret);
 
+  // Community recipes: on in local, test and the cloud dev environment unless set to "false";
+  // off in production until the owner approves the privacy notice change and sets it to "true".
+  const communityRaw = process.env.FEATURE_COMMUNITY_RECIPES_ENABLED?.trim();
+  const communityEnabled = communityRaw ? communityRaw === "true" : appEnv !== "production";
+
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
 
@@ -137,7 +142,7 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
     house: houseConfig(),

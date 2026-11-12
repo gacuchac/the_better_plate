@@ -45,7 +45,7 @@ export async function signIn(page: Page, email: string, info?: TestInfo) {
   await page.getByLabel("Code").fill(await readCode(page.request, email));
   await page.getByRole("button", { name: "Sign in" }).click();
   await acceptPrivacyNotice(page, info);
-  await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Let's cook something", exact: true })).toBeVisible();
   await expect(page.getByTestId("catalog-status")).toContainText("USDA foods saved on this device");
 }
 
@@ -85,7 +85,7 @@ export async function waitForServiceWorker(page: Page) {
 export async function acceptPrivacyNotice(page: Page, info?: TestInfo) {
   const consent = page.getByTestId("consent-screen");
   // An account that already agreed (for example on another device) goes straight to the kitchen.
-  await expect(consent.or(page.getByRole("heading", { name: "Recipes", exact: true }))).toBeVisible();
+  await expect(consent.or(page.getByRole("heading", { name: "Let's cook something", exact: true }))).toBeVisible();
   if (!(await consent.isVisible())) return;
   await expect(consent.getByRole("button", { name: "Agree and continue" })).toBeDisabled();
   await consent.getByLabel("I'm 18 or older").check();

@@ -3,13 +3,20 @@ import { addIngredient, API, expectSynced, newEmail, saveAndSync, shot, signIn }
 
 const RICE = "Rice, white, long-grain, regular, enriched, cooked";
 
-// Today on Your Kitchen: an empty day leads with cooking; a day with a plan shows the trail with
-// one-tap Eat and Undo; a goal the person set gets a mark, and going past it is stated calmly.
+// Today on Your Kitchen: the plan always comes first (an empty-plan card when nothing is planned),
+// then "Let's cook something"; a day with a plan shows the trail with one-tap Eat and Undo; a goal the person set gets a mark, and going past it is stated calmly.
+async function expectPlanFirst(page: import("@playwright/test").Page) {
+  const plan = await page.getByTestId("today-card").boundingBox();
+  const cook = await page.getByTestId("cook-section").boundingBox();
+  expect(plan && cook && plan.y < cook.y).toBe(true);
+}
+
 test("today: empty day, planned trail with Eat and Undo, and a calm note past a calorie goal", async ({ page }, info) => {
   await signIn(page, newEmail("today"));
   await expect(page.getByTestId("today-card")).toContainText("Nothing planned yet");
   await expect(page.getByRole("heading", { name: "Let's cook something" })).toBeVisible();
-  await shot(page, info, "today-empty", "Empty day: cooking leads, the trail is one quiet card");
+  await expectPlanFirst(page);
+  await shot(page, info, "today-empty", "Empty day: the empty plan comes first, then Let's cook something");
 
   await page.getByRole("button", { name: "New recipe" }).click();
   await page.getByLabel("Recipe name").fill("Plain rice");
@@ -18,11 +25,19 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Unit").selectOption("g");
   await page.getByTestId("ingredient-row").filter({ hasText: RICE }).getByLabel("Amount").fill("400");
   await saveAndSync(page);
+  const heart = page.getByTestId("favorite-toggle");
+  await expect(heart).toHaveAttribute("aria-pressed", "false");
+  await heart.click();
+  await expect(heart).toHaveAttribute("aria-pressed", "true");
+  await expectSynced(page);
   await page.getByRole("link", { name: "Back to Kitchen" }).click();
   await expect(page.getByTestId("today-card")).toContainText("Nothing planned yet");
-  await expect(page.locator(".tile")).toHaveCount(1);
-  await shot(page, info, "today-empty-with-recipes", "Empty day with a saved recipe: cooking leads with a recipe grid");
-  await page.getByTestId("recipe-card").click();
+  // Home no longer lists every recipe: only favorites, trending and one adventure pick.
+  const favorites = page.getByTestId("favorites-section");
+  await expect(favorites.locator(".tile")).toHaveCount(1);
+  await expect(page.getByTestId("adventure-card")).toBeVisible();
+  await shot(page, info, "today-empty-with-favorite", "Empty day with a favorite: empty plan first, then favorites, trending and an adventure pick");
+  await favorites.locator(".tile").click();
   await page.getByRole("button", { name: "Plan" }).click();
   const plan = page.getByRole("dialog", { name: "Plan this meal" });
   await plan.getByRole("button", { name: "Dinner" }).click();
@@ -33,7 +48,8 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   const items = page.getByTestId("trail-item");
   await expect(items).toHaveCount(1);
   await expect(items.first()).toHaveClass(/is-planned/);
-  await expect(page.getByTestId("cook-row")).toContainText("Let's cook something");
+  await expect(page.getByRole("heading", { name: "Let's cook something" })).toBeVisible();
+  await expectPlanFirst(page);
   await shot(page, info, "today-planned", "Day with a plan: dashed trail, outlined pin, Eat button");
 
   await page.getByRole("button", { name: "Mark Plain rice as eaten" }).click();
@@ -156,6 +172,10 @@ test("last 7 days: adds each day's own goal, and a changed goal keeps its earlie
   const line = page.getByTestId("week-line");
   // Two days count (the logged one and today), each with a 1,000 kcal goal.
   await expect(line).toHaveCount(1);
+  // The week sits with the plan, above "Let's cook something".
+  const week = await page.getByTestId("week-card").boundingBox();
+  const cook = await page.getByTestId("cook-section").boundingBox();
+  expect(week && cook && week.y < cook.y).toBe(true);
   await expect(line).toContainText(/of 2,?000 kcal/);
   await expect(line).toContainText("2 days counted");
   await expect(line.getByTestId("week-left")).toContainText("left for today");

@@ -110,8 +110,8 @@ test("find a recipe photo by describing it, with credit; generate one on your ke
   await saveAndSync(page);
   await shot(page, info, "photo-generated", "Generated image labelled AI-generated, model named, not an exact depiction");
 
-  // Kitchen card shows it, and it still shows after an offline reload.
-  await page.goto("/#/kitchen");
+  // The recipe card shows it, and it still shows after an offline reload.
+  await page.goto("/#/recipes");
   const thumb = page.getByTestId("recipe-card").locator("img");
   await expect.poll(() => loaded(thumb)).toBe(true);
   await waitForServiceWorker(page);

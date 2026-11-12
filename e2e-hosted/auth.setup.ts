@@ -32,7 +32,7 @@ setup("sign in once and save the session", async ({ browser, page }) => {
   expect(signedIn.ok(), `sign-in: ${signedIn.status()}`).toBe(true);
   await page.goto("/");
   await acceptPrivacyNotice(page);
-  await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Let's cook something", exact: true })).toBeVisible();
   await expect(page.getByTestId("catalog-status")).toContainText("USDA foods saved on this device");
   fs.mkdirSync(path.dirname(STATE), { recursive: true });
   await page.context().storageState({ path: STATE, indexedDB: true });

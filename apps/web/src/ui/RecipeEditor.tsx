@@ -11,6 +11,7 @@ import { LogSheet, PlanSheet } from "./MealSheets.tsx";
 import { AllergenAlert, isAdminOf, listedAllergens, RecipeAllergens } from "./People.tsx";
 import { NutritionPanel } from "./Nutrition.tsx";
 import { ShareSheet } from "./Share.tsx";
+import { CommunitySheet, useCommunityAvailable } from "./Community.tsx";
 import { describeRecipe, PhotoSheet, RecipePhoto } from "./Photos.tsx";
 import { formatQty, useT, type MessageKey } from "../i18n.ts";
 
@@ -28,7 +29,8 @@ function unitValue(i: RecipeIngredientInput) {
 }
 
 export function RecipeEditor({ id }: { id: string }) {
-  const { engine, catalog, online, groups, preferences, account } = useApp();
+  const { engine, catalog, online, groups, preferences, account, favorites } = useApp();
+  const community = useCommunityAvailable();
   const t = useT();
   const [loaded, setLoaded] = useState<LocalRecipe | null | undefined>(undefined);
   const [draft, setDraft] = useState<RecipeBody>(blank);
@@ -36,7 +38,7 @@ export function RecipeEditor({ id }: { id: string }) {
   const [picking, setPicking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "photo" | "group" | null>(null);
+  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "community" | "photo" | "group" | null>(null);
 
   useEffect(() => {
     if (!engine) return;
@@ -298,9 +300,23 @@ export function RecipeEditor({ id }: { id: string }) {
           )}
           {loaded && (
             <div className="actions">
+              <button
+                type="button"
+                className={`btn-soft favorite-toggle${favorites.has(id) ? " is-on" : ""}`}
+                aria-pressed={favorites.has(id)}
+                data-testid="favorite-toggle"
+                onClick={() => void engine.setFavorite(id, !favorites.has(id))}
+              >
+                <Icon name="heart" size={18} /> {favorites.has(id) ? t("favorites.on") : t("favorites.add")}
+              </button>
               <button type="button" className="btn-soft" onClick={() => setSheet("share")} disabled={dirty}>
                 <Icon name="share" size={18} /> {t("share.title")}
               </button>
+              {community && !groupId && !readOnly && (
+                <button type="button" className="btn-soft" onClick={() => setSheet("community")} disabled={dirty}>
+                  <Icon name="globe" size={18} /> {t("community.shareTitle")}
+                </button>
+              )}
               {!groupId && adminGroups.length > 0 && loaded.serverVersion !== null && (
                 <button type="button" className="btn-soft" onClick={() => setSheet("group")} disabled={dirty || !online}>
                   <Icon name="people" size={18} /> {t("groups.shareWithGroup")}
@@ -358,6 +374,7 @@ export function RecipeEditor({ id }: { id: string }) {
       )}
       {sheet === "plan" && loaded && <PlanSheet recipeId={id} title={loaded.body.title} onClose={() => setSheet(null)} />}
       {sheet === "share" && loaded && <ShareSheet recipe={loaded} onClose={() => setSheet(null)} />}
+      {sheet === "community" && loaded && <CommunitySheet recipe={loaded} onClose={() => setSheet(null)} />}
       {sheet === "group" && loaded && (
         <Sheet title={t("groups.shareWithGroup")} onClose={() => setSheet(null)}>
           <p className="hint">{t("groups.shareWithGroupHint")}</p>

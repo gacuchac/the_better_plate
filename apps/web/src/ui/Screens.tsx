@@ -10,7 +10,6 @@ import { localDate, formatDay } from "../meals.ts";
 import { downloadJson, EmptyState, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
 import { Today } from "./Today.tsx";
-import { Week } from "./Week.tsx";
 import { EnglishNamesNote, NotInCatalog, searchFoods } from "./FoodPicker.tsx";
 import { LanguagePicker } from "./LanguagePicker.tsx";
 import { GoalsSection, PeriodTotals } from "./Goals.tsx";
@@ -60,7 +59,6 @@ export function Kitchen() {
       </header>
 
       <Today />
-      <Week />
 
       {askAllergies && (
         <a className="card ask-card" href="#/preferences" data-testid="allergy-prompt">
@@ -70,6 +68,9 @@ export function Kitchen() {
       )}
 
       <nav className="quick-links" aria-label={t("kitchen.more")}>
+        <a className="btn-soft" href="#/recipes" data-testid="recipes-link">
+          <Icon name="pan" size={18} /> {t("kitchen.yourRecipes")}
+        </a>
         <a className="btn-soft" href="#/shopping" data-testid="shopping-link">
           <Icon name="basket" size={18} /> {t("shop.title")}
         </a>
@@ -78,8 +79,25 @@ export function Kitchen() {
         </a>
       </nav>
 
+      <p className="catalog-status" data-testid="catalog-status">
+        {catalog.status === "ready"
+          ? t(catalog.offline ? "kitchen.catalogOffline" : "kitchen.catalog", { n: catalog.bundle.foodCount })
+          : catalog.status === "loading"
+            ? t("kitchen.catalogLoading")
+            : t("catalog.unavailable")}
+      </p>
+    </div>
+  );
+}
+
+/** Every recipe this person can open (their own and their groups'), off the home page. */
+export function Recipes() {
+  const { recipes } = useApp();
+  const t = useT();
+  return (
+    <div className="screen">
       <div className="section-title">
-        <h2>{t("kitchen.recipes")}</h2>
+        <h1>{t("kitchen.yourRecipes")}</h1>
         <button type="button" className="btn-primary" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
           <Icon name="plus" /> {t("kitchen.newRecipe")}
         </button>
@@ -95,13 +113,6 @@ export function Kitchen() {
           ))}
         </ul>
       )}
-      <p className="catalog-status" data-testid="catalog-status">
-        {catalog.status === "ready"
-          ? t(catalog.offline ? "kitchen.catalogOffline" : "kitchen.catalog", { n: catalog.bundle.foodCount })
-          : catalog.status === "loading"
-            ? t("kitchen.catalogLoading")
-            : t("catalog.unavailable")}
-      </p>
     </div>
   );
 }

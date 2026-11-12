@@ -10,6 +10,7 @@ import { LOG_COLUMNS, PLAN_COLUMNS, toLog, toPlan } from "./meals.ts";
 import { toRecipe } from "./recipes.ts";
 import { GOAL_COLUMNS, toGoal } from "./goals.ts";
 import { toWater, WATER_COLUMNS } from "./water.ts";
+import { FAVORITE_COLUMNS, toFavorite } from "./favorites.ts";
 import { shareUrl } from "./shares.ts";
 import { toFeedback, toPreferences, type FeedbackRow, type PreferencesRow } from "./preferences.ts";
 import { endOwnedGroups } from "./groups.ts";
@@ -126,7 +127,7 @@ export async function exportAccount(userId: string) {
     ),
     q<Parameters<typeof toGoal>[0]>(`select ${GOAL_COLUMNS} from goals where user_id = $1 and deleted_at is null order by created_at`),
   ]);
-  const [preferences, feedback, profiles, memberships, water] = await Promise.all([
+  const [preferences, feedback, profiles, memberships, water, favorites, community, communitySaves, communityReports] = await Promise.all([
     q<PreferencesRow>("select * from food_preferences where user_id = $1 order by created_at"),
     q<FeedbackRow>("select * from meal_feedback where user_id = $1 and deleted_at is null order by created_at"),
     q<{ id: string; name: string; created_at: Date }>("select id, name, created_at from profiles where owner_user_id = $1 and deleted_at is null order by created_at"),
@@ -135,6 +136,12 @@ export async function exportAccount(userId: string) {
         where m.user_id = $1 order by m.created_at`,
     ),
     q<Parameters<typeof toWater>[0]>(`select ${WATER_COLUMNS} from water_logs where user_id = $1 and deleted_at is null order by local_date, drank_at`),
+    q<Parameters<typeof toFavorite>[0]>(`select ${FAVORITE_COLUMNS} from recipe_favorites where user_id = $1 and deleted_at is null order by created_at`),
+    q<{ id: string; recipe_id: string; recipe_version: number; include_method: boolean; snapshot: unknown; created_at: Date; updated_at: Date; unshared_at: Date | null; hidden_at: Date | null }>(
+      "select id, recipe_id, recipe_version, include_method, snapshot, created_at, updated_at, unshared_at, hidden_at from community_recipes where user_id = $1 order by created_at",
+    ),
+    q<{ community_id: string; recipe_id: string; created_at: Date }>("select community_id, recipe_id, created_at from community_saves where user_id = $1 order by created_at"),
+    q<{ community_id: string; reason: string; created_at: Date }>("select community_id, reason, created_at from community_reports where user_id = $1 order by created_at"),
   ]);
   const user = users[0]!;
   return {
@@ -165,6 +172,15 @@ export async function exportAccount(userId: string) {
     mealsEaten: logs.map(toLog),
     goals: goals.map(toGoal),
     waterDrunk: water.map(toWater),
+    favoriteRecipes: favorites.map(toFavorite),
+    // Recipes you shared with the community, copies you saved from it and listings you reported.
+    communityRecipes: community.map((r) => ({
+      communityId: r.id, recipeId: r.recipe_id, recipeVersion: r.recipe_version, includeMethod: r.include_method,
+      sharedAt: r.created_at.toISOString(), updatedAt: r.updated_at.toISOString(), unsharedAt: r.unshared_at?.toISOString() ?? null,
+      hiddenAt: r.hidden_at?.toISOString() ?? null, snapshot: r.unshared_at ? null : r.snapshot,
+    })),
+    communitySaves: communitySaves.map((r) => ({ communityId: r.community_id, recipeId: r.recipe_id, savedAt: r.created_at.toISOString() })),
+    communityReports: communityReports.map((r) => ({ communityId: r.community_id, reason: r.reason, reportedAt: r.created_at.toISOString() })),
     // Plans and eaten meals of your profiles are in plannedMeals and mealsEaten, marked with profileId.
     profiles: profiles.map((p) => ({ id: p.id, name: p.name, createdAt: p.created_at.toISOString() })),
     foodPreferences: preferences.map(toPreferences),
@@ -187,7 +203,7 @@ accountRoutes.openapi(
     method: "get", path: "/v1/me/export", tags: ["account"], summary: "Download all my data as JSON",
     description:
       "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, " +
-      "meal feedback, profiles, group memberships, share links and issue reports. Rate limited to 10 per hour.",
+      "meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, and issue reports. Rate limited to 10 per hour.",
     responses: { 200: { description: "Export (betterplate.export/1)", content: { "application/json": { schema: z.object({ format: z.literal(EXPORT_FORMAT) }).passthrough() } } }, ...ErrorResponses },
   }),
   async (c) => {

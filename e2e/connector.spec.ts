@@ -60,8 +60,8 @@ test("a person signs in, approves an assistant, then disconnects it", async ({ p
   });
   expect(token.status(), await token.text()).toBe(200);
   const accessToken = (await token.json()).access_token as string;
-  await page.goto("/#/kitchen");
-  await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
+  await page.goto("/#/recipes");
+  await expect(page.getByRole("heading", { name: "Your recipes", exact: true })).toBeVisible();
   const mcp = (id: number, method: string, params: object) =>
     request.post(`${API}/mcp`, {
       headers: { authorization: `Bearer ${accessToken}`, accept: "application/json, text/event-stream", "mcp-protocol-version": "2025-06-18" },
@@ -72,7 +72,7 @@ test("a person signs in, approves an assistant, then disconnects it", async ({ p
   const saved = await mcp(2, "tools/call", { name: "save_recipe", arguments: { title: "Recipe from my assistant", servings: 2, ingredients: [{ foodId, grams: 300 }] } });
   expect((await saved.json()).result.isError).toBeFalsy();
   await expect(page.getByTestId("recipe-card").filter({ hasText: "Recipe from my assistant" })).toBeVisible({ timeout: 12_000 });
-  await shot(page, info, "assistant-recipe-live", "Kitchen: a recipe saved by the connected assistant appears without reloading");
+  await shot(page, info, "assistant-recipe-live", "Your recipes: a recipe saved by the connected assistant appears without reloading");
 
   // The companion stays first and offers the person's own Claude or ChatGPT as the alternative.
   await page.getByTestId("companion-open").click();
@@ -116,7 +116,7 @@ test("cancelling sends the assistant back without access", async ({ page }) => {
   await page.getByLabel("Code").fill(await readCode(page.request, email));
   await page.getByRole("button", { name: "Sign in" }).click();
   await acceptPrivacyNotice(page);
-  await expect(page.getByRole("heading", { name: "Recipes", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Let's cook something", exact: true })).toBeVisible();
 
   const params = new URLSearchParams({
     response_type: "code",

@@ -12,6 +12,7 @@ function fakeServer() {
   const store = new Map<string, Recipe>();
   const logs = new Map<string, unknown>();
   const water = new Map<string, unknown>();
+  const favorites = new Map<string, unknown>();
   const plans = new Map<string, { version: number; title: string }>();
   const seen = new Map<string, SyncResult>();
   const batches: SyncBatchRequest[] = [];
@@ -22,6 +23,7 @@ function fakeServer() {
     store,
     logs,
     water,
+    favorites,
     plans,
     batches,
     setOffline: (v: boolean) => (offline = v),
@@ -41,6 +43,12 @@ function fakeServer() {
           if (op.type === "water.create" || op.type === "water.delete") {
             if (op.type === "water.create") water.set(op.entityId, op.body);
             else water.delete(op.entityId);
+            seen.set(op.opId, ok(null));
+            return ok(null);
+          }
+          if (op.type === "favorite.create" || op.type === "favorite.delete") {
+            if (op.type === "favorite.create") favorites.set(op.entityId, op.body);
+            else favorites.delete(op.entityId);
             seen.set(op.opId, ok(null));
             return ok(null);
           }
@@ -256,6 +264,28 @@ describe("SyncEngine meals", () => {
     expect(server.water.has(second)).toBe(false);
     expect(server.batches.at(-1)!.operations[0]!.type).toBe("water.delete");
     expect(await engine.listWater()).toHaveLength(1);
+  });
+
+  it("hearts and un-hearts a recipe once, offline or not, and syncs only what is left", async () => {
+    const server = fakeServer();
+    const engine = await engineFor(server);
+    const recipe = crypto.randomUUID();
+    server.setOffline(true);
+    await engine.setFavorite(recipe, true);
+    await engine.setFavorite(recipe, true);
+    expect(await engine.listFavorites()).toHaveLength(1);
+    await engine.setFavorite(recipe, false);
+    expect(await engine.pendingCount()).toBe(0);
+    await engine.setFavorite(recipe, true);
+    server.setOffline(false);
+    await engine.syncNow();
+    expect(server.favorites.size).toBe(1);
+    expect((await engine.listFavorites()).map((f) => [f.body.recipeId, f.state])).toEqual([[recipe, "synced"]]);
+    await engine.setFavorite(recipe, false);
+    await engine.syncNow();
+    expect(server.favorites.size).toBe(0);
+    expect(server.batches.at(-1)!.operations[0]!.type).toBe("favorite.delete");
+    expect(await engine.listFavorites()).toHaveLength(0);
   });
 
   it("coalesces unsent plan edits and keeps plans apart from logs", async () => {

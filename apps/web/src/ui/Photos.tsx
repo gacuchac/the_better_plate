@@ -23,13 +23,13 @@ export function describeRecipe(body: Pick<RecipeBody, "title" | "ingredients">, 
 }
 
 /** The recipe's image with its credit, or the AI-generated label. Never shown without one of them. */
-export function RecipePhoto({ image, compact = false }: { image: RecipeImage | (Omit<RecipeImage, "id"> & { url: string }); compact?: boolean }) {
+export function RecipePhoto({ image, compact = false, signedIn = false }: { image: RecipeImage | (Omit<RecipeImage, "id"> & { url: string }); compact?: boolean; signedIn?: boolean }) {
   const t = useT();
   return (
     <figure className={`recipe-photo${compact ? " compact" : ""}`} data-testid="recipe-photo">
       {"url" in image ? (
-        // A shared recipe's photo is public; no cookies go with it.
-        <img src={image.url} alt={image.alt} loading="lazy" />
+        // A shared recipe's photo is public, so no cookies go with it; a community photo needs sign-in.
+        <img src={image.url} alt={image.alt} loading="lazy" crossOrigin={signedIn ? "use-credentials" : undefined} />
       ) : (
         <img src={imageUrl(image.id)} alt={image.alt} loading="lazy" crossOrigin="use-credentials" />
       )}

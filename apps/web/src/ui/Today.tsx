@@ -9,6 +9,10 @@ import { useGentle } from "../gentle.ts";
 import type { LocalRecipe } from "../localdb.ts";
 import { Meter } from "./Meter.tsx";
 import { Icon } from "./icons.tsx";
+import { navigate } from "./common.tsx";
+import { CommunityTile, useCommunityHome } from "./Community.tsx";
+import { ownAdventure } from "../picks.ts";
+import { Week } from "./Week.tsx";
 
 function Thumb({ recipe, title }: { recipe: LocalRecipe | undefined; title: string }) {
   return recipe?.body.image ? (
@@ -31,7 +35,68 @@ function RecipeTile({ recipe }: { recipe: LocalRecipe }) {
   );
 }
 
-/** Today on Your Kitchen: a small "Let's cook something" row, then the day's trail. */
+/**
+ * What to cook, instead of every recipe: your favorites, what's trending in the community (most
+ * saved by different people lately) and one pick unlike what you've been eating.
+ */
+function HomePicks() {
+  const { recipes, logs, favorites, catalog } = useApp();
+  const t = useT();
+  const { home, available, offline } = useCommunityHome();
+  const favs = recipes.filter((r) => favorites.has(r.id));
+  const own = useMemo(
+    () => (catalog.status === "ready" ? ownAdventure(recipes, logs, localDate(), catalog.foods) : null),
+    [recipes, logs, catalog],
+  );
+  const adventure = home?.adventure ?? null;
+  return (
+    <>
+      <section className="home-picks" aria-labelledby="favorites-title" data-testid="favorites-section">
+        <h3 id="favorites-title">{t("favorites.title")}</h3>
+        {favs.length > 0 ? (
+          <ul className="tile-grid">
+            {favs.slice(0, 8).map((r) => (
+              <RecipeTile key={r.id} recipe={r} />
+            ))}
+          </ul>
+        ) : (
+          <p className="hint" style={{ margin: 0 }}>{recipes.length > 0 ? t("favorites.empty") : t("favorites.emptyNoRecipes")}</p>
+        )}
+      </section>
+
+      {available !== false && (
+        <section className="home-picks" aria-labelledby="trending-title" data-testid="trending-section">
+          <h3 id="trending-title">{t("community.trending")}</h3>
+          {home && home.trending.length > 0 ? (
+            <ul className="tile-grid">
+              {home.trending.map((c) => (
+                <CommunityTile key={c.communityId} card={c} />
+              ))}
+            </ul>
+          ) : (
+            <p className="hint" style={{ margin: 0 }}>{offline ? t("community.trendingOffline") : home ? t("community.trendingEmpty") : t("common.loading")}</p>
+          )}
+        </section>
+      )}
+
+      {(adventure || own) && (
+        <a
+          className="card adventure-card"
+          href={adventure ? `#/community/${adventure.communityId}` : `#/recipe/${own!.id}`}
+          data-testid="adventure-card"
+        >
+          <span className="eyebrow">
+            <Icon name="sparkle" size={16} /> {t("adventure.title")}
+          </span>
+          <strong>{adventure ? adventure.title : own!.body.title}</strong>
+          <span className="hint" style={{ margin: 0 }}>{adventure ? t("adventure.community") : t("adventure.own")}</span>
+        </a>
+      )}
+    </>
+  );
+}
+
+/** Today on Your Kitchen: the day's plan first (an empty-plan card when nothing is planned), the last 7 days, then "Let's cook something". */
 export function Today() {
   const { recipes, plans, logs, goals, engine, catalog } = useApp();
   const t = useT();
@@ -64,7 +129,6 @@ export function Today() {
   const mark = gentle ? null : energyMark(goals, today);
   const over = amountOver(eatenKcal, mark?.ceiling ?? null);
   const recipeFor = (id: string | null | undefined) => recipes.find((r) => r.id === id);
-  const chips = recipes.slice(0, 3);
   const hasTrail = trail.items.length > 0;
 
   async function eat(plan: Extract<TrailItem, { kind: "planned" }>["plan"]) {
@@ -86,17 +150,6 @@ export function Today() {
     <section className="today" aria-label={t("day.today")}>
       {hasTrail ? (
         <>
-          <a className="cook-row" href="#/create" data-testid="cook-row">
-            <span>{t("today.cookTitle")}</span>
-            <Icon name="forward" size={18} />
-            <span className="chip-row">
-              {chips.map((r) => (
-                <span key={r.id} className="mini-chip">
-                  {r.body.title}
-                </span>
-              ))}
-            </span>
-          </a>
           <a className="card today-card" href="#/meals" data-testid="today-card">
             <div className="card-head" style={{ marginBottom: 0 }}>
               <h2>{t("today.trail")}</h2>
@@ -159,28 +212,31 @@ export function Today() {
           </ol>
         </>
       ) : (
-        <>
-          <h2 className="cook-head">{t("today.cookTitle")}</h2>
-          {recipes.length > 0 && (
-            <ul className="tile-grid">
-              {recipes.slice(0, 4).map((r) => (
-                <RecipeTile key={r.id} recipe={r} />
-              ))}
-            </ul>
-          )}
-          <a className="card today-card empty-trail" href="#/meals" data-testid="today-card">
-            <h3>{t("today.nothingPlanned")}</h3>
-            <span className="btn-soft">
-              <Icon name="plus" size={18} /> {t("meals.planMeal")}
-            </span>
-          </a>
-        </>
+        <a className="card today-card empty-trail" href="#/meals" data-testid="today-card">
+          <h2>{t("today.trail")}</h2>
+          <p className="hint" style={{ margin: 0 }}>{t("today.nothingPlanned")}</p>
+          <span className="btn-soft">
+            <Icon name="plus" size={18} /> {t("meals.planMeal")}
+          </span>
+        </a>
       )}
       {trail.waiting > 0 && (
         <p className="hint" data-testid="waiting-note">
           {t("today.waiting", { n: trail.waiting })}
         </p>
       )}
+      <Week />
+
+      {/* Cooking comes after the plan, whether or not anything is planned. */}
+      <div className="cook-section" data-testid="cook-section">
+        <div className="section-title">
+          <h2 className="cook-head">{t("today.cookTitle")}</h2>
+          <button type="button" className="btn-primary" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
+            <Icon name="plus" /> {t("kitchen.newRecipe")}
+          </button>
+        </div>
+        <HomePicks />
+      </div>
     </section>
   );
 }
