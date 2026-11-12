@@ -119,6 +119,9 @@ function loadConfig() {
   // off in production until the owner approves the privacy notice change and sets it to "true".
   const communityRaw = process.env.FEATURE_COMMUNITY_RECIPES_ENABLED?.trim();
   const communityEnabled = communityRaw ? communityRaw === "true" : appEnv !== "production";
+  // Shared milestones and cheers: same default as community recipes, switched separately.
+  const milestonesRaw = process.env.FEATURE_COMMUNITY_MILESTONES_ENABLED?.trim();
+  const milestonesEnabled = milestonesRaw ? milestonesRaw === "true" : appEnv !== "production";
 
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
@@ -142,7 +145,7 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
     house: houseConfig(),

@@ -27,6 +27,7 @@ import { preferenceRoutes } from "./modules/preferences.ts";
 import { groupRoutes } from "./modules/groups.ts";
 import { shoppingRoutes } from "./modules/shopping.ts";
 import { communityRoutes } from "./modules/community.ts";
+import { milestoneRoutes } from "./modules/milestones.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -111,6 +112,7 @@ export function createApp() {
   app.route("/", groupRoutes);
   app.route("/", shareRoutes);
   app.route("/", communityRoutes);
+  app.route("/", milestoneRoutes);
   app.route("/", syncRoutes);
   app.route("/", aiRoutes);
   app.route("/", imageRoutes);

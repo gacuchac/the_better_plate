@@ -11,7 +11,7 @@ import type {
   PlannedMeal,
   ShoppingList,
 } from "@betterplate/contracts";
-import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse, CommunityHome, CommunityRecipe, CommunityReason, CommunityShare, CommunityStatus } from "@betterplate/contracts";
+import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse, CommunityHome, CommunityRecipe, CommunityReason, CommunityShare, CommunityStatus, Cheer, Milestones, MilestoneShare, MyMilestone } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
 import { API_URL } from "./env.ts";
@@ -153,6 +153,11 @@ export const api = {
   communityRecipe: (id: string) => request<CommunityRecipe>(`/v1/community/${id}`, { cache: "no-store" }),
   saveCommunityCopy: (id: string) => request<{ recipeId: string }>(`/v1/community/${id}/save`, { method: "POST" }),
   reportCommunity: (id: string, reason: CommunityReason) => request<void>(`/v1/community/${id}/report`, { method: "POST", json: { reason } }),
+  milestones: () => request<Milestones>("/v1/milestones", { cache: "no-store" }),
+  shareMilestone: (body: MilestoneShare) => request<MyMilestone>("/v1/milestones", { method: "POST", json: body }),
+  unshareMilestone: (id: string) => request<void>(`/v1/milestones/${id}`, { method: "DELETE" }),
+  cheer: (id: string, cheer: Cheer) => request<void>(`/v1/milestones/${id}/cheer`, { method: "PUT", json: { cheer } }),
+  uncheer: (id: string) => request<void>(`/v1/milestones/${id}/cheer`, { method: "DELETE" }),
   aiSettings: () => request<AiSettings>("/v1/ai/settings", { cache: "no-store" }),
   updateAiSettings: (body: AiSettingsUpdate) => request<AiSettings>("/v1/ai/settings", { method: "PUT", json: body }),
   connectAi: (provider: AiProvider, apiKey: string) => request<AiSettings>(`/v1/ai/credentials/${provider}`, { method: "PUT", json: { apiKey } }),

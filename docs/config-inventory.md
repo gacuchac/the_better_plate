@@ -27,6 +27,7 @@ Living registry of every runtime and CI setting. **Last revised:** 2026-10-19 (M
 | `FEATURE_AI_COMPANION_ENABLED` | Enables the BYOK AI companion routes (ADR-005). | api | server | local, test, dev (`true`); production `false` | default / agent (dev) | When `true` outside local/test, startup requires `BYOK_ENCRYPTION_KEY`. |
 | `FEATURE_MCP_CONNECTOR_ENABLED` | Enables the Claude/ChatGPT connector: OAuth authorization server under `/v1/auth/oauth2/*`, discovery documents and the MCP endpoint `/mcp` (ADR-007). | api | server | local, test, dev (`true`); production `false` | default / agent (dev) | `GET /.well-known/oauth-protected-resource/mcp` returns 200 when on, 404 when off. Needs `PUBLIC_API_URL` and `PUBLIC_APP_URL` to be the real public origins (issuer, resource and consent page are built from them). |
 | `FEATURE_COMMUNITY_RECIPES_ENABLED` | Enables opt-in community recipes: sharing a snapshot with everyone signed in, trending, the community adventure pick, saving copies and reports. | api | server | unset: on in local, test and dev; off in production | default | Off in production until the owner releases it; the privacy notice covers it since version 2026-11-12. Favorites are not behind this flag. |
+| `FEATURE_COMMUNITY_MILESTONES_ENABLED` | Enables shared milestones: the app suggests small steps (tried something new, dinners at home) that people may share with everyone signed in, and others cheer them with preset reactions. No comments or free text. | api | server | unset: on in local, test and dev; off in production | default | Off in production until the owner releases it and approves the privacy notice wording (draft in `docs/drafts/privacy-notice-milestones.md`). |
 | `OPENAI_HOUSE_API_KEY` | Owner's OpenAI key for the included companion (people without their own key). | api | secret | dev now; production only after owner approval | **owner** (sets it in Railway; never in chat or files) | Empty = off. Use a dedicated OpenAI project with a monthly budget limit; that limit is the hard stop. |
 | `AI_HOUSE_MODEL` | Model on the included key. | api | server | any | default `gpt-6-luna` | Must be a chat model with tool calling on that key. |
 | `AI_HOUSE_ALLOWED_EMAILS` | Who may use the included companion. | api | server | any | owner | Comma-separated emails; `*` = every signed-in account; empty = nobody. |
@@ -73,6 +74,7 @@ Living registry of every runtime and CI setting. **Last revised:** 2026-10-19 (M
 | `FEATURE_AI_COMPANION_ENABLED` | `true` | `true` (both values tested) | `true` | `false` until released |
 | `FEATURE_MCP_CONNECTOR_ENABLED` | `true` | `true` (both values tested) | `true` | `false` until released |
 | `FEATURE_COMMUNITY_RECIPES_ENABLED` | `true` (unset) | `true` (both values tested) | `true` (unset) | `false` until approved |
+| `FEATURE_COMMUNITY_MILESTONES_ENABLED` | `true` (unset) | `true` (both values tested) | `true` (unset) | `false` until approved |
 
 ## Deferred (no variable until an ADR decides)
 

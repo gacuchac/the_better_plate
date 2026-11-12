@@ -584,6 +584,55 @@ export const CommunityHomeSchema = z.object({
   adventure: CommunityCardSchema.nullable(),
 });
 
+// ---------- milestones: small steps shared with everyone signed in, cheered with preset reactions ----------
+
+/**
+ * The only things that can be shared. No free text: the app writes the words from the kind, so
+ * nothing hurtful can be posted and no amounts, goals or meals leave the kitchen.
+ */
+export const MilestoneKindSchema = z.enum(["new_plant", "home_dinners", "new_recipe", "community_cooked", "planned_and_ate"]);
+/** Preset cheers; there are no comments. */
+export const CheerSchema = z.enum(["well_done", "keep_going", "love_this"]);
+
+export const MilestoneShareSchema = z.object({
+  kind: MilestoneKindSchema,
+  /** ISO week of the person's own calendar the milestone happened in, like 2026-W46. One per kind per week. */
+  week: z.string().regex(/^\d{4}-W\d{2}$/),
+  /** Only for new_plant: the catalog food tried. */
+  foodId: z.string().min(1).max(64).nullable().optional(),
+});
+
+/** Someone else's milestone. Never who shared it, how many cheers it has or who cheered. */
+export const MilestonePostSchema = z.object({
+  milestoneId: z.uuid(),
+  kind: MilestoneKindSchema,
+  week: z.string(),
+  /** The food's name without its preparation (new_plant only). */
+  foodName: z.string().nullable(),
+  sharedAt: z.string(),
+  /** The signed-in person's own cheer, if any. */
+  myCheer: CheerSchema.nullable(),
+});
+
+/** A milestone I shared, with how many people cheered it, by cheer. Only I see these counts. */
+export const MyMilestoneSchema = MilestonePostSchema.omit({ myCheer: true }).extend({
+  foodId: z.string().nullable(),
+  cheers: z.object({ well_done: z.number().int(), keep_going: z.number().int(), love_this: z.number().int() }),
+});
+
+export const MilestonesSchema = z.object({
+  mine: z.array(MyMilestoneSchema),
+  /** Others' milestones from the last `windowDays` days, least cheered first. */
+  feed: z.array(MilestonePostSchema),
+  windowDays: z.number().int(),
+  /** My recipes that are copies saved from the community, for the community_cooked suggestion. */
+  communityCopyIds: z.array(z.uuid()),
+  /** My own recipes created in the last 8 days, for the new_recipe suggestion. */
+  newRecipeIds: z.array(z.uuid()),
+});
+
+export const CheerBodySchema = z.object({ cheer: CheerSchema });
+
 export const ErrorSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -634,3 +683,9 @@ export type CommunityReason = z.infer<typeof CommunityReasonSchema>;
 export type CommunityCard = z.infer<typeof CommunityCardSchema>;
 export type CommunityRecipe = z.infer<typeof CommunityRecipeSchema>;
 export type CommunityHome = z.infer<typeof CommunityHomeSchema>;
+export type MilestoneKind = z.infer<typeof MilestoneKindSchema>;
+export type Cheer = z.infer<typeof CheerSchema>;
+export type MilestoneShare = z.input<typeof MilestoneShareSchema>;
+export type MilestonePost = z.infer<typeof MilestonePostSchema>;
+export type MyMilestone = z.infer<typeof MyMilestoneSchema>;
+export type Milestones = z.infer<typeof MilestonesSchema>;

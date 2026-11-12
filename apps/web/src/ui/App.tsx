@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { trackRoute } from "../activity.ts";
 import { useApp } from "../store.tsx";
 import { navigate, StorageBanner, SyncChip, UpdateBanner, useRoute } from "./common.tsx";
+import { CheersPage } from "./Milestones.tsx";
 import { Cook } from "./Cook.tsx";
 import { Icon, type IconName } from "./icons.tsx";
 import { Meals } from "./Meals.tsx";
@@ -108,7 +109,7 @@ export function App() {
   const groupMatch = /^\/groups\/([0-9a-f-]{36})$/.exec(route);
   const joinMatch = /^\/join\/([0-9a-f-]{36})$/.exec(route);
   const communityMatch = /^\/community\/([0-9a-f-]{36})$/.exec(route);
-  const inKitchen = !!(recipeMatch || mealsMatch || shoppingMatch || communityMatch) || route === "/recipes";
+  const inKitchen = !!(recipeMatch || mealsMatch || shoppingMatch || communityMatch) || route === "/recipes" || route === "/cheers";
   const inYou = ["/goals", "/targets", "/ai", "/preferences"].includes(route);
   const inGroups = route === "/groups" || !!groupMatch || !!joinMatch;
   const section = inKitchen ? "/kitchen" : inYou ? "/you" : inGroups ? "/groups" : route;
@@ -116,6 +117,7 @@ export function App() {
   if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;
   else if (route === "/recipes") screen = <Recipes />;
+  else if (route === "/cheers") screen = <CheersPage />;
   else if (communityMatch) screen = <CommunityRecipePage key={communityMatch[1]} id={communityMatch[1]!} />;
   else if (route === "/explore") screen = <Explore />;
   else if (route === "/you" || route === "/goals" || route === "/targets") screen = <You />;
