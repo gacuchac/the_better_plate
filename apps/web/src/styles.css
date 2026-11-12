@@ -643,6 +643,18 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .adventure-card { display: grid; gap: 4px; text-decoration: none; color: inherit; background: var(--sage-soft); border-color: transparent; }
 .adventure-card:hover { border-color: var(--sage); }
 .adventure-card .eyebrow { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+/* Milestones: one quiet card on home, and the cheers page. Reactions only, no counts on others' posts. */
+.milestone-card { display: grid; gap: 6px; text-decoration: none; color: inherit; }
+.milestone-card .eyebrow { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+.milestone-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+.milestone-quote { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: var(--sage-soft); font-weight: 600; }
+.milestone-row { display: grid; gap: 10px; padding: 14px 16px; }
+.milestone-text { font-weight: 600; }
+.cheer-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.cheer { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; cursor: pointer; }
+.cheer.is-on { background: var(--sage-soft); border-color: var(--sage); color: var(--sage-ink); }
+.cheer:disabled { opacity: 0.6; cursor: default; }
+.cheers section { margin-bottom: 20px; }
 .favorite-toggle.is-on { color: var(--sage-ink); background: var(--sage-soft); }
 .favorite-toggle.is-on .icon path { fill: currentColor; }
 .radio-list { border: 0; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }

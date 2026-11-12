@@ -127,7 +127,7 @@ export async function exportAccount(userId: string) {
     ),
     q<Parameters<typeof toGoal>[0]>(`select ${GOAL_COLUMNS} from goals where user_id = $1 and deleted_at is null order by created_at`),
   ]);
-  const [preferences, feedback, profiles, memberships, water, favorites, community, communitySaves, communityReports] = await Promise.all([
+  const [preferences, feedback, profiles, memberships, water, favorites, community, communitySaves, communityReports, milestonePosts, cheersGiven] = await Promise.all([
     q<PreferencesRow>("select * from food_preferences where user_id = $1 order by created_at"),
     q<FeedbackRow>("select * from meal_feedback where user_id = $1 and deleted_at is null order by created_at"),
     q<{ id: string; name: string; created_at: Date }>("select id, name, created_at from profiles where owner_user_id = $1 and deleted_at is null order by created_at"),
@@ -142,6 +142,10 @@ export async function exportAccount(userId: string) {
     ),
     q<{ community_id: string; recipe_id: string; created_at: Date }>("select community_id, recipe_id, created_at from community_saves where user_id = $1 order by created_at"),
     q<{ community_id: string; reason: string; created_at: Date }>("select community_id, reason, created_at from community_reports where user_id = $1 order by created_at"),
+    q<{ id: string; kind: string; week: string; food_id: string | null; created_at: Date; cheers: string }>(
+      "select p.id, p.kind, p.week, p.food_id, p.created_at, (select count(*) from milestone_cheers c where c.post_id = p.id) as cheers from milestone_posts p where p.user_id = $1 order by p.created_at",
+    ),
+    q<{ post_id: string; cheer: string; created_at: Date }>("select post_id, cheer, created_at from milestone_cheers where user_id = $1 order by created_at"),
   ]);
   const user = users[0]!;
   return {
@@ -181,6 +185,9 @@ export async function exportAccount(userId: string) {
     })),
     communitySaves: communitySaves.map((r) => ({ communityId: r.community_id, recipeId: r.recipe_id, savedAt: r.created_at.toISOString() })),
     communityReports: communityReports.map((r) => ({ communityId: r.community_id, reason: r.reason, reportedAt: r.created_at.toISOString() })),
+    // Milestones you shared (with how many cheers each got) and cheers you gave; never who cheered.
+    milestones: milestonePosts.map((m) => ({ milestoneId: m.id, kind: m.kind, week: m.week, foodId: m.food_id, sharedAt: m.created_at.toISOString(), cheers: Number(m.cheers) })),
+    cheersGiven: cheersGiven.map((c) => ({ milestoneId: c.post_id, cheer: c.cheer, at: c.created_at.toISOString() })),
     // Plans and eaten meals of your profiles are in plannedMeals and mealsEaten, marked with profileId.
     profiles: profiles.map((p) => ({ id: p.id, name: p.name, createdAt: p.created_at.toISOString() })),
     foodPreferences: preferences.map(toPreferences),
@@ -203,7 +210,7 @@ accountRoutes.openapi(
     method: "get", path: "/v1/me/export", tags: ["account"], summary: "Download all my data as JSON",
     description:
       "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, " +
-      "meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, and issue reports. Rate limited to 10 per hour.",
+      "meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, milestones you shared and cheers you gave, and issue reports. Rate limited to 10 per hour.",
     responses: { 200: { description: "Export (betterplate.export/1)", content: { "application/json": { schema: z.object({ format: z.literal(EXPORT_FORMAT) }).passthrough() } } }, ...ErrorResponses },
   }),
   async (c) => {

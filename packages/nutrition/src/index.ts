@@ -12,3 +12,4 @@ export * from "./allergens.ts";
 export * from "./water.ts";
 export * from "./estimate.ts";
 export * from "./weekly.ts";
+export * from "./milestones.ts";
