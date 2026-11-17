@@ -14,6 +14,7 @@ import { FAVORITE_COLUMNS, toFavorite } from "./favorites.ts";
 import { shareUrl } from "./shares.ts";
 import { toFeedback, toPreferences, type FeedbackRow, type PreferencesRow } from "./preferences.ts";
 import { endOwnedGroups } from "./groups.ts";
+import { forgetInvitesTo } from "./invites.ts";
 
 const PrivacyStatusSchema = z.object({
   currentVersion: z.string(),
@@ -82,6 +83,8 @@ accountRoutes.openapi(
     const user = requireUser(c);
     // Groups this account owns end first, so other members keep their recipes and meals.
     await endOwnedGroups(user.id);
+    // Invites admins left for this email would pull the person back in; they go too.
+    if (user.email) await forgetInvitesTo(user.email);
     // Recipes, revisions, profiles, memberships, sync ledger, sessions and accounts cascade from users.
     await pool.query('delete from "users" where id = $1', [user.id]);
     return c.body(null, 204);
@@ -147,6 +150,19 @@ export async function exportAccount(userId: string) {
     ),
     q<{ post_id: string; cheer: string; created_at: Date }>("select post_id, cheer, created_at from milestone_cheers where user_id = $1 order by created_at"),
   ]);
+  const [mealSharesMade, mealReactions, emailInvitesSent] = await Promise.all([
+    q<{ id: string; group_id: string; recipe_id: string | null; snapshot: { title: string; summary: string; nutrients: unknown; image: { id: string } | null }; created_at: Date; updated_at: Date }>(
+      "select id, group_id, recipe_id, snapshot, created_at, updated_at from group_meal_shares where created_by = $1 order by created_at",
+    ),
+    q<{ share_id: string; group_id: string; title: string; reaction: string; comment: string; updated_at: Date }>(
+      `select r.share_id, s.group_id, s.snapshot->>'title' as title, r.reaction, r.comment, r.updated_at
+         from group_meal_reactions r join group_members m on m.id = r.member_id join group_meal_shares s on s.id = r.share_id
+        where m.user_id = $1 order by r.updated_at`,
+    ),
+    q<{ group_id: string; email: string; display_name: string; role: string; created_at: Date; expires_at: Date }>(
+      "select group_id, email, display_name, role, created_at, expires_at from group_pending_members where invited_by = $1 order by created_at",
+    ),
+  ]);
   const user = users[0]!;
   return {
     format: EXPORT_FORMAT,
@@ -193,6 +209,14 @@ export async function exportAccount(userId: string) {
     foodPreferences: preferences.map(toPreferences),
     mealFeedback: feedback.map(toFeedback),
     groups: memberships.map((m) => ({ groupId: m.group_id, name: m.group_name, role: m.role, nameInGroup: m.display_name, joinedAt: m.created_at.toISOString() })),
+    // Meals you shared with a group (the card members saw), your likes and comments on shared meals,
+    // and people you added to a group by email who haven't joined yet.
+    groupMealShares: mealSharesMade.map((s) => ({
+      shareId: s.id, groupId: s.group_id, recipeId: s.recipe_id, title: s.snapshot.title, summary: s.snapshot.summary,
+      nutrients: s.snapshot.nutrients, imageId: s.snapshot.image?.id ?? null, sharedAt: s.created_at.toISOString(), updatedAt: s.updated_at.toISOString(),
+    })),
+    groupMealReactions: mealReactions.map((r) => ({ shareId: r.share_id, groupId: r.group_id, title: r.title, reaction: r.reaction, comment: r.comment, at: r.updated_at.toISOString() })),
+    groupEmailInvitesSent: emailInvitesSent.map((p) => ({ groupId: p.group_id, email: p.email, name: p.display_name, role: p.role, addedAt: p.created_at.toISOString(), expiresAt: p.expires_at.toISOString() })),
     shareLinks: shares.map((s) => ({
       shareId: s.id, url: shareUrl(s.id), recipeId: s.recipe_id, recipeVersion: s.recipe_version, includeMethod: s.include_method,
       createdAt: s.created_at.toISOString(), expiresAt: s.expires_at?.toISOString() ?? null, revokedAt: s.revoked_at?.toISOString() ?? null,
@@ -210,7 +234,7 @@ accountRoutes.openapi(
     method: "get", path: "/v1/me/export", tags: ["account"], summary: "Download all my data as JSON",
     description:
       "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, " +
-      "meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, milestones you shared and cheers you gave, and issue reports. Rate limited to 10 per hour.",
+      "meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, milestones you shared and cheers you gave, meals you shared with a group and your reactions to shared meals, people you added to a group by email, and issue reports. Rate limited to 10 per hour.",
     responses: { 200: { description: "Export (betterplate.export/1)", content: { "application/json": { schema: z.object({ format: z.literal(EXPORT_FORMAT) }).passthrough() } } }, ...ErrorResponses },
   }),
   async (c) => {

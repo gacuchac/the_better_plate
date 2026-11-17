@@ -13,6 +13,7 @@ import { ownAdventure } from "../picks.ts";
 import { Week } from "./Week.tsx";
 import { MilestoneCard } from "./Milestones.tsx";
 import { PickRecipe } from "./Meals.tsx";
+import { GroupNudge } from "./SharedMeals.tsx";
 
 /**
  * What to cook, instead of every recipe: your favorites, what's trending in the community (most
@@ -219,6 +220,7 @@ export function Today() {
           {t("today.waiting", { n: trail.waiting })}
         </p>
       )}
+      <GroupNudge />
       <MilestoneCard />
       <Week />
 

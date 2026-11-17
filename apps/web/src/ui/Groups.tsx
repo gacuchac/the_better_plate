@@ -9,6 +9,7 @@ import { Icon } from "./icons.tsx";
 import { ServingsStepper, SlotPicker } from "./MealSheets.tsx";
 import { ALLERGEN_LABEL, AllergenAlert, listedAllergens, PreferencesForm } from "./People.tsx";
 import { weekStart } from "./Shopping.tsx";
+import { AddByEmailSheet, InvitesForMe, PendingRows, SharedMeals } from "./SharedMeals.tsx";
 
 const ROLE_LABEL: Record<GroupMember["role"], MessageKey> = { owner: "groups.roleOwner", admin: "groups.roleAdmin", member: "groups.roleMember" };
 
@@ -54,6 +55,7 @@ export function Groups() {
       </header>
       <p className="hint">{t("groups.intro")}</p>
       {offline}
+      <InvitesForMe onJoined={() => void refreshGroups()} />
       {groups && groups.length > 0 ? (
         <ul className="recipe-list group-list">
           {groups.map((g) => (
@@ -162,8 +164,10 @@ export function GroupScreen({ id }: { id: string }) {
     | { kind: "addRecipe" }
     | { kind: "addProfile" }
     | { kind: "invite"; link: string }
+    | { kind: "addEmail" }
     | null
   >(null);
+  const [note, setNote] = useState<string | null>(null);
   const admin = group?.role === "owner" || group?.role === "admin";
   const to = addDays(week, 6);
 
@@ -253,6 +257,7 @@ export function GroupScreen({ id }: { id: string }) {
       </header>
       {offline}
       {error && <p className="error" role="alert">{error}</p>}
+      {note && <p className="banner banner-info" role="status" data-testid="group-note">{note}</p>}
       {!admin && <p className="hint">{t("groups.memberIntro")}</p>}
 
       <section className="card" aria-labelledby="members-title" data-testid="group-members">
@@ -301,8 +306,14 @@ export function GroupScreen({ id }: { id: string }) {
             </div>
           </div>
         ))}
+        {admin && <PendingRows group={group} onChanged={(g) => (g ? setGroup(g) : void load())} onNote={setNote} />}
         {admin && (
           <div className="sheet-actions">
+            {group.features.emailInvites && (
+              <button type="button" className="btn-secondary" disabled={!online} onClick={() => setSheet({ kind: "addEmail" })} data-testid="add-by-email">
+                <Icon name="mail" size={18} /> {t("groups.addByEmail")}
+              </button>
+            )}
             <button type="button" className="btn-secondary" disabled={!online} onClick={() => void invite("member")}>
               <Icon name="link" size={18} /> {t("groups.inviteMemberBtn")}
             </button>
@@ -331,6 +342,8 @@ export function GroupScreen({ id }: { id: string }) {
           </details>
         )}
       </section>
+
+      {group.features.mealShares && <SharedMeals group={group} groupRecipes={groupRecipes} />}
 
       {admin && (
         <section className="card" aria-labelledby="week-title" data-testid="group-week">
@@ -448,6 +461,17 @@ export function GroupScreen({ id }: { id: string }) {
           </div>
           <p className="fine">{t("groups.inviteFine")}</p>
         </Sheet>
+      )}
+      {sheet?.kind === "addEmail" && (
+        <AddByEmailSheet
+          group={group}
+          onClose={() => setSheet(null)}
+          onDone={(g, text) => {
+            setGroup(g);
+            setNote(text);
+            setSheet(null);
+          }}
+        />
       )}
       {sheet?.kind === "addProfile" && <AddProfileSheet groupId={id} onClose={() => setSheet(null)} onDone={(g) => (setGroup(g), void loadMeals(), void engine?.syncNow())} />}
       {sheet?.kind === "addRecipe" && (

@@ -7,6 +7,8 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  /** The person proved they own this email (a sign-in code or Google). Optional for connector calls. */
+  emailVerified?: boolean;
 }
 
 export type AppEnv = {
@@ -36,7 +38,7 @@ export function errorBody(c: Context<AppEnv>, code: string, message: string, det
 /** Resolves the Better Auth session (cookie) into c.var.user without failing anonymous requests. */
 export const sessionMiddleware: MiddlewareHandler<AppEnv> = async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers }).catch(() => null);
-  c.set("user", session ? { id: session.user.id, email: session.user.email, name: session.user.name } : null);
+  c.set("user", session ? { id: session.user.id, email: session.user.email, name: session.user.name, emailVerified: session.user.emailVerified === true } : null);
   await next();
 };
 

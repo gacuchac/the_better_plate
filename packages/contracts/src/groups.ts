@@ -46,6 +46,18 @@ export const GroupInviteSchema = z.object({
   expiresAt: z.string(),
 });
 
+/** Someone an admin added by email who hasn't joined yet. Only admins and the owner see these. */
+export const PendingMemberSchema = z.object({
+  id: z.uuid(),
+  email: z.string(),
+  name: z.string(),
+  role: z.enum(["admin", "member"]),
+  invitedAt: z.string(),
+  /** When the invite email last went out; null if sending failed. */
+  emailedAt: z.string().nullable(),
+  expiresAt: z.string(),
+});
+
 export const GroupDetailSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -53,6 +65,10 @@ export const GroupDetailSchema = z.object({
   members: z.array(GroupMemberSchema),
   /** Open invite links; only admins and the owner see them. */
   invites: z.array(GroupInviteSchema),
+  /** People added by email who haven't joined; only admins and the owner see them. */
+  pending: z.array(PendingMemberSchema),
+  /** Which group features this server has switched on. */
+  features: z.object({ emailInvites: z.boolean(), mealShares: z.boolean() }),
 });
 
 export const GroupCreateSchema = z.object({
@@ -72,6 +88,33 @@ export const InvitePreviewSchema = z.object({
 });
 
 export const InviteAcceptSchema = z.object({ myName: GroupDisplayNameSchema });
+
+export const PENDING_INVITE_DAYS = 30;
+
+/** Add someone by email before they have an account; the app emails them once. */
+export const PendingMemberCreateSchema = z.object({
+  email: z.string().trim().toLowerCase().max(254).pipe(z.email("Enter an email address")),
+  /** How the group will see them until they choose their own name. */
+  name: GroupDisplayNameSchema,
+  role: z.enum(["admin", "member"]),
+});
+
+export const PendingMemberCreatedSchema = z.object({
+  group: GroupDetailSchema,
+  /** False when the invite email could not be sent; the admin can try again. */
+  emailed: z.boolean(),
+});
+
+/** A group that added the signed-in person by email, waiting for them to join. */
+export const MyGroupInviteSchema = z.object({
+  id: z.uuid(),
+  groupName: z.string(),
+  role: z.enum(["admin", "member"]),
+  invitedBy: z.string(),
+  /** The name the admin used for them; they can change it when joining. */
+  suggestedName: z.string(),
+  expiresAt: z.string(),
+});
 
 export const ProfileCreateSchema = z.object({
   id: z.uuid().optional(),
@@ -106,6 +149,79 @@ export const AllergenAlertSchema = z.object({
 
 export const GroupRecipeCopySchema = z.object({ recipeId: z.uuid() });
 
+// ---------- shared meals ----------
+
+/** Nutrients on a shared meal card, per serving, in this order. */
+export const SHARED_MEAL_NUTRIENTS = ["energy_kcal", "protein", "carbohydrate", "fat_total", "fiber", "sugars_total", "sodium"] as const;
+/** Matches a recipe's description, so the whole of it can be shared. */
+export const SHARED_MEAL_SUMMARY_MAX = 500;
+export const MEAL_COMMENT_MAX = 280;
+
+export const MealShareCreateSchema = z.object({
+  /** One of my recipes or one of the group's, with a nutrition estimate. */
+  recipeId: z.uuid(),
+  /** A short description; defaults to the recipe's own description. */
+  summary: trimmed(SHARED_MEAL_SUMMARY_MAX).optional(),
+  /** The recipe's photo, or one of my images; null for no photo. Omit to keep the recipe's photo. */
+  imageId: z.uuid().nullable().optional(),
+});
+
+export const MealShareUpdateSchema = z.object({
+  summary: trimmed(SHARED_MEAL_SUMMARY_MAX).optional(),
+  imageId: z.uuid().nullable().optional(),
+});
+
+export const MealReactionKindSchema = z.enum(["like", "dislike"]);
+export const MealReactionBodySchema = z.object({
+  reaction: MealReactionKindSchema,
+  comment: trimmed(MEAL_COMMENT_MAX).default(""),
+});
+
+export const SharedMealNutrientSchema = z.object({
+  key: z.string(),
+  name: z.string(),
+  amount: z.number().nullable(),
+  unit: z.string(),
+  status: z.enum(["known", "partial", "unknown"]),
+});
+
+export const SharedMealReactionSchema = z.object({
+  memberId: z.uuid(),
+  name: z.string(),
+  reaction: MealReactionKindSchema,
+  comment: z.string(),
+  updatedAt: z.string(),
+});
+
+export const SharedMealSchema = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  summary: z.string(),
+  /** Estimated, per serving; "unknown" means the source has no value, not zero. */
+  nutrients: z.array(SharedMealNutrientSchema),
+  image: z
+    .object({
+      url: z.string(),
+      alt: z.string(),
+      kind: z.enum(["photo", "generated", "upload"]),
+      credit: z.any().nullable(),
+      generator: z.object({ provider: z.literal("openai"), model: z.string() }).nullable(),
+    })
+    .nullable(),
+  sharedBy: z.string(),
+  sharedAt: z.string(),
+  myReaction: z.object({ reaction: MealReactionKindSchema, comment: z.string() }).nullable(),
+  /** Everyone's reactions and comments; only admins and the owner get these. */
+  reactions: z.array(SharedMealReactionSchema).nullable(),
+});
+
+export const SharedMealListSchema = z.object({ meals: z.array(SharedMealSchema), nextCursor: z.string().nullable() });
+
+/** Groups with shared meals I haven't reacted to. */
+export const MealsToReviewSchema = z.object({
+  groups: z.array(z.object({ groupId: z.uuid(), groupName: z.string(), count: z.number().int() })),
+});
+
 export type GroupRole = z.infer<typeof GroupRoleSchema>;
 export type GroupSummary = z.infer<typeof GroupSummarySchema>;
 export type GroupMember = z.infer<typeof GroupMemberSchema>;
@@ -115,3 +231,8 @@ export type InvitePreview = z.infer<typeof InvitePreviewSchema>;
 export type GroupPlanCreate = z.infer<typeof GroupPlanCreateSchema>;
 export type GroupPlanUpdate = z.infer<typeof GroupPlanUpdateSchema>;
 export type AllergenAlert = z.infer<typeof AllergenAlertSchema>;
+export type PendingMember = z.infer<typeof PendingMemberSchema>;
+export type MyGroupInvite = z.infer<typeof MyGroupInviteSchema>;
+export type SharedMeal = z.infer<typeof SharedMealSchema>;
+export type MealReactionKind = z.infer<typeof MealReactionKindSchema>;
+export type MealsToReview = z.infer<typeof MealsToReviewSchema>;

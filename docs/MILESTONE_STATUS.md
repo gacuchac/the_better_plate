@@ -112,3 +112,19 @@
 5. **Defects and limitations:** old `#/kitchen` bookmarks open the recipe list; the shopping list moved from one tap to two, and the food lookup from two to three.
 6. **Plan changes:** ADR-013; PRODUCT.md navigation amended at the owner's request.
 7. **Next:** the owner's review on dev.
+
+---
+
+## Groups: add people by email, shared meals (2026-11-17)
+
+1. **Status:** PARTIAL. Local pass done; hosted pass on dev runs after merge. Production: not deployed, both flags off there.
+2. **Delivered:**
+   - Add by email (`FEATURE_GROUP_EMAIL_INVITES_ENABLED`): admins add a person with the name the group will see; they appear as "Invited, hasn't joined yet"; the app emails them once; when they sign in with that verified email, Home says which group added them and they join with one tap (their name is filled in) or say no thanks. Pending people are not accounts and never join automatically. Resend after 24 hours, remove, 30-day expiry, caps of 20 open invites per group, 50 people per group and 20 invite emails per person per day.
+   - Shared meals (`FEATURE_GROUP_MEAL_SHARES_ENABLED`): admins share a meal from their own recipes or the group's, with a description (the recipe's by default, up to 500 characters) and the recipe's photo, another photo or none. Members see a quick list: picture or a tinted letter, name, the start of the description, calories, protein, carbs and fat, and thumbs up or down in one tap. Tapping a meal shows the whole description, all seven nutrients and a comment box. Admins see a tally on each row and everyone's answers and comments on tap, and can remove a comment or withdraw a meal. A snapshot keeps its photo even when the recipe's photo is later removed.
+   - Home shows one line when a group added you or shared meals you haven't answered.
+3. **Verification:** `pnpm test` passes (API `group-sharing.test.ts` 14 tests). New journey `e2e/group-sharing.spec.ts` (desktop and mobile) runs first in CI; local Playwright browsers are missing in this sandbox.
+4. **Deployment:** reaches the cloud dev environment when merged into `dev`.
+5. **Defects and limitations:** the privacy notice does not yet mention groups (draft in `docs/drafts/privacy-notice-group-sharing.md`); gentle mode does not change shared meals (it only hides goal marks, and shared meals have none).
+6. **Plan changes:** pending members instead of pre-created accounts (consent and Google account-linking); see `plans/groups-shared-meals-plan.md` in project files.
+7. **Next:** hosted pass on dev, owner review there, privacy notice approval before production.
+

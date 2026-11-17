@@ -7,6 +7,10 @@ import type {
   GroupSummary,
   InvitePreview,
   MealFeedback,
+  MealReactionKind,
+  MealsToReview,
+  MyGroupInvite,
+  SharedMeal,
   MealLog,
   PlannedMeal,
   ShoppingList,
@@ -197,6 +201,27 @@ export const api = {
   approvePlan: (groupId: string, planId: string) => request<PlannedMeal>(`/v1/groups/${groupId}/plans/${planId}/approve`, { method: "POST" }),
   declinePlan: (groupId: string, planId: string) => request<PlannedMeal>(`/v1/groups/${groupId}/plans/${planId}/decline`, { method: "POST" }),
   groupRecipes: (groupId: string) => request<{ recipes: Recipe[] }>(`/v1/groups/${groupId}/recipes`, { cache: "no-store" }),
+  // People added by email, and invites waiting for me (FEATURE_GROUP_EMAIL_INVITES_ENABLED).
+  addByEmail: (groupId: string, body: { email: string; name: string; role: "admin" | "member" }) =>
+    request<{ group: GroupDetail; emailed: boolean }>(`/v1/groups/${groupId}/pending`, { method: "POST", json: body }),
+  resendInvite: (groupId: string, pendingId: string) => request<{ group: GroupDetail; emailed: boolean }>(`/v1/groups/${groupId}/pending/${pendingId}/resend`, { method: "POST" }),
+  removePending: (groupId: string, pendingId: string) => request<void>(`/v1/groups/${groupId}/pending/${pendingId}`, { method: "DELETE" }),
+  myGroupInvites: () => request<{ invites: MyGroupInvite[] }>("/v1/me/group-invites", { cache: "no-store" }),
+  joinByEmailInvite: (inviteId: string, myName: string) => request<GroupDetail>(`/v1/me/group-invites/${inviteId}/join`, { method: "POST", json: { myName } }),
+  declineEmailInvite: (inviteId: string) => request<void>(`/v1/me/group-invites/${inviteId}/decline`, { method: "POST" }),
+  // Meals shared with a group (FEATURE_GROUP_MEAL_SHARES_ENABLED).
+  sharedMeals: (groupId: string, cursor?: string) =>
+    request<{ meals: SharedMeal[]; nextCursor: string | null }>(`/v1/groups/${groupId}/meal-shares${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`, { cache: "no-store" }),
+  shareMeal: (groupId: string, body: { recipeId: string; summary?: string; imageId?: string | null }) => request<SharedMeal>(`/v1/groups/${groupId}/meal-shares`, { method: "POST", json: body }),
+  updateSharedMeal: (groupId: string, shareId: string, body: { summary?: string; imageId?: string | null }) =>
+    request<SharedMeal>(`/v1/groups/${groupId}/meal-shares/${shareId}`, { method: "PUT", json: body }),
+  withdrawSharedMeal: (groupId: string, shareId: string) => request<void>(`/v1/groups/${groupId}/meal-shares/${shareId}`, { method: "DELETE" }),
+  reactToMeal: (groupId: string, shareId: string, reaction: MealReactionKind, comment: string) =>
+    request<SharedMeal>(`/v1/groups/${groupId}/meal-shares/${shareId}/reaction`, { method: "PUT", json: { reaction, comment } }),
+  unreactToMeal: (groupId: string, shareId: string) => request<void>(`/v1/groups/${groupId}/meal-shares/${shareId}/reaction`, { method: "DELETE" }),
+  removeMealComment: (groupId: string, shareId: string, memberId: string) =>
+    request<void>(`/v1/groups/${groupId}/meal-shares/${shareId}/reactions/${memberId}/comment`, { method: "DELETE" }),
+  mealsToReview: () => request<MealsToReview>("/v1/me/meals-to-review", { cache: "no-store" }),
   shareRecipeWithGroup: (groupId: string, recipeId: string) => request<Recipe>(`/v1/groups/${groupId}/recipes`, { method: "POST", json: { recipeId } }),
   shoppingList: (from: string, to: string, scope: { profileId?: string; groupId?: string } = {}) => {
     const q = new URLSearchParams({ from, to, ...scope });
