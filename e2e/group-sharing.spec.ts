@@ -49,7 +49,11 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   await page.getByTestId("share-meal-open").click();
   const sheet = page.getByRole("dialog", { name: "Share a meal" });
   await sheet.getByLabel("Recipe", { exact: true }).selectOption({ label: "Green rice" });
-  await sheet.getByLabel("Description", { exact: true }).fill("Rice with lots of spinach. Would you eat this on Sunday?");
+  await sheet
+    .getByLabel("Description", { exact: true })
+    .fill(
+      "Rice with lots of spinach. Would you eat this on Sunday? It takes about half an hour, keeps well for two days in the fridge, and goes with grilled chicken, a fried egg or white beans. Kids usually like it best with a squeeze of lime and a little cheese on top. If you would rather have it spicy, I can add green chili to the adults' plates only, and there is enough for lunch boxes on Monday too.",
+    );
   await shot(page, info, "share-meal-sheet", "Share sheet: recipe, description, photo choice");
   await sheet.getByTestId("share-meal-submit").click();
   // A quick list row: small picture (a tinted letter when there is no photo), name, description, macros, thumbs.
@@ -59,6 +63,14 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   await expect(card).toContainText(/kcal · .+ protein · .+ carbs · .+ fat/);
   await expect(card).not.toContainText("Spinach, raw");
   await expect(card.getByRole("button", { name: "I'd like this" })).toBeVisible();
+  // A long description shows its first lines; See more opens the rest in place, See less folds it back.
+  const more = card.getByTestId("see-more");
+  await expect(more).toHaveText("See more");
+  await more.click();
+  await expect(more).toHaveText("See less");
+  await expect(more).toHaveAttribute("aria-expanded", "true");
+  await more.click();
+  await expect(more).toHaveText("See more");
   await shot(page, info, "shared-meal-list", "Shared meals as a quick list: picture, name, description, macros, thumbs");
   await card.getByTestId("shared-meal-open").click();
   const detail = page.getByRole("dialog", { name: "Green rice" });

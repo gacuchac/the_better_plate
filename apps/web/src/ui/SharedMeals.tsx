@@ -5,7 +5,7 @@ import { track } from "../activity.ts";
 import { api, ApiRequestError } from "../api.ts";
 import { formatNutrient, nutrientName, useT } from "../i18n.ts";
 import { useApp } from "../store.tsx";
-import { navigate, Sheet } from "./common.tsx";
+import { ExpandableText, navigate, Sheet } from "./common.tsx";
 import { Icon } from "./icons.tsx";
 import { PhotoSheet, RecipePhoto } from "./Photos.tsx";
 
@@ -477,28 +477,35 @@ function SharedMealRow({ meal, group, onPlan, onChange, onWithdrawn }: { meal: S
       <MealThumb meal={meal} />
       <span className="meal-text">
         <span className="meal-title">{meal.title}</span>
-        {meal.summary && <span className="meal-summary">{meal.summary}</span>}
         {macros && <span className="meal-macros">{macros}</span>}
         {!own && <Tally meal={meal} />}
       </span>
     </>
   );
+  // The description sits outside the tappable part, so its See more can expand it in place.
+  const summary = meal.summary && <ExpandableText text={meal.summary} className="meal-summary" lines={2} id={`row-summary-${meal.id}`} />;
   return (
     <li className="meal-row-pick" data-testid="shared-meal">
-      {own ? (
-        <div className="meal-open-own">
-          <a className="meal-open" href={`#/recipe/${own}`} aria-label={t("shared.openRecipe", { meal: meal.title })} data-testid="shared-meal-recipe">
-            {text}
-          </a>
-          <button type="button" className="btn-link meal-answers-open" onClick={() => setOpen(true)} data-testid="shared-meal-open">
-            {meal.reactions ? <Tally meal={meal} /> : t("shared.details")}
-          </button>
-        </div>
-      ) : (
-        <button type="button" className="meal-open" onClick={() => setOpen(true)} aria-label={t("shared.open", { meal: meal.title })} data-testid="shared-meal-open">
-          {text}
-        </button>
-      )}
+      <div className="meal-main">
+        {own ? (
+          <>
+            <a className="meal-open" href={`#/recipe/${own}`} aria-label={t("shared.openRecipe", { meal: meal.title })} data-testid="shared-meal-recipe">
+              {text}
+            </a>
+            {summary}
+            <button type="button" className="btn-link meal-answers-open" onClick={() => setOpen(true)} data-testid="shared-meal-open">
+              {meal.reactions ? <Tally meal={meal} /> : t("shared.details")}
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="meal-open" onClick={() => setOpen(true)} aria-label={t("shared.open", { meal: meal.title })} data-testid="shared-meal-open">
+              {text}
+            </button>
+            {summary}
+          </>
+        )}
+      </div>
       <Votes mine={mine} busy={busy} onVote={(r) => void (mine === r ? takeBack() : react(r, meal.myReaction?.comment ?? ""))} />
       {error && <p className="error meal-row-error" role="alert">{error}</p>}
       {open && <SharedMealSheet meal={meal} group={group} onPlan={onPlan} onChange={onChange} onWithdrawn={onWithdrawn} onClose={() => setOpen(false)} />}
@@ -520,7 +527,7 @@ function SharedMealSheet({ meal, group, onPlan, onChange, onWithdrawn, onClose }
     <Sheet title={meal.title} onClose={onClose}>
       <div className="meal-detail" data-testid="shared-meal-detail">
         {meal.image ? <RecipePhoto image={meal.image as Omit<RecipeImage, "id"> & { url: string }} signedIn /> : <MealThumb meal={meal} large />}
-        {meal.summary && <p className="meal-description">{meal.summary}</p>}
+        {meal.summary && <ExpandableText text={meal.summary} className="meal-description" id={`summary-${meal.id}`} />}
         <p className="meal-meta">{t("shared.by", { name: meal.sharedBy })}</p>
         {admin && onPlan && (
           <button type="button" className="btn-secondary" disabled={!online} onClick={() => (onClose(), onPlan())} data-testid="plan-shared-meal">

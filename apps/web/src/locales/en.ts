@@ -42,6 +42,8 @@ export const en = {
   "common.signOut": "Sign out",
   "common.cancel": "Cancel",
   "common.estimated": "Estimated",
+  "common.seeMore": "See more",
+  "common.seeLess": "See less",
   "common.servings": "{n|1 serving|# servings}",
   "storage.evictedTitle": "This browser cleared your kitchen from this device.",
   "storage.evictedBody": "Everything that had synced is coming back from your account. Changes that hadn't synced yet couldn't be recovered.",
