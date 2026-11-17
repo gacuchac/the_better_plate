@@ -542,8 +542,8 @@ test("Cook it turns your steps into a checklist with the next step, its techniqu
   await expect(page.getByTestId("cook-technique")).toContainText("Cook the surface over high heat until browned");
   await expect(page.getByTestId("cook-step-safety")).toContainText("165°F (74°C)");
   await expect(page.getByTestId("cook-timer")).toContainText("06:00");
-  await page.getByRole("button", { name: "Start" }).click();
-  await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+  await page.getByTestId("cook-timer").getByRole("button", { name: "Start" }).click();
+  await expect(page.getByTestId("cook-timer").getByRole("button", { name: "Pause" })).toBeVisible();
   await shot(page, info, "cook-next-sear", "Step 2: Sear, what it means, the safe temperature for chicken and the 6-minute timer");
 
   // Ticks stay on this device after a reload; tapping a step's box ticks it too.

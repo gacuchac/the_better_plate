@@ -397,7 +397,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .cook-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
 .cook-list li { border: 1px solid #3a4844; border-radius: var(--radius); }
 .cook-list li.current { border-color: var(--sage-night); background: #1f2a26; }
-.cook-list label { display: grid; grid-template-columns: 32px 24px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px 14px; min-height: 56px; cursor: pointer; }
+.cook-list label { display: grid; grid-template-columns: 32px 24px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px 14px; min-height: 56px; margin: 0; cursor: pointer; color: #f4f6f5; font-size: inherit; font-weight: 500; }
 .cook-list input[type="checkbox"] { width: 28px; height: 28px; margin: 0; accent-color: var(--sage-night); cursor: pointer; }
 .cook-list-n { color: #b7c2bd; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 28px; }
 .cook-list-text { font-size: 1.0625rem; line-height: 1.45; overflow-wrap: anywhere; }
