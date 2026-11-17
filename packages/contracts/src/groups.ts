@@ -230,6 +230,8 @@ export const SharedMealSchema = z.object({
   sharedAt: z.string(),
   /** The recipe it was shared from, for admins planning it; null for members or when the recipe is gone. */
   recipeId: z.uuid().nullable(),
+  /** Set only when the person asking owns the recipe it was shared from, so they can open it in full. */
+  myRecipeId: z.uuid().nullable(),
   myReaction: z.object({ reaction: MealReactionKindSchema, comment: z.string() }).nullable(),
   /** Everyone's reactions and comments; only admins and the owner get these. */
   reactions: z.array(SharedMealReactionSchema).nullable(),

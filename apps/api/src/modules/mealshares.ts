@@ -46,7 +46,7 @@ export type MealSnapshot = {
   nutrients: { key: string; name: string; amount: number | null; unit: string; status: "known" | "partial" | "unknown" }[];
   image: ImageRef | null;
 };
-type ShareRow = { id: string; group_id: string; created_by: string; recipe_id: string | null; snapshot: MealSnapshot; created_at: Date; updated_at: Date; shared_by: string | null };
+type ShareRow = { id: string; group_id: string; created_by: string; recipe_id: string | null; snapshot: MealSnapshot; created_at: Date; updated_at: Date; shared_by: string | null; recipe_owner?: string | null };
 type ReactionRow = { share_id: string; member_id: string; name: string; reaction: MealReactionKind; comment: string; updated_at: Date };
 
 const apiBase = () => config.publicApiUrl.replace(/\/$/, "");
@@ -54,10 +54,12 @@ const imageUrl = (groupId: string, shareId: string) => `${apiBase()}/v1/groups/$
 const notFound = () => new ApiError(404, "not_found", "Shared meal not found");
 
 /** The caller's membership in a group (people only), or 404. */
-async function membership(db: Pick<pg.PoolClient, "query">, groupId: string, userId: string): Promise<{ memberId: string; role: GroupRole }> {
+type Me = { memberId: string; role: GroupRole; userId: string };
+
+async function membership(db: Pick<pg.PoolClient, "query">, groupId: string, userId: string): Promise<Me> {
   const { rows } = await db.query<{ id: string; role: GroupRole }>("select id, role from group_members where group_id = $1 and user_id = $2", [groupId, userId]);
   if (!rows[0]) throw new ApiError(404, "not_found", "Group not found");
-  return { memberId: rows[0].id, role: rows[0].role };
+  return { memberId: rows[0].id, role: rows[0].role, userId };
 }
 
 /** A recipe of mine or of this group, with a nutrition estimate. */
@@ -104,10 +106,11 @@ async function snapshotOf(db: Pick<pg.PoolClient, "query">, userId: string, reci
   return { title: recipe.title, summary: (summary ?? recipe.description).trim().slice(0, SHARED_MEAL_SUMMARY_MAX), nutrients, image };
 }
 
-const SHARE_SELECT = `select s.*, (select display_name from group_members m where m.group_id = s.group_id and m.user_id = s.created_by) as shared_by
+const SHARE_SELECT = `select s.*, (select display_name from group_members m where m.group_id = s.group_id and m.user_id = s.created_by) as shared_by,
+                               (select r.user_id from recipes r where r.id = s.recipe_id and r.deleted_at is null) as recipe_owner
                         from group_meal_shares s`;
 
-function toSharedMeal(row: ShareRow, me: { memberId: string; role: GroupRole }, reactions: ReactionRow[]): SharedMeal {
+function toSharedMeal(row: ShareRow, me: Me, reactions: ReactionRow[]): SharedMeal {
   const mine = reactions.find((r) => r.member_id === me.memberId);
   const img = row.snapshot.image;
   return {
@@ -119,6 +122,8 @@ function toSharedMeal(row: ShareRow, me: { memberId: string; role: GroupRole }, 
     sharedBy: row.shared_by ?? "A group admin",
     sharedAt: row.created_at.toISOString(),
     recipeId: isAdminRole(me.role) ? row.recipe_id : null,
+    // Only the person who owns the recipe gets a way to it; everyone else sees the snapshot alone.
+    myRecipeId: row.recipe_owner && row.recipe_owner === me.userId ? row.recipe_id : null,
     myReaction: mine ? { reaction: mine.reaction, comment: mine.comment } : null,
     reactions: isAdminRole(me.role)
       ? reactions.map((r) => ({ memberId: r.member_id, name: r.name, reaction: r.reaction, comment: r.comment, updatedAt: r.updated_at.toISOString() }))
@@ -127,7 +132,7 @@ function toSharedMeal(row: ShareRow, me: { memberId: string; role: GroupRole }, 
 }
 
 /** Reactions to these shares the caller may see: everyone's for admins, their own otherwise. */
-async function reactionsFor(db: Pick<pg.PoolClient, "query">, shareIds: string[], me: { memberId: string; role: GroupRole }): Promise<ReactionRow[]> {
+async function reactionsFor(db: Pick<pg.PoolClient, "query">, shareIds: string[], me: Me): Promise<ReactionRow[]> {
   if (shareIds.length === 0) return [];
   const { rows } = await db.query<ReactionRow>(
     `select r.share_id, r.member_id, m.display_name as name, r.reaction, r.comment, r.updated_at
@@ -144,7 +149,7 @@ async function loadShare(db: Pick<pg.PoolClient, "query">, groupId: string, shar
   return rows[0];
 }
 
-async function oneMeal(groupId: string, shareId: string, me: { memberId: string; role: GroupRole }): Promise<SharedMeal> {
+async function oneMeal(groupId: string, shareId: string, me: Me): Promise<SharedMeal> {
   const row = await loadShare(pool, groupId, shareId);
   return toSharedMeal(row, me, await reactionsFor(pool, [row.id], me));
 }

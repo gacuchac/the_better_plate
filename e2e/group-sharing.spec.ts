@@ -68,6 +68,12 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   await shot(page, info, "shared-meal-detail", "Tapping a meal: the whole description and every nutrient");
   await page.keyboard.press("Escape");
   await expect(detail).toBeHidden();
+  // It's Mom's own recipe, so tapping the meal opens her full recipe with Cook it.
+  await card.getByTestId("shared-meal-recipe").click();
+  await expect(page.getByRole("button", { name: "Cook it" }).or(page.getByRole("link", { name: "Cook it" })).first()).toBeVisible();
+  await shot(page, info, "own-shared-meal-recipe", "The admin's own shared meal opens her full recipe with Cook it");
+  await page.goBack();
+  await expect(card).toBeVisible();
 
   // Grandma signs in for the first time and is in the group straight away; Home says who added her, with Leave.
   const context = await browser.newContext({ ...info.project.use });
@@ -84,6 +90,8 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   const hers = grandma.getByTestId("shared-meal").filter({ hasText: "Green rice" });
   await expect(hers).toBeVisible();
   await expect(hers.getByTestId("meal-tally")).toHaveCount(0);
+  // Not her recipe: no way to the full recipe, only the short view.
+  await expect(hers.getByTestId("shared-meal-recipe")).toHaveCount(0);
   await hers.getByRole("button", { name: "I'd like this" }).click();
   await expect(hers.getByRole("button", { name: "I'd like this" })).toHaveAttribute("aria-pressed", "true");
   await shot(grandma, info, "member-thumbs-up", "Member's list: thumbs up in one tap");

@@ -469,17 +469,36 @@ function SharedMealRow({ meal, group, onPlan, onChange, onWithdrawn }: { meal: S
   const { busy, error, react, takeBack } = useReact(group, meal, onChange);
   const mine = meal.myReaction?.reaction ?? null;
   const macros = macroLine(meal, t);
+  const { recipes } = useApp();
+  // The person who owns the recipe opens it in full (with Cook it); everyone else gets the short view.
+  const own = meal.myRecipeId && recipes.some((r) => r.id === meal.myRecipeId && !r.deleted) ? meal.myRecipeId : null;
+  const text = (
+    <>
+      <MealThumb meal={meal} />
+      <span className="meal-text">
+        <span className="meal-title">{meal.title}</span>
+        {meal.summary && <span className="meal-summary">{meal.summary}</span>}
+        {macros && <span className="meal-macros">{macros}</span>}
+        {!own && <Tally meal={meal} />}
+      </span>
+    </>
+  );
   return (
     <li className="meal-row-pick" data-testid="shared-meal">
-      <button type="button" className="meal-open" onClick={() => setOpen(true)} aria-label={t("shared.open", { meal: meal.title })} data-testid="shared-meal-open">
-        <MealThumb meal={meal} />
-        <span className="meal-text">
-          <span className="meal-title">{meal.title}</span>
-          {meal.summary && <span className="meal-summary">{meal.summary}</span>}
-          {macros && <span className="meal-macros">{macros}</span>}
-          <Tally meal={meal} />
-        </span>
-      </button>
+      {own ? (
+        <div className="meal-open-own">
+          <a className="meal-open" href={`#/recipe/${own}`} aria-label={t("shared.openRecipe", { meal: meal.title })} data-testid="shared-meal-recipe">
+            {text}
+          </a>
+          <button type="button" className="btn-link meal-answers-open" onClick={() => setOpen(true)} data-testid="shared-meal-open">
+            {meal.reactions ? <Tally meal={meal} /> : t("shared.details")}
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="meal-open" onClick={() => setOpen(true)} aria-label={t("shared.open", { meal: meal.title })} data-testid="shared-meal-open">
+          {text}
+        </button>
+      )}
       <Votes mine={mine} busy={busy} onVote={(r) => void (mine === r ? takeBack() : react(r, meal.myReaction?.comment ?? ""))} />
       {error && <p className="error meal-row-error" role="alert">{error}</p>}
       {open && <SharedMealSheet meal={meal} group={group} onPlan={onPlan} onChange={onChange} onWithdrawn={onWithdrawn} onClose={() => setOpen(false)} />}

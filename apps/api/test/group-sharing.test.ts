@@ -257,7 +257,7 @@ describe("shared meals", () => {
   }
 
   it("shares a simplified card: title, short description, photo and nutrients, never the recipe", async () => {
-    const { owner, member, g } = await family();
+    const { owner, admin, member, g } = await family();
     const photo = await upload(owner);
     const recipeId = await saveRecipe(owner, {
       title: "Rice bowl", servings: 2, description: "A quick weeknight bowl.", method: "SECRET METHOD steps",
@@ -269,10 +269,14 @@ describe("shared meals", () => {
     expect(meal.nutrients.map((n) => n.key)).toEqual(["energy_kcal", "protein", "carbohydrate", "fat_total", "fiber", "sugars_total", "sodium"]);
     expect(meal.nutrients[0]).toMatchObject({ name: expect.any(String), unit: "kcal", amount: expect.any(Number) });
     expect(meal.image).toMatchObject({ alt: "Rice bowl in a blue dish", kind: "upload" });
+    // Only the recipe's owner gets a way to the full recipe; another admin gets the id for planning only.
+    expect(meal.myRecipeId).toBe(recipeId);
+    const dads = (await meals(admin, g.id)).meals[0]!;
+    expect(dads).toMatchObject({ recipeId, myRecipeId: null });
 
     // A member sees the same card, with no recipe fields and no one else's reactions.
     const seen = (await meals(member, g.id)).meals[0]!;
-    expect(seen.reactions).toBeNull();
+    expect(seen).toMatchObject({ reactions: null, recipeId: null, myRecipeId: null });
     const raw = JSON.stringify(await (await member.request(`/v1/groups/${g.id}/meal-shares`)).json());
     expect(raw).not.toMatch(/SECRET METHOD|ingredients|foodId|created_by|"recipeId":"/);
     expect(raw).not.toContain(rice);
@@ -293,6 +297,10 @@ describe("shared meals", () => {
     expect(again.title).toBe("Rice bowl");
     expect(again.nutrients).toEqual(seen.nutrients);
     expect((await member.request(new URL(again.image!.url).pathname)).status).toBe(200);
+
+    // Once the owner deletes the recipe, the card stays but no longer leads anywhere.
+    await pool.query("update recipes set deleted_at = now() where id = $1", [recipeId]);
+    expect((await meals(owner, g.id)).meals[0]!.myRecipeId).toBeNull();
   });
 
   it("uses the admin's text and photo choices, and shows no photo when there is none", async () => {
