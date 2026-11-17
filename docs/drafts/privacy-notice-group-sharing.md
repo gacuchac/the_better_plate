@@ -1,10 +1,9 @@
 # Draft: privacy notice change for adding people by email and shared meals
 
-Status: **draft for the owner's approval. Not published.** `packages/contracts/src/privacy.ts` is unchanged.
-AGENTS.md requires explicit owner approval for any change to privacy or data-collection scope. Both
-features stay off in production (`FEATURE_GROUP_EMAIL_INVITES_ENABLED`, `FEATURE_GROUP_MEAL_SHARES_ENABLED`,
-`FEATURE_GROUP_PLANNING_ENABLED`)
-until this is approved.
+Status: **approved by the owner 2026-11-17** and published as notice version `2026-11-17` in
+`packages/contracts/src/privacy.ts` (people are asked to agree again). The owner chose to keep the cloud dev
+environment as the live app for now; no production environment exists yet. The open points at the end
+(invite email footer, 30 days, counsel review) were not part of the approved wording and stay open.
 
 ## Why it changes
 
