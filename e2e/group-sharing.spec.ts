@@ -52,7 +52,7 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   await sheet
     .getByLabel("Description", { exact: true })
     .fill(
-      "Rice with lots of spinach. Would you eat this on Sunday? It takes about half an hour, keeps well for two days in the fridge, and goes with grilled chicken, a fried egg or white beans. Kids usually like it best with a squeeze of lime and a little cheese on top.",
+      "Rice with lots of spinach. Would you eat this on Sunday? It takes about half an hour, keeps well for two days in the fridge, and goes with grilled chicken, a fried egg or white beans. Kids usually like it best with a squeeze of lime and a little cheese on top. If you would rather have it spicy, I can add green chili to the adults' plates only, and there is enough for lunch boxes on Monday too.",
     );
   await shot(page, info, "share-meal-sheet", "Share sheet: recipe, description, photo choice");
   await sheet.getByTestId("share-meal-submit").click();
