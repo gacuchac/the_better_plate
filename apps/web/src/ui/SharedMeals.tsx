@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { GroupDetail, MealReactionKind, MealsToReview, MyGroupInvite, Recipe, RecipeImage, SharedMeal } from "@betterplate/contracts";
+import type { GroupDetail, GroupWelcome, MealReactionKind, MealsToReview, MyGroupInvite, Recipe, RecipeImage, SharedMeal } from "@betterplate/contracts";
 import { SHARED_MEAL_SUMMARY_MAX, MEAL_COMMENT_MAX } from "@betterplate/contracts";
 import { track } from "../activity.ts";
 import { api, ApiRequestError } from "../api.ts";
@@ -144,7 +144,9 @@ export function InvitesForMe({ onJoined }: { onJoined: () => void }) {
   const load = useCallback(async () => {
     if (!online || !account) return;
     try {
-      setInvites((await api.myGroupInvites()).invites);
+      const r = await api.myGroupInvites();
+      setInvites(r.invites);
+      if (r.joined.length) onJoined();
     } catch (err) {
       if (!disabled(err)) setError(message(err, t("groups.offline")));
     }
@@ -211,15 +213,62 @@ export function InvitesForMe({ onJoined }: { onJoined: () => void }) {
 /** One line on the home screen: a group added me, or shared meals wait for my answer. */
 export function GroupNudge() {
   const t = useT();
-  const { online, account } = useApp();
+  const { online, account, refreshGroups, engine } = useApp();
+  const [welcome, setWelcome] = useState<GroupWelcome | null>(null);
   const [invite, setInvite] = useState<MyGroupInvite | null>(null);
   const [review, setReview] = useState<MealsToReview["groups"][number] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!online || !account) return;
-    api.myGroupInvites().then((r) => setInvite(r.invites[0] ?? null), () => setInvite(null));
+    api.myGroupInvites().then(
+      (r) => {
+        setWelcome(r.joined[0] ?? null);
+        setInvite(r.invites[0] ?? null);
+        if (r.joined.length) {
+          void refreshGroups();
+          void engine?.syncNow();
+        }
+      },
+      () => setInvite(null),
+    );
     api.mealsToReview().then((r) => setReview(r.groups[0] ?? null), () => setReview(null));
   }, [online, account?.id]);
 
+  if (welcome) {
+    const done = () => setWelcome(null);
+    return (
+      <div className="card nudge-card welcome-card" data-testid="group-welcome">
+        <Icon name="people" size={18} />
+        <span>
+          {t("groups.welcome", { name: welcome.invitedBy, group: welcome.groupName })}
+          <small className="meal-meta">{t("groups.welcomeFine")}</small>
+        </span>
+        <div className="milestone-actions">
+          <a className="btn-secondary" href={`#/groups/${welcome.groupId}`} onClick={() => void api.groupWelcomeSeen(welcome.groupId).catch(() => undefined)}>
+            {t("groups.welcomeOpen")}
+          </a>
+          <button type="button" className="btn-link" disabled={!online} onClick={() => void api.groupWelcomeSeen(welcome.groupId).then(done, () => setError(t("groups.offline")))}>
+            {t("groups.welcomeOk")}
+          </button>
+          <button
+            type="button"
+            className="btn-link danger"
+            disabled={!online}
+            onClick={() =>
+              confirm(t("groups.leaveConfirm", { group: welcome.groupName })) &&
+              void api.removeMember(welcome.groupId, welcome.memberId).then(
+                () => (done(), void refreshGroups(), void engine?.syncNow()),
+                () => setError(t("groups.offline")),
+              )
+            }
+          >
+            {t("groups.leave")}
+          </button>
+        </div>
+        {error && <p className="error" role="alert">{error}</p>}
+      </div>
+    );
+  }
   if (invite) {
     return (
       <a className="card nudge-card" href="#/groups" data-testid="group-nudge">
@@ -243,9 +292,14 @@ export function GroupNudge() {
 
 // ---------- shared meals ----------
 
-export function SharedMeals({ group, groupRecipes }: { group: GroupDetail; groupRecipes: Recipe[] }) {
+export function SharedMeals({ group, groupRecipes, onPlan }: { group: GroupDetail; groupRecipes: Recipe[]; onPlan?: (recipeId: string) => void }) {
   const t = useT();
-  const { online } = useApp();
+  const { online, recipes } = useApp();
+  // A shared meal can be planned when its recipe is the group's or the admin's own.
+  const plan = (m: SharedMeal) =>
+    onPlan && m.recipeId && (groupRecipes.some((r) => r.id === m.recipeId) || recipes.some((r) => r.id === m.recipeId && !r.deleted && r.serverVersion !== null))
+      ? () => onPlan(m.recipeId!)
+      : undefined;
   const admin = group.role === "owner" || group.role === "admin";
   const [meals, setMeals] = useState<SharedMeal[] | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -293,7 +347,7 @@ export function SharedMeals({ group, groupRecipes }: { group: GroupDetail; group
       {meals && meals.length === 0 && <p className="hint">{t("shared.none")}</p>}
       <ul className="meal-picks">
         {meals?.map((m) => (
-          <SharedMealRow key={m.id} meal={m} group={group} onChange={replace} onWithdrawn={() => setMeals((list) => list?.filter((x) => x.id !== m.id) ?? null)} />
+          <SharedMealRow key={m.id} meal={m} group={group} onPlan={plan(m)} onChange={replace} onWithdrawn={() => setMeals((list) => list?.filter((x) => x.id !== m.id) ?? null)} />
         ))}
       </ul>
       {cursor && (
@@ -409,7 +463,7 @@ function Tally({ meal }: { meal: SharedMeal }) {
 }
 
 /** One row of the list: photo, name, the start of the description, macros, and thumbs up or down in one tap. */
-function SharedMealRow({ meal, group, onChange, onWithdrawn }: { meal: SharedMeal; group: GroupDetail; onChange: (m: SharedMeal) => void; onWithdrawn: () => void }) {
+function SharedMealRow({ meal, group, onPlan, onChange, onWithdrawn }: { meal: SharedMeal; group: GroupDetail; onPlan?: () => void; onChange: (m: SharedMeal) => void; onWithdrawn: () => void }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const { busy, error, react, takeBack } = useReact(group, meal, onChange);
@@ -428,13 +482,13 @@ function SharedMealRow({ meal, group, onChange, onWithdrawn }: { meal: SharedMea
       </button>
       <Votes mine={mine} busy={busy} onVote={(r) => void (mine === r ? takeBack() : react(r, meal.myReaction?.comment ?? ""))} />
       {error && <p className="error meal-row-error" role="alert">{error}</p>}
-      {open && <SharedMealSheet meal={meal} group={group} onChange={onChange} onWithdrawn={onWithdrawn} onClose={() => setOpen(false)} />}
+      {open && <SharedMealSheet meal={meal} group={group} onPlan={onPlan} onChange={onChange} onWithdrawn={onWithdrawn} onClose={() => setOpen(false)} />}
     </li>
   );
 }
 
 /** Everything about one shared meal: the whole description, every nutrient, your answer and comment, and for admins everyone's answers. */
-function SharedMealSheet({ meal, group, onChange, onWithdrawn, onClose }: { meal: SharedMeal; group: GroupDetail; onChange: (m: SharedMeal) => void; onWithdrawn: () => void; onClose: () => void }) {
+function SharedMealSheet({ meal, group, onPlan, onChange, onWithdrawn, onClose }: { meal: SharedMeal; group: GroupDetail; onPlan?: () => void; onChange: (m: SharedMeal) => void; onWithdrawn: () => void; onClose: () => void }) {
   const t = useT();
   const { online } = useApp();
   const admin = group.role === "owner" || group.role === "admin";
@@ -449,6 +503,11 @@ function SharedMealSheet({ meal, group, onChange, onWithdrawn, onClose }: { meal
         {meal.image ? <RecipePhoto image={meal.image as Omit<RecipeImage, "id"> & { url: string }} signedIn /> : <MealThumb meal={meal} large />}
         {meal.summary && <p className="meal-description">{meal.summary}</p>}
         <p className="meal-meta">{t("shared.by", { name: meal.sharedBy })}</p>
+        {admin && onPlan && (
+          <button type="button" className="btn-secondary" disabled={!online} onClick={() => (onClose(), onPlan())} data-testid="plan-shared-meal">
+            <Icon name="calendar" size={18} /> {t("shared.planIt")}
+          </button>
+        )}
 
         <h3>{t("shared.nutrients")}</h3>
         <dl className="shared-nutrients" aria-label={t("shared.perServing")}>

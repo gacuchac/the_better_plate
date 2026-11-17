@@ -812,3 +812,9 @@ p.label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--in
 .shared-nutrients dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
 .shared-answer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .shared-answers { display: grid; gap: 4px; margin-top: 4px; }
+
+/* Plan for the whole group, and the welcome after joining by email */
+.plan-who { border: 0; padding: 0; margin: 14px 0 0; }
+.plan-who legend { font-weight: 600; padding: 0; }
+.welcome-card > span:first-of-type small { display: block; font-weight: 400; margin-top: 2px; }
+.welcome-card .milestone-actions { flex-basis: 100%; }

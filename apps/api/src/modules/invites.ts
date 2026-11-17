@@ -4,6 +4,8 @@ import {
   GroupDetailSchema,
   InviteAcceptSchema,
   MyGroupInviteSchema,
+  MyGroupInvitesSchema,
+  type GroupWelcome,
   PENDING_INVITE_DAYS,
   PendingMemberCreatedSchema,
   PendingMemberCreateSchema,
@@ -46,7 +48,7 @@ export function inviteEmail(input: { to: string; inviter: string; group: string;
     subject: `${inviter} added you to ${group} on The Better Plate`,
     text:
       `${inviter} added you to the group "${group}" on The Better Plate, an app for cooking at home.\n\n` +
-      `To join, open ${input.appUrl} and sign in with this email address (${input.to}). You'll see the invitation after you sign in, and you choose whether to join.\n\n` +
+      `Open ${input.appUrl} and sign in with this email address (${input.to}). You'll be in the group as soon as you sign in, and you can leave it at any time.\n\n` +
       `If you don't know ${inviter}, you can ignore this email. We won't email you again unless someone invites you again.`,
   };
 }
@@ -96,6 +98,56 @@ export async function invitesFor(user: AuthUser): Promise<MyGroupInvite[]> {
     id: r.id, groupName: r.group_name, role: r.role, invitedBy: r.inviter ?? "A group admin",
     suggestedName: r.display_name, expiresAt: r.expires_at.toISOString(),
   }));
+}
+
+/**
+ * Joins every group that added this person by email, once they have proved they own the email and
+ * agreed to the privacy notice: on first sign-in that is the moment they agree. A group that is full,
+ * or a person already in the most groups allowed, leaves that invite waiting for a tap instead.
+ */
+export async function joinPendingFor(user: AuthUser): Promise<number> {
+  if (!enabled() || !user.emailVerified || !user.email) return 0;
+  const agreed = await pool.query("select 1 from consent_events where user_id = $1 and action = 'accepted' limit 1", [user.id]);
+  if (!agreed.rows.length) return 0;
+  const { rows } = await pool.query<{ id: string }>("select id from group_pending_members where email = lower($1) and expires_at > now() order by created_at", [user.email]);
+  let joined = 0;
+  for (const { id } of rows) {
+    joined += await withTransaction(async (client) => {
+      await lockUsers(client, [user.id]);
+      const p = (await client.query<PendingRow>("select * from group_pending_members where id = $1 and expires_at > now() for update", [id])).rows[0];
+      if (!p) return 0;
+      if (await roleIn(client, p.group_id, user.id)) {
+        await client.query("delete from group_pending_members where id = $1", [p.id]);
+        return 0;
+      }
+      const counts = (await client.query<{ mine: string; members: string }>(
+        "select (select count(*) from group_members where user_id = $1) as mine, (select count(*) from group_members where group_id = $2) as members",
+        [user.id, p.group_id],
+      )).rows[0]!;
+      if (Number(counts.mine) >= MAX_GROUPS_PER_PERSON || Number(counts.members) >= MAX_GROUP_MEMBERS) return 0;
+      await client.query(
+        "insert into group_members (group_id, user_id, role, display_name, joined_by_email, added_by) values ($1, $2, $3, $4, true, $5)",
+        [p.group_id, user.id, p.role, p.display_name, p.invited_by],
+      );
+      await client.query("delete from group_pending_members where id = $1", [p.id]);
+      await resendGroupRecipes(client, p.group_id);
+      return 1;
+    });
+  }
+  return joined;
+}
+
+/** Groups this person joined because someone added them by email, until they dismiss the note on Home. */
+async function welcomesFor(userId: string): Promise<GroupWelcome[]> {
+  const { rows } = await pool.query<{ group_id: string; group_name: string; member_id: string; inviter: string | null }>(
+    `select m.group_id, g.name as group_name, m.id as member_id,
+            (select a.display_name from group_members a where a.group_id = m.group_id and a.user_id = m.added_by) as inviter
+       from group_members m join groups g on g.id = m.group_id
+      where m.user_id = $1 and m.joined_by_email and m.welcome_seen_at is null
+      order by m.created_at`,
+    [userId],
+  );
+  return rows.map((r) => ({ groupId: r.group_id, groupName: r.group_name, memberId: r.member_id, invitedBy: r.inviter ?? "A group admin" }));
 }
 
 /** Removes invites addressed to an account's email (on account deletion). */
@@ -207,13 +259,31 @@ inviteRoutes.openapi(
 
 inviteRoutes.openapi(
   createRoute({
-    method: "get", path: "/v1/me/group-invites", tags: ["groups"], summary: "Groups that added me by email, waiting for me to join",
-    description: "Only for the email this account signed in with and proved it owns.",
-    responses: { 200: { description: "Invites", ...json(z.object({ invites: z.array(MyGroupInviteSchema) })) }, ...ErrorResponses },
+    method: "post", path: "/v1/me/group-invites", tags: ["groups"], summary: "Join the groups that added me by email; list what's left and what I joined",
+    description:
+      "Only for the email this account signed in with and proved it owns, and only once the privacy notice is agreed (agreeing joins them too). " +
+      "`joined` lists groups joined this way until the person dismisses the note; `invites` lists any that couldn't be joined automatically because a limit was reached.",
+    responses: { 200: { description: "Invites", ...json(MyGroupInvitesSchema) }, ...ErrorResponses },
   }),
   async (c) => {
     requireEnabled();
-    return c.json({ invites: await invitesFor(requireUser(c)) }, 200);
+    const user = requireUser(c);
+    await joinPendingFor(user);
+    return c.json({ invites: await invitesFor(user), joined: await welcomesFor(user.id) }, 200);
+  },
+);
+
+inviteRoutes.openapi(
+  createRoute({
+    method: "post", path: "/v1/me/groups/{groupId}/welcome-seen", tags: ["groups"], summary: "Dismiss the note that a group added me",
+    request: { params: z.object({ groupId: z.uuid() }) },
+    responses: { 204: { description: "Dismissed" }, ...ErrorResponses },
+  }),
+  async (c) => {
+    requireEnabled();
+    const user = requireUser(c);
+    await pool.query("update group_members set welcome_seen_at = now() where group_id = $1 and user_id = $2 and welcome_seen_at is null", [c.req.valid("param").groupId, user.id]);
+    return c.body(null, 204);
   },
 );
 

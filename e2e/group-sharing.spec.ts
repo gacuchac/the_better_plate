@@ -19,7 +19,7 @@ async function newRecipe(page: Page, title: string, description: string) {
   await saveAndSync(page);
 }
 
-test("an admin adds someone by email and shares a meal; they join on first sign-in and say what they'd like", async ({ page, browser }, info) => {
+test("an admin adds someone by email and shares a meal; they join on first sign-in, say what they'd like, and the admin plans it for everyone", async ({ page, browser }, info) => {
   test.setTimeout(150_000);
   const grandmaEmail = newEmail(`grandma-${info.project.name}`);
 
@@ -37,7 +37,7 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   const add = page.getByRole("dialog", { name: "Add someone by email" });
   await add.getByLabel("Email").fill(grandmaEmail);
   await add.getByLabel("Name the group will see").fill("Grandma");
-  await shot(page, info, "add-by-email", "Admin adds someone by email; joining stays their choice");
+  await shot(page, info, "add-by-email", "Admin adds someone by email");
   await add.getByTestId("add-by-email-submit").click();
   await expect(page.getByTestId("group-note")).toContainText("Added Grandma and emailed them");
   await expect(page.getByTestId("pending-member")).toContainText("Invited, hasn't joined yet");
@@ -69,18 +69,15 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   await page.keyboard.press("Escape");
   await expect(detail).toBeHidden();
 
-  // Grandma signs in for the first time: the invite is waiting, and nothing joins without her.
+  // Grandma signs in for the first time and is in the group straight away; Home says who added her, with Leave.
   const context = await browser.newContext({ ...info.project.use });
   const grandma = await context.newPage();
   await signIn(grandma, grandmaEmail);
-  await expect(grandma.getByTestId("group-nudge")).toContainText("Mom added you to The Okafors.");
-  await shot(grandma, info, "first-sign-in-nudge", "First sign-in: one line says a group added her");
-  await grandma.getByTestId("group-nudge").click();
-  const invite = grandma.getByTestId("invites-for-me");
-  await expect(invite).toContainText("Mom added you to The Okafors.");
-  await expect(invite.getByLabel("Your name in the group")).toHaveValue("Grandma");
-  await shot(grandma, info, "invite-for-me", "The invite says what joining means; her name is filled in");
-  await invite.getByRole("button", { name: "Join The Okafors" }).click();
+  const welcome = grandma.getByTestId("group-welcome");
+  await expect(welcome).toContainText("Mom added you to The Okafors.");
+  await expect(welcome.getByRole("button", { name: "Leave group" })).toBeVisible();
+  await shot(grandma, info, "first-sign-in-welcome", "First sign-in: she is in the group, Home says who added her, and she can leave");
+  await welcome.getByRole("link", { name: "Open the group" }).click();
   await expect(grandma.getByRole("heading", { name: "The Okafors" })).toBeVisible();
 
   // The shared meal was waiting for her: one tap says she'd like it, and she adds a comment on the meal itself.
@@ -98,7 +95,7 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   await expect(mine.getByTestId("my-reaction")).toContainText("You'd like this");
   await expect(mine.getByTestId("my-reaction")).toContainText("Less salt for me, please");
   await shot(grandma, info, "member-reacted", "Member's view: her own answer and comment only");
-  await context.close();
+  await grandma.keyboard.press("Escape");
 
   // Mom sees who would like it and the comment.
   await page.reload();
@@ -109,6 +106,30 @@ test("an admin adds someone by email and shares a meal; they join on first sign-
   await expect(answers.getByTestId("meal-answer")).toContainText("Grandma · I'd like this");
   await expect(answers.getByTestId("meal-answer")).toContainText("Less salt for me, please");
   await shot(page, info, "admin-answers", "Admin's view: everyone's answers and comments");
-  await page.keyboard.press("Escape");
+
+  // Mom plans the meal Grandma liked for the whole group, straight from the shared meal.
+  await page.getByRole("dialog", { name: "Green rice" }).getByTestId("plan-shared-meal").click();
+  const plan = page.getByRole("dialog", { name: "Plan a meal for The Okafors" });
+  await expect(plan.getByLabel("Recipe", { exact: true })).toHaveValue(/.+/);
+  await expect(plan.getByLabel("Recipe", { exact: true }).locator("option:checked")).toHaveText("Green rice");
+  await expect(plan.getByRole("checkbox", { name: "Grandma" })).toBeChecked();
+  await expect(plan.getByRole("checkbox", { name: "Mom" })).toBeChecked();
+  await shot(page, info, "plan-for-group", "Plan for the group: one meal, a day and a slot, everyone ticked");
+  await plan.getByTestId("plan-group-submit").click();
+  await expect(page.getByTestId("group-note")).toContainText("Planned Green rice for 2 people.");
   await expect(page.getByTestId("pending-member")).toHaveCount(0);
+
+  // It shows on Grandma's own plan as planned by Mom, never as eaten.
+  await grandma.goto("/#/meals");
+  await grandma.reload();
+  await expect(grandma.getByTestId("planned-by").first()).toContainText("Planned by Mom");
+  await shot(grandma, info, "member-planned-by-admin", "Member's plan: the group meal, marked as planned by Mom");
+  await context.close();
+
+  // Mom's Plan button opens the same sheet, and planning again skips anyone who already has it.
+  await page.getByTestId("plan-group-open").click();
+  const again = page.getByRole("dialog", { name: "Plan a meal for The Okafors" });
+  await again.getByLabel("Recipe", { exact: true }).selectOption({ label: "Green rice" });
+  await again.getByTestId("plan-group-submit").click();
+  await expect(page.getByTestId("group-note")).toContainText("2 people already had it.");
 });

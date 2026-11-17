@@ -165,6 +165,7 @@ export function GroupScreen({ id }: { id: string }) {
     | { kind: "addProfile" }
     | { kind: "invite"; link: string }
     | { kind: "addEmail" }
+    | { kind: "planAll"; recipeId?: string }
     | null
   >(null);
   const [note, setNote] = useState<string | null>(null);
@@ -254,6 +255,11 @@ export function GroupScreen({ id }: { id: string }) {
           <p className="eyebrow">{t(ROLE_LABEL[group.role])}</p>
           <h1>{group.name}</h1>
         </div>
+        {admin && group.features.planning && (
+          <button type="button" className="btn-primary" disabled={!online} onClick={() => setSheet({ kind: "planAll" })} data-testid="plan-group-open">
+            <Icon name="calendar" size={18} /> {t("groups.planGroup")}
+          </button>
+        )}
       </header>
       {offline}
       {error && <p className="error" role="alert">{error}</p>}
@@ -343,7 +349,7 @@ export function GroupScreen({ id }: { id: string }) {
         )}
       </section>
 
-      {group.features.mealShares && <SharedMeals group={group} groupRecipes={groupRecipes} />}
+      {group.features.mealShares && <SharedMeals group={group} groupRecipes={groupRecipes} onPlan={admin && group.features.planning ? (recipeId) => setSheet({ kind: "planAll", recipeId }) : undefined} />}
 
       {admin && (
         <section className="card" aria-labelledby="week-title" data-testid="group-week">
@@ -509,6 +515,21 @@ export function GroupScreen({ id }: { id: string }) {
           onDone={() => void loadMeals()}
         />
       )}
+      {sheet?.kind === "planAll" && (
+        <GroupPlanEveryoneSheet
+          group={group}
+          groupRecipes={groupRecipes}
+          initialRecipeId={sheet.recipeId}
+          initialDate={week > localDate() ? week : localDate()}
+          onClose={() => setSheet(null)}
+          onDone={(text) => {
+            setNote(text);
+            void load();
+            void loadMeals();
+            void engine?.syncNow();
+          }}
+        />
+      )}
       {sheet?.kind === "prefs" && (
         <Sheet title={t("groups.preferencesFor", { name: sheet.member.name })} onClose={() => setSheet(null)}>
           <PreferencesForm
@@ -658,6 +679,125 @@ function GroupPlanSheet({
       </div>
       {error && <p className="error" role="alert">{error}</p>}
       <p className="fine">{t("groups.planFine")}</p>
+    </Sheet>
+  );
+}
+
+/**
+ * An admin plans one meal for the whole group (or some of it) in one go. Each person gets it on
+ * their own plan as planned, never as eaten. An own recipe is copied into the group first.
+ */
+function GroupPlanEveryoneSheet({
+  group,
+  groupRecipes,
+  initialRecipeId,
+  initialDate,
+  onClose,
+  onDone,
+}: {
+  group: GroupDetail;
+  groupRecipes: Recipe[];
+  initialRecipeId?: string;
+  initialDate: string;
+  onClose: () => void;
+  onDone: (note: string) => void;
+}) {
+  const { recipes } = useApp();
+  const t = useT();
+  const groupTitles = new Set(groupRecipes.map((r) => r.title.trim().toLowerCase()));
+  const own = recipes.filter((r) => !r.groupId && r.serverVersion !== null && !r.deleted && !groupTitles.has(r.body.title.trim().toLowerCase()));
+  const first = initialRecipeId && (groupRecipes.some((r) => r.id === initialRecipeId) || own.some((r) => r.id === initialRecipeId)) ? initialRecipeId : (groupRecipes[0]?.id ?? own[0]?.id ?? "");
+  const [recipeId, setRecipeId] = useState(first);
+  const [date, setDate] = useState(initialDate);
+  const [slot, setSlot] = useState<MealSlot>("dinner");
+  const [servings, setServings] = useState(1);
+  const [who, setWho] = useState<Set<string>>(() => new Set(group.members.map((m) => m.id)));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fromGroup = groupRecipes.find((r) => r.id === recipeId);
+  const fromOwn = own.find((r) => r.id === recipeId);
+  const title = fromGroup?.title ?? fromOwn?.body.title ?? "";
+  const valid = !!(fromGroup || fromOwn) && /^\d{4}-\d{2}-\d{2}$/.test(date) && servings > 0 && servings <= 100 && who.size > 0;
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      const id = fromGroup ? fromGroup.id : (await api.shareRecipeWithGroup(group.id, recipeId)).id;
+      const all = who.size === group.members.length;
+      const r = await api.planForEveryone(group.id, { date, slot, recipeId: id, servings, ...(all ? {} : { memberIds: [...who] }) });
+      const flagged = r.planned.filter((p) => p.alert.matches.length > 0).map((p) => p.name);
+      onDone(
+        [
+          r.planned.length ? t("groups.plannedFor", { meal: title, n: r.planned.length }) : "",
+          r.skipped.length ? t("groups.plannedSkipped", { n: r.skipped.length }) : "",
+          flagged.length ? t("groups.plannedAlert", { names: flagged.join(", ") }) : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+      onClose();
+    } catch (err) {
+      setError(message(err, t("groups.offline")));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const toggle = (id: string) =>
+    setWho((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  return (
+    <Sheet title={t("groups.planGroupTitle", { group: group.name })} onClose={onClose}>
+      <label htmlFor="gpa-recipe">{t("groups.recipe")}</label>
+      <select id="gpa-recipe" value={recipeId} onChange={(e) => setRecipeId(e.target.value)}>
+        {groupRecipes.length > 0 && (
+          <optgroup label={t("groups.groupRecipesLabel")}>
+            {groupRecipes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.title}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {own.length > 0 && (
+          <optgroup label={t("groups.ownRecipesLabel")}>
+            {own.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.body.title}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+      {groupRecipes.length === 0 && own.length === 0 && <p className="hint">{t("groups.noOwnRecipes")}</p>}
+      <label htmlFor="gpa-date">{t("meals.day")}</label>
+      <input id="gpa-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+      <label>{t("mealSheet.meal")}</label>
+      <SlotPicker value={slot} onChange={setSlot} />
+      <ServingsStepper id="gpa-servings" value={servings} onChange={setServings} />
+      <p className="fine">{t("groups.servingsEach")}</p>
+      <fieldset className="plan-who">
+        <legend>{t("groups.planWho")}</legend>
+        {group.members.map((m) => (
+          <label key={m.id} className="check">
+            <input type="checkbox" checked={who.has(m.id)} onChange={() => toggle(m.id)} />
+            <span>{m.name}</span>
+          </label>
+        ))}
+      </fieldset>
+      <div className="sheet-actions">
+        <button type="button" className="btn-primary" disabled={!valid || busy} onClick={() => void save()} data-testid="plan-group-submit">
+          {t("mealSheet.addToPlan")}
+        </button>
+      </div>
+      {error && <p className="error" role="alert">{error}</p>}
+      <p className="fine">{t("groups.planGroupFine")}</p>
     </Sheet>
   );
 }

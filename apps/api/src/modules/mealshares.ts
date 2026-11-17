@@ -118,6 +118,7 @@ function toSharedMeal(row: ShareRow, me: { memberId: string; role: GroupRole }, 
     image: img ? { url: imageUrl(row.group_id, row.id), alt: img.alt, kind: img.kind, credit: img.credit ?? null, generator: img.generator } : null,
     sharedBy: row.shared_by ?? "A group admin",
     sharedAt: row.created_at.toISOString(),
+    recipeId: isAdminRole(me.role) ? row.recipe_id : null,
     myReaction: mine ? { reaction: mine.reaction, comment: mine.comment } : null,
     reactions: isAdminRole(me.role)
       ? reactions.map((r) => ({ memberId: r.member_id, name: r.name, reaction: r.reaction, comment: r.comment, updatedAt: r.updated_at.toISOString() }))

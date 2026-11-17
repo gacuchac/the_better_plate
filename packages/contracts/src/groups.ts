@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { PlannedMeal } from "./index.ts";
 
 /**
  * Groups: a family, or a nutritionist with clients. The owner and admins plan meals for members;
@@ -68,7 +69,7 @@ export const GroupDetailSchema = z.object({
   /** People added by email who haven't joined; only admins and the owner see them. */
   pending: z.array(PendingMemberSchema),
   /** Which group features this server has switched on. */
-  features: z.object({ emailInvites: z.boolean(), mealShares: z.boolean() }),
+  features: z.object({ emailInvites: z.boolean(), mealShares: z.boolean(), planning: z.boolean() }),
 });
 
 export const GroupCreateSchema = z.object({
@@ -116,6 +117,11 @@ export const MyGroupInviteSchema = z.object({
   expiresAt: z.string(),
 });
 
+/** A group I joined because someone added me by email; shown on Home until I dismiss it. */
+export const GroupWelcomeSchema = z.object({ groupId: z.uuid(), groupName: z.string(), memberId: z.uuid(), invitedBy: z.string() });
+
+export const MyGroupInvitesSchema = z.object({ invites: z.array(MyGroupInviteSchema), joined: z.array(GroupWelcomeSchema) });
+
 export const ProfileCreateSchema = z.object({
   id: z.uuid().optional(),
   name: trimmed(60).min(1, "Give the profile a name"),
@@ -138,6 +144,18 @@ export const GroupPlanCreateSchema = z.object({
 });
 
 export const GroupPlanUpdateSchema = GroupPlanCreateSchema.omit({ id: true, memberId: true });
+
+/** One meal planned for several people in a group at once (owner or admin). */
+export const GroupPlanEveryoneSchema = z.object({
+  date: LocalDate,
+  slot: z.enum(["breakfast", "lunch", "dinner", "snack"]),
+  /** A recipe of this group. */
+  recipeId: z.uuid(),
+  /** Servings for each person. */
+  servings: z.number().positive().max(100).default(1),
+  /** Who it is for; everyone in the group when left out. */
+  memberIds: z.array(z.uuid()).min(1).max(100).optional(),
+});
 
 /** An alert, never a block: allergens the person listed that the recipe's foods are tagged with. */
 export const AllergenAlertSchema = z.object({
@@ -210,6 +228,8 @@ export const SharedMealSchema = z.object({
     .nullable(),
   sharedBy: z.string(),
   sharedAt: z.string(),
+  /** The recipe it was shared from, for admins planning it; null for members or when the recipe is gone. */
+  recipeId: z.uuid().nullable(),
   myReaction: z.object({ reaction: MealReactionKindSchema, comment: z.string() }).nullable(),
   /** Everyone's reactions and comments; only admins and the owner get these. */
   reactions: z.array(SharedMealReactionSchema).nullable(),
@@ -230,9 +250,18 @@ export type GroupDetail = z.infer<typeof GroupDetailSchema>;
 export type InvitePreview = z.infer<typeof InvitePreviewSchema>;
 export type GroupPlanCreate = z.infer<typeof GroupPlanCreateSchema>;
 export type GroupPlanUpdate = z.infer<typeof GroupPlanUpdateSchema>;
+export type GroupPlanEveryone = z.input<typeof GroupPlanEveryoneSchema>;
 export type AllergenAlert = z.infer<typeof AllergenAlertSchema>;
 export type PendingMember = z.infer<typeof PendingMemberSchema>;
 export type MyGroupInvite = z.infer<typeof MyGroupInviteSchema>;
+export type GroupWelcome = z.infer<typeof GroupWelcomeSchema>;
+export type MyGroupInvites = z.infer<typeof MyGroupInvitesSchema>;
 export type SharedMeal = z.infer<typeof SharedMealSchema>;
 export type MealReactionKind = z.infer<typeof MealReactionKindSchema>;
 export type MealsToReview = z.infer<typeof MealsToReviewSchema>;
+
+/** What planning a meal for several people did: one plan each, or skipped when that person already has it. */
+export type GroupPlanEveryoneResult = {
+  planned: { memberId: string; name: string; plan: PlannedMeal; alert: AllergenAlert }[];
+  skipped: { memberId: string; name: string }[];
+};
