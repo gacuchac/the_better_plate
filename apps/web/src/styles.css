@@ -583,8 +583,6 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .allergen-line { margin: 12px 0; }
 .allergen-line .hint, .allergen-line .fine { margin: 4px 0; }
 .ask-card { display: grid; gap: 4px; text-decoration: none; color: inherit; border-color: var(--sage); margin-bottom: 16px; }
-.quick-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
-.quick-links a { text-decoration: none; }
 .recipe-group { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; color: var(--sage-ink); }
 .meal-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .member-week { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
@@ -659,15 +657,21 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .favorite-toggle.is-on .icon path { fill: currentColor; }
 .radio-list { border: 0; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }
 .cook-head { font-size: 1.375rem; }
-.tile-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.tile { display: grid; gap: 8px; text-decoration: none; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 8px 8px 12px; }
-.tile .trail-photo { width: 100%; height: 110px; border-radius: var(--radius); }
-.tile-title { font-weight: 650; padding: 0 6px; }
+/* Home picks are text, not photo tiles: favorites as chips, trending as a short list. */
+.pick-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.pick-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.pick-chip:hover { border-color: var(--sage); color: var(--ink); }
+.pick-rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.pick-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 8px 2px; border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; }
+.pick-row:hover { color: var(--sage-ink); }
+.pick-title { min-width: 0; overflow-wrap: anywhere; }
+.today-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.today-actions .btn-secondary { padding-inline: 10px; }
 .today-kcal { display: grid; gap: 6px; }
 .calm { margin: 4px 0 0; color: var(--ink-2); font-size: 0.9375rem; }
 .empty-trail { display: grid; gap: 12px; justify-items: start; }
 .trail { list-style: none; margin: 0; padding: 0 0 0 14px; display: grid; gap: 12px; border-left: 2px dashed var(--line-strong); margin-left: 9px; }
-.trail-item { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 10px; }
+.trail-item { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 10px; }
 .trail-item .pin { position: absolute; left: -29px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--bg); border: 2px solid var(--sage-ink); display: inline-flex; align-items: center; justify-content: center; color: #fff; }
 .trail-item.is-eaten .pin { background: var(--sage-ink); }
 .trail-photo { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; background: var(--sage-soft); color: var(--sage-ink); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
@@ -675,17 +679,22 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .trail-title { font-weight: 650; overflow: hidden; text-overflow: ellipsis; }
 .trail-meta { font-size: 0.8125rem; color: var(--ink-3); }
 .trail-btn { min-width: 64px; justify-content: center; }
-@media (min-width: 700px) { .tile-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 /* ---------- Orchard: tinted cards, large radii, photo recipe grid ---------- */
 .card { border-radius: var(--radius-xl); background: var(--surface); box-shadow: 0 1px 2px rgba(23, 33, 30, 0.04); }
 .card-dashed, .empty { border-radius: var(--radius-xl); }
 .summary-card { background: var(--sage-soft); border-color: transparent; }
-.recipe-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-@media (min-width: 1000px) { .recipe-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.recipe-card { grid-template-columns: minmax(0, 1fr); gap: 4px; align-items: start; padding: 8px 8px 14px; border-radius: var(--radius-xl); height: 100%; }
-.recipe-card .monogram { grid-row: auto; width: 100%; height: 132px; border-radius: var(--radius-lg); object-fit: cover; margin-bottom: 8px; }
-.recipe-card .recipe-title, .recipe-card .recipe-meta, .recipe-card .state, .recipe-card .recipe-group { padding: 0 8px; }
+/* Kitchen: a calm list with a small photo to recognise each dish, not a wall of pictures. */
+.recipe-list { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+@media (min-width: 1000px) { .recipe-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.recipe-card { grid-template-columns: 48px minmax(0, 1fr); gap: 2px 12px; align-items: center; padding: 10px 12px; border-radius: var(--radius-lg); height: 100%; }
+.recipe-card .monogram { grid-row: span 4; width: 48px; height: 48px; border-radius: 12px; object-fit: cover; font-size: 1.05rem; }
+.recipe-card .recipe-title { font-size: 1rem; }
+.kitchen-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
+.kitchen-head .eyebrow { margin: 0 0 2px; }
+.kitchen-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.kitchen-tools a { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+.recipe-search { margin: 0 0 12px; }
 .food-results button { border-radius: var(--radius); }
 .food-results li + li { margin-top: 6px; }
 .bar { height: 10px; border-radius: 10px; }

@@ -100,3 +100,15 @@
 5. **Defects and limitations:** Groups restyle deferred; Landing and sign-in only pick up the shared tokens; the Recipe detail nutrient bars keep their existing Daily Value behaviour; gentle mode is per device and not synced; the empty-day grid repeats recipes also listed below.
 6. **Plan changes:** none beyond `docs/adr/` notes.
 7. **Next:** hosted Playwright pass on dev, then Groups restyle and numbered Cook step pins if wanted.
+
+---
+
+## Home and Kitchen: calmer phone layout (2026-11-17)
+
+1. **Status:** PARTIAL until the browser journeys pass in CI and the hosted check passes on dev.
+2. **Delivered:** tabs Home, Kitchen, Create, Groups, You (ADR-013). Home is today: the trail without photos, Plan a meal and I ate something buttons (a recipe picker, favorites first, then the usual plan or log sheet), the week, and what to cook as text. Kitchen lists every recipe in a compact list with small photos, a search box past five recipes, and links to the shopping list and the food lookup (Explore). Planning and logging an unplanned meal from Home go from 4 taps to 3. Spanish: Inicio and Cocina.
+3. **Verification:** typecheck, web unit tests and web build pass locally. Browser journeys (new: today.spec "home: plan and log a meal in three taps") run in CI only: no Playwright browser in the authoring session.
+4. **Deployment:** reaches cloud dev when merged into `dev`. No API, data or flag change.
+5. **Defects and limitations:** old `#/kitchen` bookmarks open the recipe list; the shopping list moved from one tap to two, and the food lookup from two to three.
+6. **Plan changes:** ADR-013; PRODUCT.md navigation amended at the owner's request.
+7. **Next:** the owner's review on dev.

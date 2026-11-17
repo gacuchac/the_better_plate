@@ -1,12 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { calculateRecipe, scaleTotals } from "@betterplate/nutrition";
-import { imageUrl } from "../api.ts";
 import { eatenAtFor, formatDay, localDate, logEaten, slotLabel } from "../meals.ts";
 import { formatQty, useT } from "../i18n.ts";
 import { amountOver, energyMark, todayTrail, type TrailItem } from "../today.ts";
 import { useApp } from "../store.tsx";
 import { useGentle } from "../gentle.ts";
-import type { LocalRecipe } from "../localdb.ts";
 import { Meter } from "./Meter.tsx";
 import { Icon } from "./icons.tsx";
 import { navigate } from "./common.tsx";
@@ -14,31 +12,12 @@ import { CommunityTile, useCommunityHome } from "./Community.tsx";
 import { ownAdventure } from "../picks.ts";
 import { Week } from "./Week.tsx";
 import { MilestoneCard } from "./Milestones.tsx";
-
-function Thumb({ recipe, title }: { recipe: LocalRecipe | undefined; title: string }) {
-  return recipe?.body.image ? (
-    <img className="trail-photo" src={imageUrl(recipe.body.image.id)} alt="" loading="lazy" crossOrigin="use-credentials" />
-  ) : (
-    <span className="trail-photo monogram" aria-hidden="true">
-      {title.trim().charAt(0).toUpperCase() || "?"}
-    </span>
-  );
-}
-
-function RecipeTile({ recipe }: { recipe: LocalRecipe }) {
-  return (
-    <li>
-      <a className="tile" href={`#/recipe/${recipe.id}`}>
-        <Thumb recipe={recipe} title={recipe.body.title} />
-        <span className="tile-title">{recipe.body.title}</span>
-      </a>
-    </li>
-  );
-}
+import { PickRecipe } from "./Meals.tsx";
 
 /**
  * What to cook, instead of every recipe: your favorites, what's trending in the community (most
- * saved by different people lately) and one pick unlike what you've been eating.
+ * saved by different people lately) and one pick unlike what you've been eating. Text only: photos
+ * stay on the recipe itself and in Kitchen, so home stays calm.
  */
 function HomePicks() {
   const { recipes, logs, favorites, catalog } = useApp();
@@ -55,9 +34,13 @@ function HomePicks() {
       <section className="home-picks" aria-labelledby="favorites-title" data-testid="favorites-section">
         <h3 id="favorites-title">{t("favorites.title")}</h3>
         {favs.length > 0 ? (
-          <ul className="tile-grid">
+          <ul className="pick-chips">
             {favs.slice(0, 8).map((r) => (
-              <RecipeTile key={r.id} recipe={r} />
+              <li key={r.id}>
+                <a className="pick-chip" href={`#/recipe/${r.id}`} data-testid="favorite-pick">
+                  {r.body.title}
+                </a>
+              </li>
             ))}
           </ul>
         ) : (
@@ -69,7 +52,7 @@ function HomePicks() {
         <section className="home-picks" aria-labelledby="trending-title" data-testid="trending-section">
           <h3 id="trending-title">{t("community.trending")}</h3>
           {home && home.trending.length > 0 ? (
-            <ul className="tile-grid">
+            <ul className="pick-rows">
               {home.trending.map((c) => (
                 <CommunityTile key={c.communityId} card={c} />
               ))}
@@ -97,7 +80,7 @@ function HomePicks() {
   );
 }
 
-/** Today on Your Kitchen: the day's plan first (an empty-plan card when nothing is planned), the last 7 days, then "Let's cook something". */
+/** Today on Home: the day's plan first (an empty-plan card when nothing is planned) with Plan a meal and I ate something, the last 7 days, then "Let's cook something". */
 export function Today() {
   const { recipes, plans, logs, goals, engine, catalog } = useApp();
   const t = useT();
@@ -131,6 +114,7 @@ export function Today() {
   const over = amountOver(eatenKcal, mark?.ceiling ?? null);
   const recipeFor = (id: string | null | undefined) => recipes.find((r) => r.id === id);
   const hasTrail = trail.items.length > 0;
+  const [picking, setPicking] = useState<"plan" | "log" | null>(null);
 
   async function eat(plan: Extract<TrailItem, { kind: "planned" }>["plan"]) {
     const recipe = recipeFor(plan.body.recipeId);
@@ -148,7 +132,7 @@ export function Today() {
   }
 
   return (
-    <section className="today" aria-label={t("day.today")}>
+    <section className="today" aria-label={t("day.today")} data-testid="today">
       {hasTrail ? (
         <>
           <a className="card today-card" href="#/meals" data-testid="today-card">
@@ -183,14 +167,13 @@ export function Today() {
               const isEaten = item.kind === "eaten";
               const body = isEaten ? item.log.body : item.plan.body;
               const title = isEaten ? item.log.body.recipe.title : item.plan.body.title;
-              const recipe = recipeFor(isEaten ? item.log.body.recipeId : item.plan.body.recipeId);
+              const recipe = isEaten ? undefined : recipeFor(item.plan.body.recipeId);
               const kcal = isEaten ? (foods && defs ? (logEaten(item.log, foods, defs).find((x) => x.key === "energy_kcal")?.amount ?? null) : null) : plannedKcal(item.plan);
               return (
                 <li key={isEaten ? item.log.id : item.plan.id} className={`trail-item ${isEaten ? "is-eaten" : "is-planned"}`} data-testid="trail-item">
                   <span className="pin" aria-hidden="true">
                     {isEaten && <Icon name="check" size={14} />}
                   </span>
-                  <Thumb recipe={recipe} title={title} />
                   <span className="trail-body">
                     <span className="trail-title">{title}</span>
                     <span className="trail-meta">
@@ -213,14 +196,24 @@ export function Today() {
           </ol>
         </>
       ) : (
-        <a className="card today-card empty-trail" href="#/meals" data-testid="today-card">
+        <div className="card today-card empty-trail" data-testid="today-card">
           <h2>{t("today.trail")}</h2>
           <p className="hint" style={{ margin: 0 }}>{t("today.nothingPlanned")}</p>
-          <span className="btn-soft">
-            <Icon name="plus" size={18} /> {t("meals.planMeal")}
-          </span>
-        </a>
+          <a className="btn-link inline" href="#/meals">
+            {t("today.openDay")}
+          </a>
+        </div>
       )}
+      {/* The two things people do most, one tap from home: plan a meal, or log one they ate. */}
+      <div className="today-actions" data-testid="today-actions">
+        <button type="button" className="btn-secondary" onClick={() => setPicking("plan")}>
+          <Icon name="plus" size={18} /> {t("meals.planMeal")}
+        </button>
+        <button type="button" className="btn-secondary" onClick={() => setPicking("log")}>
+          <Icon name="check" size={18} /> {t("today.ateSomething")}
+        </button>
+      </div>
+      {picking && <PickRecipe mode={picking} date={today} subject={null} onClose={() => setPicking(null)} />}
       {trail.waiting > 0 && (
         <p className="hint" data-testid="waiting-note">
           {t("today.waiting", { n: trail.waiting })}
