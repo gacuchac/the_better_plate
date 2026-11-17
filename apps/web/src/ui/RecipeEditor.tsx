@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RecipeBodySchema, type RecipeBody, type RecipeIngredientInput } from "@betterplate/contracts";
 import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
 import { api, ApiRequestError } from "../api.ts";
 import { useApp } from "../store.tsx";
-import { EmptyState, navigate, Sheet } from "./common.tsx";
+import { EmptyState, navigate, SeeMoreButton, Sheet, useOverflows } from "./common.tsx";
 import { FoodPicker } from "./FoodPicker.tsx";
 import { Icon } from "./icons.tsx";
 import { LogSheet, PlanSheet } from "./MealSheets.tsx";
@@ -139,15 +139,7 @@ export function RecipeEditor({ id }: { id: string }) {
           <label htmlFor="description" className="sr-only">
             {t("editor.description")}
           </label>
-          <textarea
-            id="description"
-            className="description-input"
-            rows={2}
-            maxLength={500}
-            value={draft.description ?? ""}
-            placeholder={t("editor.descriptionPlaceholder")}
-            onChange={(e) => update({ description: e.target.value })}
-          />
+          <DescriptionField value={draft.description ?? ""} placeholder={t("editor.descriptionPlaceholder")} onChange={(description) => update({ description })} />
 
           {draft.image ? (
             <div className="photo-block">
@@ -438,5 +430,24 @@ function ConflictBanner({ id, local, onResolved }: { id: string; local: LocalRec
         </button>
       </div>
     </div>
+  );
+}
+
+/** The recipe's description: two lines at first, with See more to show it all (and keep growing while you type). */
+function DescriptionField({ value, placeholder, onChange }: { value: string; placeholder: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const over = useOverflows(ref, [value, expanded]);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "";
+    if (expanded) el.style.height = `${el.scrollHeight + 2}px`;
+  }, [value, expanded]);
+  return (
+    <>
+      <textarea id="description" ref={ref} className="description-input" rows={2} maxLength={500} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+      {(over || expanded) && <SeeMoreButton expanded={expanded} onToggle={() => setExpanded(!expanded)} controls="description" />}
+    </>
   );
 }

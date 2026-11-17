@@ -6,7 +6,7 @@ import type { LocalRecipe } from "../localdb.ts";
 import { localDate } from "../meals.ts";
 import { useApp } from "../store.tsx";
 import { dateLocale, t as translate, useT, type MessageKey } from "../i18n.ts";
-import { navigate, Sheet } from "./common.tsx";
+import { ExpandableText, navigate, Sheet } from "./common.tsx";
 import { RecipePhoto } from "./Photos.tsx";
 import { SnapshotDetails } from "./Share.tsx";
 import { Icon } from "./icons.tsx";
@@ -321,7 +321,7 @@ export function CommunityRecipePage({ id }: { id: string }) {
       <p className="eyebrow">{t("community.eyebrow")}</p>
       {recipe.image && <RecipePhoto image={recipe.image} signedIn />}
       <h1 className="shared-title">{recipe.title}</h1>
-      {recipe.description && <p className="lede shared-description">{recipe.description}</p>}
+      {recipe.description && <ExpandableText text={recipe.description} className="lede shared-description" />}
       <p className="hint">
         {t("common.servings", { n: recipe.servings })} ·{" "}
         {t("shared.sharedOn", { date: new Date(recipe.sharedAt).toLocaleDateString(dateLocale(), { day: "numeric", month: "long", year: "numeric" }) })}

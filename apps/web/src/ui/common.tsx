@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import { useApp, useSyncStatus } from "../store.tsx";
 import { Icon } from "./icons.tsx";
 import { useT } from "../i18n.ts";
@@ -171,6 +171,48 @@ export function StorageBanner() {
           {t("common.gotIt")}
         </button>
       </div>
+    </div>
+  );
+}
+
+// ---------- long text: See more / See less ----------
+
+/** True when the element's content is taller than the box it is clamped to; re-checked as the width changes. */
+export function useOverflows(ref: RefObject<HTMLElement | null>, deps: unknown[]): boolean {
+  const [over, setOver] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => setOver(el.scrollHeight > el.clientHeight + 2);
+    check();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, deps);
+  return over;
+}
+
+export function SeeMoreButton({ expanded, onToggle, controls }: { expanded: boolean; onToggle: () => void; controls?: string }) {
+  const t = useT();
+  return (
+    <button type="button" className="btn-link see-more" aria-expanded={expanded} aria-controls={controls} onClick={onToggle} data-testid="see-more">
+      {t(expanded ? "common.seeLess" : "common.seeMore")}
+    </button>
+  );
+}
+
+/** A description that shows its first few lines, with See more to read the rest and See less to fold it back. */
+export function ExpandableText({ text, className = "", lines = 4, id }: { text: string; className?: string; lines?: number; id?: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const over = useOverflows(ref, [text, expanded]);
+  return (
+    <div className="expandable">
+      <p ref={ref} id={id} className={`${className} ${expanded ? "" : "clamp"}`.trim()} style={{ ["--lines" as string]: lines }} data-testid="expandable-text">
+        {text}
+      </p>
+      {(over || expanded) && <SeeMoreButton expanded={expanded} onToggle={() => setExpanded(!expanded)} controls={id} />}
     </div>
   );
 }

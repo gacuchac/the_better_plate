@@ -42,6 +42,8 @@ export const es: Messages = {
   "common.signOut": "Cerrar sesión",
   "common.cancel": "Cancelar",
   "common.estimated": "Estimado",
+  "common.seeMore": "Ver más",
+  "common.seeLess": "Ver menos",
   "common.servings": "{n|1 porción|# porciones}",
   "storage.evictedTitle": "Este navegador borró tu cocina de este dispositivo.",
   "storage.evictedBody": "Todo lo que ya estaba sincronizado está volviendo desde tu cuenta. Los cambios que aún no se habían sincronizado no se pudieron recuperar.",

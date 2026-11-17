@@ -4,7 +4,7 @@ import { track } from "../activity.ts";
 import { api, ApiRequestError, NetworkError } from "../api.ts";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp } from "../store.tsx";
-import { navigate, Sheet } from "./common.tsx";
+import { ExpandableText, navigate, Sheet } from "./common.tsx";
 import { RecipePhoto } from "./Photos.tsx";
 import { Icon } from "./icons.tsx";
 import { disclosureText, NutrientLine } from "./Nutrition.tsx";
@@ -339,7 +339,7 @@ export function SharedRecipePage({ shareId }: { shareId: string }) {
             <p className="eyebrow">{t("shared.eyebrow")}</p>
             {state.recipe.image && <RecipePhoto image={state.recipe.image} />}
             <h1 className="shared-title">{state.recipe.title}</h1>
-            {state.recipe.description && <p className="lede shared-description">{state.recipe.description}</p>}
+            {state.recipe.description && <ExpandableText text={state.recipe.description} className="lede shared-description" />}
             <p className="hint">
               {t("common.servings", { n: state.recipe.servings })} ·{" "}
               {t("shared.sharedOn", { date: new Date(state.recipe.sharedAt).toLocaleDateString(dateLocale(), { day: "numeric", month: "long", year: "numeric" }) })}
