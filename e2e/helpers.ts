@@ -49,6 +49,16 @@ export async function signIn(page: Page, email: string, info?: TestInfo) {
   await expect(page.getByTestId("catalog-status")).toContainText("USDA foods saved on this device");
 }
 
+/** Home: today first, then what to cook. Its tab says Home (Inicio in Spanish). */
+export async function goHome(page: Page, label = "Home") {
+  await page.getByRole("navigation", { name: /^(Main|Principal)$/ }).getByRole("link", { name: label, exact: true }).click();
+}
+
+/** Kitchen: every recipe, the shopping list and the food lookup. */
+export async function goKitchen(page: Page, label = "Kitchen") {
+  await page.getByRole("navigation", { name: /^(Main|Principal)$/ }).getByRole("link", { name: label, exact: true }).click();
+}
+
 export async function addIngredient(page: Page, search: string, exact: string) {
   await page.getByRole("button", { name: "Add ingredient" }).click();
   const dialog = page.getByRole("dialog", { name: "Add ingredient" });

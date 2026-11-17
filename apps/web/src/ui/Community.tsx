@@ -201,15 +201,9 @@ export function CommunitySheet({ recipe, onClose }: { recipe: LocalRecipe; onClo
 export function CommunityTile({ card }: { card: CommunityHome["trending"][number] }) {
   return (
     <li>
-      <a className="tile" href={`#/community/${card.communityId}`} data-testid="community-tile">
-        {card.image ? (
-          <img className="trail-photo" src={card.image.url} alt="" loading="lazy" crossOrigin="use-credentials" />
-        ) : (
-          <span className="trail-photo monogram" aria-hidden="true">
-            {card.title.trim().charAt(0).toUpperCase() || "?"}
-          </span>
-        )}
-        <span className="tile-title">{card.title}</span>
+      <a className="pick-row" href={`#/community/${card.communityId}`} data-testid="community-tile">
+        <span className="pick-title">{card.title}</span>
+        <Icon name="forward" size={18} />
       </a>
     </li>
   );

@@ -7,7 +7,7 @@ import { applyUpdate, useUpdateReady } from "../update.ts";
 // ---------- tiny hash router (deep-linkable, works offline from the cached shell) ----------
 
 function currentHash() {
-  return window.location.hash.replace(/^#/, "") || "/kitchen";
+  return window.location.hash.replace(/^#/, "") || "/home";
 }
 
 export function useRoute(): string {

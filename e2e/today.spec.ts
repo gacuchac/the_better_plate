@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { addIngredient, API, expectSynced, newEmail, saveAndSync, shot, signIn } from "./helpers.ts";
+import { addIngredient, API, expectSynced, goHome, goKitchen, newEmail, saveAndSync, shot, signIn } from "./helpers.ts";
 
 const RICE = "Rice, white, long-grain, regular, enriched, cooked";
 
-// Today on Your Kitchen: the plan always comes first (an empty-plan card when nothing is planned),
+// Today on Home: the plan always comes first (an empty-plan card when nothing is planned),
 // then "Let's cook something"; a day with a plan shows the trail with one-tap Eat and Undo; a goal the person set gets a mark, and going past it is stated calmly.
 async function expectPlanFirst(page: import("@playwright/test").Page) {
   const plan = await page.getByTestId("today-card").boundingBox();
@@ -30,20 +30,21 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   await heart.click();
   await expect(heart).toHaveAttribute("aria-pressed", "true");
   await expectSynced(page);
-  await page.getByRole("link", { name: "Back to Kitchen" }).click();
+  await goHome(page);
   await expect(page.getByTestId("today-card")).toContainText("Nothing planned yet");
-  // Home no longer lists every recipe: only favorites, trending and one adventure pick.
+  // Home no longer lists every recipe or shows photos: favorites as text, trending and one adventure pick.
   const favorites = page.getByTestId("favorites-section");
-  await expect(favorites.locator(".tile")).toHaveCount(1);
+  await expect(favorites.getByTestId("favorite-pick")).toHaveCount(1);
+  await expect(page.getByTestId("today").locator("img")).toHaveCount(0);
   await expect(page.getByTestId("adventure-card")).toBeVisible();
   await shot(page, info, "today-empty-with-favorite", "Empty day with a favorite: empty plan first, then favorites, trending and an adventure pick");
-  await favorites.locator(".tile").click();
+  await favorites.getByTestId("favorite-pick").click();
   await page.getByRole("button", { name: "Plan" }).click();
   const plan = page.getByRole("dialog", { name: "Plan this meal" });
   await plan.getByRole("button", { name: "Dinner" }).click();
   await plan.getByRole("button", { name: "Add to plan" }).click();
   await expect(plan).toBeHidden();
-  await page.getByRole("link", { name: "Back to Kitchen" }).click();
+  await goHome(page);
 
   const items = page.getByTestId("trail-item");
   await expect(items).toHaveCount(1);
@@ -74,7 +75,7 @@ test("today: empty day, planned trail with Eat and Undo, and a calm note past a 
   await sheet.getByLabel("Amount").fill("100");
   await sheet.getByRole("button", { name: "Save goal" }).click();
   await expectSynced(page);
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await expect(page.getByTestId("today-card").locator(".meter-mark")).toHaveCount(1);
   await expect(page.locator(".calm")).toContainText("above your goal today. Tomorrow is a fresh day.");
   await shot(page, info, "today-over-goal", "Past a personal goal: same green, a dark mark, deeper green beyond it, plain words, no red or banner");
@@ -122,21 +123,21 @@ test("goals: own-goal note, Help me choose, and gentle mode hides marks and over
   await again.getByLabel("Amount").fill("100");
   await again.getByRole("button", { name: "Save goal" }).click();
   await expectSynced(page);
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await expect(page.locator(".calm")).toBeVisible();
 
   await page.goto("/#/goals");
   await page.getByLabel("Gentle mode").check();
   await expect(page.getByTestId("goal-status")).toHaveCount(0);
   await shot(page, info, "gentle-mode-goals", "Gentle mode on: goals kept, progress words hidden");
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await expect(page.locator(".calm")).toHaveCount(0);
   await expect(page.locator(".meter-mark")).toHaveCount(0);
   await expect(page.getByTestId("week-card")).toHaveCount(0);
   await shot(page, info, "gentle-mode-today", "Gentle mode: no mark, no over wording and no weekly card on Today");
   await page.goto("/#/goals");
   await page.getByLabel("Gentle mode").uncheck();
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await expect(page.getByTestId("today-card").locator(".meter-mark")).toHaveCount(1);
   await expect(page.getByTestId("week-card").locator(".meter-mark")).toHaveCount(1);
 });
@@ -167,7 +168,7 @@ test("last 7 days: adds each day's own goal, and a changed goal keeps its earlie
     },
   });
   expect(seeded.ok()).toBe(true);
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await page.reload();
   const line = page.getByTestId("week-line");
   // Two days count (the logged one and today), each with a 1,000 kcal goal.
@@ -191,7 +192,52 @@ test("last 7 days: adds each day's own goal, and a changed goal keeps its earlie
   await expectSynced(page);
   await expect(page.getByTestId("goal-card")).toHaveCount(2);
 
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await expect(line).toContainText(/of 2,?500 kcal/);
   await shot(page, info, "week-card-after-change", "After the change: the earlier day keeps 1,000 kcal, today counts 1,500");
+});
+
+// The redesign: Home is today, Kitchen holds every recipe; planning and logging a meal take three taps from Home.
+test("home: plan and log a meal in three taps, and Kitchen holds every recipe", async ({ page }, info) => {
+  await signIn(page, newEmail("taps"));
+  const labels = (await page.getByRole("navigation", { name: "Main" }).locator(".nav-item").allInnerTexts()).map((l) => l.trim());
+  expect(labels).toEqual(["Home", "Kitchen", "Create", "Groups", "You"]);
+  await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Home", exact: true })).toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("button", { name: "New recipe" }).click();
+  await page.getByLabel("Recipe name").fill("Rice bowl");
+  await page.getByLabel("Servings", { exact: true }).fill("1");
+  await addIngredient(page, "rice white cooked", RICE);
+  await saveAndSync(page);
+  await goHome(page);
+
+  // Plan: Plan a meal, the recipe, Add to plan.
+  await page.getByTestId("today-actions").getByRole("button", { name: "Plan a meal" }).click();
+  await page.getByRole("dialog", { name: "Plan a meal" }).getByRole("button", { name: /^Rice bowl/ }).click();
+  const plan = page.getByRole("dialog", { name: "Plan this meal" });
+  await plan.getByRole("button", { name: "Add to plan" }).click();
+  await expect(plan).toBeHidden();
+  await expect(page.getByTestId("trail-item")).toHaveCount(1);
+  await expect(page.getByTestId("trail-item").first()).toHaveClass(/is-planned/);
+  await shot(page, info, "home-planned-in-three-taps", "Home: planned from the Plan a meal button in three taps");
+
+  // Log something not planned: I ate something, the recipe, Save as eaten.
+  await page.getByTestId("today-actions").getByRole("button", { name: "I ate something" }).click();
+  await page.getByRole("dialog", { name: "What did you eat?" }).getByRole("button", { name: /^Rice bowl/ }).click();
+  const eat = page.getByRole("dialog", { name: "I ate this" });
+  await eat.getByRole("button", { name: "Save as eaten" }).click();
+  await expect(eat).toBeHidden();
+  await expect(page.getByTestId("today-card")).toContainText("Eaten1 meal");
+  await expectSynced(page);
+
+  // Kitchen: every recipe, the shopping list and the food lookup.
+  await goKitchen(page);
+  await expect(page.getByRole("heading", { name: "Your recipes", exact: true })).toBeVisible();
+  await expect(page.getByTestId("recipe-card")).toContainText("Rice bowl");
+  await expect(page.getByTestId("shopping-link")).toBeVisible();
+  await expect(page.getByTestId("explore-link")).toBeVisible();
+  await shot(page, info, "kitchen-recipes", "Kitchen: every recipe in a calm list, with the shopping list and food lookup");
+  await page.getByTestId("explore-link").click();
+  await expect(page.getByLabel("Search foods")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to Kitchen" })).toBeVisible();
 });

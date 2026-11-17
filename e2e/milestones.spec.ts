@@ -35,7 +35,7 @@ test("milestones: suggest a small step, share it, someone cheers it, only the au
     data: { protocol: 1, operations: [meal(tenAgo, [rice]), meal(today, [rice, kale])] },
   });
   expect(seeded.ok()).toBe(true);
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await page.reload();
 
   const card = page.getByTestId("milestone-card");

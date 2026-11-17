@@ -103,6 +103,18 @@
 
 ---
 
+## Home and Kitchen: calmer phone layout (2026-11-17)
+
+1. **Status:** PARTIAL until the browser journeys pass in CI and the hosted check passes on dev.
+2. **Delivered:** tabs Home, Kitchen, Create, Groups, You (ADR-013). Home is today: the trail without photos, Plan a meal and I ate something buttons (a recipe picker, favorites first, then the usual plan or log sheet), the week, and what to cook as text. Kitchen lists every recipe in a compact list with small photos, a search box past five recipes, and links to the shopping list and the food lookup (Explore). Planning and logging an unplanned meal from Home go from 4 taps to 3. Spanish: Inicio and Cocina.
+3. **Verification:** typecheck, web unit tests and web build pass locally. Browser journeys (new: today.spec "home: plan and log a meal in three taps") run in CI only: no Playwright browser in the authoring session.
+4. **Deployment:** reaches cloud dev when merged into `dev`. No API, data or flag change.
+5. **Defects and limitations:** old `#/kitchen` bookmarks open the recipe list; the shopping list moved from one tap to two, and the food lookup from two to three.
+6. **Plan changes:** ADR-013; PRODUCT.md navigation amended at the owner's request.
+7. **Next:** the owner's review on dev.
+
+---
+
 ## Groups: add people by email, shared meals (2026-11-17)
 
 1. **Status:** PARTIAL. Local pass done; hosted pass on dev runs after merge. Production: not deployed, both flags off there.

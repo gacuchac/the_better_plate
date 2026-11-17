@@ -447,7 +447,7 @@ export class AgentSession {
     let input: AiTurnRequest["input"] = {
       type: "message",
       text,
-      context: { route: window.location.hash.slice(1) || "/kitchen", today: localDate(), language: getLang(), undone: this.undone.splice(0, 20) },
+      context: { route: window.location.hash.slice(1) || "/home", today: localDate(), language: getLang(), undone: this.undone.splice(0, 20) },
     };
     try {
       for (let step = 0; ; step++) {

@@ -37,11 +37,12 @@ export function snapshot() {
 }
 
 const ROUTE_NAMES: [RegExp, string][] = [
-  [/^\/kitchen$/, "Opened Your Kitchen"],
+  [/^\/home$/, "Opened Home"],
+  [/^\/(kitchen|recipes)$/, "Opened Kitchen"],
   [/^\/recipe\//, "Opened a recipe"],
   [/^\/meals/, "Opened Meals"],
   [/^\/cook\//, "Started cook mode"],
-  [/^\/explore$/, "Opened Explore"],
+  [/^\/explore$/, "Opened food lookup"],
   [/^\/you$/, "Opened You"],
   [/^\/(goals|targets)$/, "Opened goals"],
 ];

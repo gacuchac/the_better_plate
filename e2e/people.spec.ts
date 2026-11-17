@@ -30,7 +30,7 @@ test("tell us about allergies, see alerts, say how a meal went, and shop for the
   await signIn(page, newEmail("prefs"));
   // Always asked, until answered.
   await expect(page.getByTestId("allergy-prompt")).toBeVisible();
-  await shot(page, info, "kitchen-allergy-prompt", "Kitchen asks once about food allergies; shopping list and preferences links");
+  await shot(page, info, "kitchen-allergy-prompt", "Home asks once about food allergies");
   await page.getByTestId("allergy-prompt").click();
   await expect(page.getByRole("heading", { name: "Food preferences" })).toBeVisible();
   await page.getByRole("button", { name: "Yes, I'll pick them" }).click();
@@ -49,7 +49,7 @@ test("tell us about allergies, see alerts, say how a meal went, and shop for the
   const { preferences } = await (await page.request.get(`${API}/v1/preferences`)).json();
   expect(preferences[0]).toMatchObject({ allergyAnswer: "listed", allergens: ["peanut"], notes: "No spicy food" });
 
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await expect(page.getByTestId("allergy-prompt")).toHaveCount(0);
 
   // A recipe with peanuts: tagged from ingredient names, with an alert that never blocks.

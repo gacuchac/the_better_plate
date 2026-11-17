@@ -37,7 +37,8 @@ function greeting(d = new Date()) {
   return translate(h < 12 ? "kitchen.morning" : h < 18 ? "kitchen.afternoon" : "kitchen.evening");
 }
 
-export function Kitchen() {
+/** Home: today first (the plan, logging, the week), then what to cook. Recipes live in Kitchen. */
+export function Home() {
   const { recipes, catalog, account, plans, logs, preferences, kitchenLoaded } = useApp();
   // Asked until the person answers (any answer, including "I'd rather not say").
   const askAllergies = kitchenLoaded && account && !preferences.some((p) => p.id === account.id);
@@ -50,7 +51,7 @@ export function Kitchen() {
     <div className="screen">
       <header className="home-head">
         <div>
-          <p className="eyebrow">{t("kitchen.eyebrow")}</p>
+          <p className="eyebrow">{formatDay(today, { weekday: "long", day: "numeric", month: "long" })}</p>
           <h1 className="greeting">
             {greeting()}
             {account?.displayName ? `, ${account.displayName.split(" ")[0]}` : ""}
@@ -67,18 +68,6 @@ export function Kitchen() {
         </a>
       )}
 
-      <nav className="quick-links" aria-label={t("kitchen.more")}>
-        <a className="btn-soft" href="#/recipes" data-testid="recipes-link">
-          <Icon name="pan" size={18} /> {t("kitchen.yourRecipes")}
-        </a>
-        <a className="btn-soft" href="#/shopping" data-testid="shopping-link">
-          <Icon name="basket" size={18} /> {t("shop.title")}
-        </a>
-        <a className="btn-soft" href="#/preferences">
-          <Icon name="check" size={18} /> {t("prefs.title")}
-        </a>
-      </nav>
-
       <p className="catalog-status" data-testid="catalog-status">
         {catalog.status === "ready"
           ? t(catalog.offline ? "kitchen.catalogOffline" : "kitchen.catalog", { n: catalog.bundle.foodCount })
@@ -90,28 +79,58 @@ export function Kitchen() {
   );
 }
 
-/** Every recipe this person can open (their own and their groups'), off the home page. */
-export function Recipes() {
-  const { recipes } = useApp();
+/** Kitchen: every recipe this person can open (their own and their groups'), plus the shopping list and the food lookup. */
+export function Kitchen() {
+  const { recipes, favorites } = useApp();
   const t = useT();
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLocaleLowerCase();
+  // Favorites first, then the rest in their usual order.
+  const sorted = useMemo(() => [...recipes.filter((r) => favorites.has(r.id)), ...recipes.filter((r) => !favorites.has(r.id))], [recipes, favorites]);
+  const shown = q ? sorted.filter((r) => r.body.title.toLocaleLowerCase().includes(q)) : sorted;
   return (
     <div className="screen">
-      <div className="section-title">
-        <h1>{t("kitchen.yourRecipes")}</h1>
+      <header className="kitchen-head">
+        <div>
+          <p className="eyebrow">{t("nav.kitchen")}</p>
+          <h1>{t("kitchen.yourRecipes")}</h1>
+        </div>
         <button type="button" className="btn-primary" onClick={() => navigate(`/recipe/${crypto.randomUUID()}`)}>
           <Icon name="plus" /> {t("kitchen.newRecipe")}
         </button>
-      </div>
+      </header>
+      <nav className="kitchen-tools" aria-label={t("nav.kitchen")}>
+        <a className="btn-soft" href="#/shopping" data-testid="shopping-link">
+          <Icon name="basket" size={18} /> {t("shop.title")}
+        </a>
+        <a className="btn-soft" href="#/explore" data-testid="explore-link">
+          <Icon name="search" size={18} /> {t("kitchen.lookUpFood")}
+        </a>
+      </nav>
       {recipes.length === 0 ? (
         <EmptyState title={t("kitchen.emptyTitle")}>
           <p>{t("kitchen.emptyBody")}</p>
         </EmptyState>
       ) : (
-        <ul className="recipe-list">
-          {recipes.map((r) => (
-            <RecipeCard key={r.id} recipe={r} />
-          ))}
-        </ul>
+        <>
+          {recipes.length > 5 && (
+            <>
+              <label htmlFor="recipe-search" className="sr-only">
+                {t("kitchen.searchRecipes")}
+              </label>
+              <input id="recipe-search" type="search" className="recipe-search" placeholder={t("kitchen.searchRecipes")} value={query} onChange={(e) => setQuery(e.target.value)} />
+            </>
+          )}
+          {shown.length === 0 ? (
+            <p className="hint">{t("kitchen.noMatch", { q: query.trim() })}</p>
+          ) : (
+            <ul className="recipe-list" aria-label={t("kitchen.yourRecipes")}>
+              {shown.map((r) => (
+                <RecipeCard key={r.id} recipe={r} />
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );
