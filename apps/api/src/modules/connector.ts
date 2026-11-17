@@ -486,6 +486,25 @@ async function uploadRecipePhoto(input: z.infer<z.ZodObject<typeof UploadPhotoIn
   };
 }
 
+const RemovePhotoInput = { recipeId: z.uuid().describe("The recipe's id, from list_recipes") };
+
+/**
+ * Connector-only, like upload: the app has its own Remove photo button. The stored image is not
+ * deleted here; once nothing uses it, daily maintenance deletes it (jobs.ts), the same as a photo
+ * removed in the app, so an offline device or an older revision never points at a missing file.
+ */
+export async function removeRecipePhoto(recipeId: string, userId: string) {
+  const r = await recipeOrThrow(userId, recipeId);
+  if (!r.image) return { recipeId, title: r.title, photoRemoved: false, note: "This recipe had no photo." };
+  const { id: _id, version, createdAt: _c, updatedAt: _u, nutrition: _n, ...rest } = r;
+  const outcome = await withTransaction((client) => putRecipe(client, userId, recipeId, version, { ...rest, image: null }));
+  if (outcome.status !== "applied") outcomeError(outcome);
+  // Read back, so success is only reported once the recipe really has no photo.
+  const after = await recipeOrThrow(userId, recipeId);
+  if (after.image) throw new Error("The photo is still on the recipe; read it again with get_recipe and retry");
+  return { recipeId, title: r.title, photoRemoved: true, recipeVersion: after.version };
+}
+
 function createServer(session: ConnectorAuth) {
   const server = new McpServer({ name: "the-better-plate", title: "The Better Plate", version: "1.0.0" }, { instructions: CONNECTOR_INSTRUCTIONS });
   for (const name of CONNECTOR_TOOLS) {
@@ -513,6 +532,27 @@ function createServer(session: ConnectorAuth) {
       }) as never,
     );
   }
+  server.registerTool(
+    "remove_recipe_photo",
+    {
+      description:
+        "Take the photo off one of the person's recipes, whatever kind it is (found, generated or their own). The recipe itself stays. " +
+        "Ask them first. Share links and community listings made earlier keep the photo they were made with.",
+      inputSchema: z.object(RemovePhotoInput),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    },
+    (async (input: z.infer<z.ZodObject<typeof RemovePhotoInput>>) => {
+      if (!session.scopes.has("kitchen:write")) {
+        return { isError: true, content: [{ type: "text", text: "This connection wasn't given permission to change the kitchen (kitchen:write). Reconnect and allow it." }] };
+      }
+      try {
+        return { content: [{ type: "text", text: JSON.stringify(await removeRecipePhoto(input.recipeId, session.userId)) }] };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Something went wrong";
+        return { isError: true, content: [{ type: "text", text: message.slice(0, 500) }] };
+      }
+    }) as never,
+  );
   server.registerTool(
     "upload_recipe_photo",
     {

@@ -5,6 +5,7 @@
 ## What the product does
 
 - People can upload their own photos to their recipes, in the app or through a connected assistant (`upload_recipe_photo`).
+- People can take any photo off a recipe, in the app (Remove photo, then Save) or through a connected assistant (`remove_recipe_photo`). Daily maintenance deletes the stored image once it is over a week old and no recipe, live share link or community listing uses it.
 - **Rights:** before uploading, the person confirms they took the photo or have the right to use it. We store the time of that confirmation and where the upload came from (`app` or `assistant`) in `recipe_images.rights_confirmed_at` and `upload_source`.
 - **Privacy:** uploads are re-encoded on the server (WebP, at most 1600 px). All metadata is dropped, including GPS location, camera and owner fields.
 - **Visibility:** uploaded photos are served only to their owner. Shared recipe links don't include photos. The service doesn't select, edit or promote uploads.

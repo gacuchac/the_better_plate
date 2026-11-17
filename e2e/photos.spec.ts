@@ -67,6 +67,17 @@ test("upload your own photo after confirming you may use it; only you see it", a
   await expect.poll(() => loaded(shared.getByTestId("recipe-photo").locator("img"))).toBe(true);
   await shot(reader, info, "shared-recipe-photo", "Shared recipe opened signed out, with its photo");
   await guest.close();
+
+  // Remove photo takes it off the recipe once saved; the recipe stays.
+  await page.keyboard.press("Escape");
+  await expect(share).toBeHidden();
+  await page.getByRole("button", { name: "Remove photo" }).click();
+  await expect(page.getByTestId("recipe-photo")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add a photo" })).toBeVisible();
+  await saveAndSync(page);
+  const cleared = (await (await page.request.get(`${API}/v1/recipes`)).json()).recipes[0];
+  expect(cleared).toMatchObject({ title: "Grandma's stew", image: null });
+  await shot(page, info, "photo-removed", "Recipe after Remove photo and Save: no photo, recipe kept");
 });
 
 test("find a recipe photo by describing it, with credit; generate one on your key; photos stay offline", async ({ page, context }, info) => {
