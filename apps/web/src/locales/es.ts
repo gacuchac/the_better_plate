@@ -1011,6 +1011,8 @@ export const es: Messages = {
   "shared.yourAnswer": "Tu respuesta",
   "shared.answers": "Respuestas",
   "shared.open": "Ver más sobre {meal}",
+  "shared.openRecipe": "Abrir tu receta {meal}",
+  "shared.details": "Respuestas y detalles",
   "shared.planIt": "Planificarla para el grupo",
 };
 

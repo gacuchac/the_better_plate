@@ -822,3 +822,6 @@ p.label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--in
 .plan-who legend { font-weight: 600; padding: 0; }
 .welcome-card > span:first-of-type small { display: block; font-weight: 400; margin-top: 2px; }
 .welcome-card .milestone-actions { flex-basis: 100%; }
+.meal-open-own { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.meal-open-own .meal-open { text-decoration: none; color: inherit; }
+.meal-answers-open { align-self: flex-start; margin-left: 64px; min-height: 32px; font-size: 0.85rem; }

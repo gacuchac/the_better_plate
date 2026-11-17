@@ -17970,6 +17970,13 @@
                       ],
                       "format": "uuid"
                     },
+                    "myRecipeId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
                     "myReaction": {
                       "type": [
                         "object",
@@ -18040,6 +18047,7 @@
                     "sharedBy",
                     "sharedAt",
                     "recipeId",
+                    "myRecipeId",
                     "myReaction",
                     "reactions"
                   ]
@@ -18378,6 +18386,13 @@
                             ],
                             "format": "uuid"
                           },
+                          "myRecipeId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
                           "myReaction": {
                             "type": [
                               "object",
@@ -18448,6 +18463,7 @@
                           "sharedBy",
                           "sharedAt",
                           "recipeId",
+                          "myRecipeId",
                           "myReaction",
                           "reactions"
                         ]
@@ -18779,6 +18795,13 @@
                       ],
                       "format": "uuid"
                     },
+                    "myRecipeId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
                     "myReaction": {
                       "type": [
                         "object",
@@ -18849,6 +18872,7 @@
                     "sharedBy",
                     "sharedAt",
                     "recipeId",
+                    "myRecipeId",
                     "myReaction",
                     "reactions"
                   ]
@@ -19566,6 +19590,13 @@
                       ],
                       "format": "uuid"
                     },
+                    "myRecipeId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
                     "myReaction": {
                       "type": [
                         "object",
@@ -19636,6 +19667,7 @@
                     "sharedBy",
                     "sharedAt",
                     "recipeId",
+                    "myRecipeId",
                     "myReaction",
                     "reactions"
                   ]

@@ -1023,5 +1023,7 @@ export const en = {
   "shared.yourAnswer": "Your answer",
   "shared.answers": "Answers",
   "shared.open": "See more about {meal}",
+  "shared.openRecipe": "Open your recipe {meal}",
+  "shared.details": "Answers and details",
   "shared.planIt": "Plan it for the group",
 } as const;
