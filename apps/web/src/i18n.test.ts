@@ -25,10 +25,14 @@ describe("interface strings", () => {
     expect(unused).toEqual([]);
   });
 
-  it("covers every nutrient in the catalog and every safety-chart group", async () => {
+  it("covers every nutrient in the catalog, every safety-chart group and every cooking technique", async () => {
     const catalog = JSON.parse(readFileSync(join(import.meta.dirname, "../../../data/catalog/starter-catalog.json"), "utf8")) as { nutrients: { key: string }[] };
     for (const n of catalog.nutrients) expect(esExtra[`nutrient.${n.key}`], n.key).toBeTruthy();
-    const { SAFETY_RULES } = await import("@betterplate/nutrition");
+    const { SAFETY_RULES, TECHNIQUES } = await import("@betterplate/nutrition");
+    for (const tech of TECHNIQUES) {
+      expect(esExtra[`technique.${tech.id}.label`], tech.id).toBeTruthy();
+      expect(esExtra[`technique.${tech.id}.what`], tech.id).toBeTruthy();
+    }
     for (const rule of Object.values(SAFETY_RULES)) {
       expect(esExtra[`safety.${rule.id}.label`], rule.id).toBeTruthy();
       if (rule.note) expect(esExtra[`safety.${rule.id}.note`], rule.id).toBeTruthy();

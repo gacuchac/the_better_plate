@@ -63,9 +63,9 @@ test("core screens have no automatically detectable WCAG 2.2 AA violations", asy
   await audit(page, "log-sheet");
   await page.getByRole("button", { name: "Save as eaten" }).click();
 
-  await page.getByRole("link", { name: "Cook" }).click();
+  await page.getByRole("link", { name: "Cook it" }).click();
   await audit(page, "cook-start");
-  await page.getByRole("button", { name: "Start cooking" }).click();
+  await page.getByRole("button", { name: "Mark done" }).click();
   await audit(page, "cook-step");
   await page.goto(recipeUrl);
 
