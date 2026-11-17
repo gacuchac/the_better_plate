@@ -5,10 +5,18 @@ const RICE = "Rice, white, long-grain, regular, enriched, cooked";
 
 // Today on Home: the plan always comes first (an empty-plan card when nothing is planned),
 // then "Let's cook something"; a day with a plan shows the trail with one-tap Eat and Undo; a goal the person set gets a mark, and going past it is stated calmly.
+// Both positions are read in one go in the page: two separate boundingBox calls could straddle a
+// scroll or re-render (seen on the mobile project) and compare positions from different moments.
 async function expectPlanFirst(page: import("@playwright/test").Page) {
-  const plan = await page.getByTestId("today-card").boundingBox();
-  const cook = await page.getByTestId("cook-section").boundingBox();
-  expect(plan && cook && plan.y < cook.y).toBe(true);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const plan = document.querySelector('[data-testid="today-card"]');
+        const cook = document.querySelector('[data-testid="cook-section"]');
+        return !!plan && !!cook && plan.getBoundingClientRect().top < cook.getBoundingClientRect().top;
+      }),
+    )
+    .toBe(true);
 }
 
 test("today: empty day, planned trail with Eat and Undo, and a calm note past a calorie goal", async ({ page }, info) => {
