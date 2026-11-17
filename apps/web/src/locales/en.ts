@@ -367,6 +367,7 @@ export const en = {
   "cook.ownSteps": "These steps are your own. Curated method guides with tested times and temperatures aren't available yet.",
   "cook.doneOf": "{done} of {total} done",
   "cook.markDone": "Mark done",
+  "cook.noStepPhoto": "No photo for this step yet",
   "cook.allSteps": "All steps",
   "cook.technique": "Technique",
   "cook.techniqueNote": "Techniques are read from the words in each step.",

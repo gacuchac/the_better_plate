@@ -133,6 +133,22 @@ function writeProgress(key: string, fingerprint: string, done: Set<number>) {
   }
 }
 
+/**
+ * A step's picture. Steps have no photos yet, so this shows a placeholder slot in the
+ * app's no-photo style; pass `src` once a step can carry its own photo.
+ */
+function StepPhoto({ src, alt, large = false }: { src?: string; alt?: string; large?: boolean }) {
+  const t = useT();
+  const cls = `cook-shot${large ? " large" : ""}`;
+  if (src) return <img className={cls} src={src} alt={alt ?? ""} loading="lazy" />;
+  return (
+    <span className={`${cls} empty`} data-testid="cook-step-photo" aria-hidden={large ? undefined : true}>
+      <Icon name="image" size={large ? 28 : 20} />
+      {large && <span className="cook-shot-note">{t("cook.noStepPhoto")}</span>}
+    </span>
+  );
+}
+
 function Techniques({ techniques }: { techniques: Technique[] }) {
   const t = useT();
   if (!techniques.length) return null;
@@ -247,6 +263,7 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
             {t("cook.stepOf", { index: current + 1, total })}
             {step.label ? ` · ${step.label}` : ""}
           </h1>
+          <StepPhoto large />
           <p className="cook-step" data-testid="cook-step">{step.text}</p>
           <Techniques techniques={step.techniques} />
           {reminders.length > 0 && (
@@ -300,6 +317,7 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
                       </span>
                     )}
                   </span>
+                  <StepPhoto />
                 </label>
               </li>
             ))}
