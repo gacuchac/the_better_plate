@@ -154,6 +154,44 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     expect(JSON.stringify(changes)).toContain(recipeId);
   });
 
+  it("removes a recipe's photo and keeps the recipe, only for the person's own recipes and with write permission", async () => {
+    const { access_token: token } = await connect(alice);
+    const tools = (await (await mcp(token, "tools/list")).json()).result.tools as { name: string; annotations: { destructiveHint?: boolean } }[];
+    expect(tools.find((t) => t.name === "remove_recipe_photo")!.annotations.destructiveHint).toBe(true);
+
+    const chicken = (await tool(token, "search_foods", { query: "chicken breast raw" })).data.foods[0].id as string;
+    const saved = await tool(token, "save_recipe", { title: "Photo to remove", servings: 2, ingredients: [{ foodId: chicken, grams: 300 }], method: "Cook to 165°F." });
+    const recipeId = saved.data.recipeId as string;
+    const photo = (await sharp({ create: { width: 400, height: 300, channels: 3, background: "#a7c9d8" } }).jpeg().toBuffer()).toString("base64");
+    expect((await tool(token, "upload_recipe_photo", { recipeId, imageBase64: photo, rightsConfirmed: true })).data.verified).toBe(true);
+    const before = await (await alice.request(`/v1/recipes/${recipeId}`)).json();
+    expect(before.image).toMatchObject({ kind: "upload" });
+
+    // Someone else's connection, or one without write permission, can't take it off.
+    const bobToken = (await connect(bob)).access_token;
+    expect((await tool(bobToken, "remove_recipe_photo", { recipeId })).isError).toBe(true);
+    const readOnly = (await connect(alice, "kitchen:read")).access_token;
+    const refused = await tool(readOnly, "remove_recipe_photo", { recipeId });
+    expect(refused.isError).toBe(true);
+    expect(refused.text).toContain("kitchen:write");
+    expect((await (await alice.request(`/v1/recipes/${recipeId}`)).json()).image).toMatchObject({ kind: "upload" });
+
+    const removed = await tool(token, "remove_recipe_photo", { recipeId });
+    expect(removed.data).toMatchObject({ recipeId, title: "Photo to remove", photoRemoved: true, recipeVersion: before.version + 1 });
+    const after = await (await alice.request(`/v1/recipes/${recipeId}`)).json();
+    expect(after.image).toBeNull();
+    expect(after.title).toBe("Photo to remove");
+    expect(after.ingredients).toEqual(before.ingredients);
+    expect(after.method).toBe(before.method);
+    expect((await tool(token, "get_recipe", { recipeId })).data.photo).toBeNull();
+
+    // Again: nothing to remove, and no new version.
+    const again = await tool(token, "remove_recipe_photo", { recipeId });
+    expect(again.data).toMatchObject({ photoRemoved: false });
+    expect((await (await alice.request(`/v1/recipes/${recipeId}`)).json()).version).toBe(after.version);
+    expect((await tool(token, "remove_recipe_photo", { recipeId: crypto.randomUUID() })).isError).toBe(true);
+  });
+
   it("serves both MCP protocol eras: 2026-07-28 clients and 2025 clients", async () => {
     const { access_token: token } = await connect(alice);
     // The official SDK client, talking to the in-process app with the person's access token.
