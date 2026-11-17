@@ -7,4 +7,5 @@
 - **Tests:** 221 unit/API tests (nutrition 81, web 27, API 113) and 48 Playwright runs (24 journeys × desktop, mobile, including an automated WCAG 2.2 AA audit) passing locally. Details in `docs/test-evidence.md`.
 - **Blocked or open:** production (owner approval, legal review of the privacy notice P3, email provider confirmation S5), food photography licenses (P5), curated cooking-method guides and retention factors (need sourced content), admin triage console with MFA, native-speaker review of the Spanish text, restore drill on Railway dev and production; counsel review of allergies and children's profiles (R-groups).
 - **Redesign (2026-11-09):** Manrope tokens, raised Create nav button, Today trail with Eat/Undo, photo recipe grid, meal-plan week strip, "your own goal" note and Gentle mode. See the Hybrid redesign entry in `docs/MILESTONE_STATUS.md`.
+- **Groups, part two (2026-11-17):** add people by email before they have an account (they join with a tap after signing in) and shared meals as a quick thumbs-up list; both behind flags that are off in production. See `docs/MILESTONE_STATUS.md`.
 - **Ledger:** `docs/requirements-ledger.md`.

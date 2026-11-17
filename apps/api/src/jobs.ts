@@ -8,7 +8,7 @@ import { pool } from "./db/pool.ts";
 export const SYNC_LEDGER_DAYS = 30;
 
 /** Daily housekeeping; one instance at a time (advisory lock), safe to run repeatedly. */
-export async function runMaintenance(): Promise<{ syncOperations: number; sessions: number; images: number } | null> {
+export async function runMaintenance(): Promise<{ syncOperations: number; sessions: number; images: number; expiredInvites: number } | null> {
   const client = await pool.connect();
   try {
     const { rows } = await client.query<{ locked: boolean }>("select pg_try_advisory_lock(hashtext('betterplate:maintenance')) as locked");
@@ -25,9 +25,13 @@ export async function runMaintenance(): Promise<{ syncOperations: number; sessio
            and not exists (select 1 from share_snapshots s where s.user_id = i.user_id and s.revoked_at is null
                              and (s.expires_at is null or s.expires_at > now()) and s.snapshot->'image'->>'id' = i.id::text)
            and not exists (select 1 from community_recipes c where c.user_id = i.user_id and c.unshared_at is null
-                             and c.snapshot->'image'->>'id' = i.id::text)`,
+                             and c.snapshot->'image'->>'id' = i.id::text)
+           and not exists (select 1 from group_meal_shares g where g.snapshot->'image'->>'id' = i.id::text)`,
       );
-      return { syncOperations: ops.rowCount ?? 0, sessions: sessions.rowCount ?? 0, images: images.rowCount ?? 0 };
+      // Email invites nobody used: the address goes with them. Send records only back the daily cap.
+      const invites = await client.query("delete from group_pending_members where expires_at < now()");
+      await client.query("delete from group_invite_sends where sent_at < now() - interval '2 days'");
+      return { syncOperations: ops.rowCount ?? 0, sessions: sessions.rowCount ?? 0, images: images.rowCount ?? 0, expiredInvites: invites.rowCount ?? 0 };
     } finally {
       await client.query("select pg_advisory_unlock(hashtext('betterplate:maintenance'))");
     }

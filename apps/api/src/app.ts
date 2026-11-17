@@ -28,6 +28,8 @@ import { groupRoutes } from "./modules/groups.ts";
 import { shoppingRoutes } from "./modules/shopping.ts";
 import { communityRoutes } from "./modules/community.ts";
 import { milestoneRoutes } from "./modules/milestones.ts";
+import { inviteRoutes } from "./modules/invites.ts";
+import { mealShareRoutes } from "./modules/mealshares.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -110,6 +112,8 @@ export function createApp() {
   app.route("/", shoppingRoutes);
   app.route("/", preferenceRoutes);
   app.route("/", groupRoutes);
+  app.route("/", inviteRoutes);
+  app.route("/", mealShareRoutes);
   app.route("/", shareRoutes);
   app.route("/", communityRoutes);
   app.route("/", milestoneRoutes);

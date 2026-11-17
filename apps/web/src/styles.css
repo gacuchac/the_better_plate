@@ -741,3 +741,45 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .week-line-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .week-amount { font-variant-numeric: tabular-nums; }
 .week-line .fine { margin: 0; }
+
+/* ---------- groups: people added by email, shared meals ---------- */
+p.label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--ink-2); margin: 16px 0 6px; }
+.tag-amber { background: var(--amber-soft); color: var(--amber); }
+.nudge-card { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; text-decoration: none; color: inherit; margin-top: 12px; }
+.nudge-card > span:first-of-type { flex: 1 1 12rem; font-weight: 600; }
+.invite-for-me + .invite-for-me { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 8px; }
+/* Shared meals: a quick list to choose from; the full card opens on tap. */
+.meal-picks { list-style: none; margin: 8px 0 0; padding: 0; display: grid; }
+.meal-row-pick { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+.meal-row-pick:first-child { border-top: 0; }
+.meal-open { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; background: none; border: 0; padding: 4px; margin: -4px; border-radius: 14px; color: inherit; font: inherit; cursor: pointer; min-width: 0; }
+.meal-open:hover { background: var(--surface-2); }
+.meal-text { display: grid; gap: 2px; min-width: 0; }
+.meal-title { font-weight: 650; overflow-wrap: anywhere; }
+.meal-summary { color: var(--ink-2); font-size: 0.875rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.meal-macros { color: var(--ink-3); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+.meal-tally { color: var(--sage-ink); font-size: 0.8125rem; font-weight: 600; }
+.meal-thumb { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; display: block; background: var(--surface-2); }
+.meal-thumb.monogram { grid-row: auto; font-size: 1.5rem; }
+.meal-thumb.large { width: 100%; height: 160px; border-radius: var(--radius-lg); font-size: 3rem; }
+.tint-0 { background: var(--sage-soft); color: var(--sage-ink); }
+.tint-1 { background: var(--amber-soft); color: var(--amber); }
+.tint-2 { background: #e9eef7; color: #3c5a8a; }
+.tint-3 { background: #f5e9ef; color: #8a3c5f; }
+.meal-votes { display: flex; gap: 6px; }
+.vote { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink-3); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.vote:hover:not(:disabled) { border-color: var(--ink-3); color: var(--ink); }
+.vote-like[aria-pressed="true"] { background: var(--sage-ink); border-color: var(--sage-ink); color: #fff; }
+.vote-dislike[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #fff; }
+.meal-row-error { grid-column: 1 / -1; margin: 0; }
+.meal-detail { display: grid; gap: 8px; }
+.meal-detail h3 { margin: 12px 0 0; font-size: 1rem; }
+.meal-detail p { margin: 0; }
+.meal-description { white-space: pre-wrap; line-height: 1.55; overflow-wrap: anywhere; }
+.meal-detail textarea { width: 100%; }
+.shared-nutrients { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: 6px 12px; margin: 4px 0 0; }
+.shared-nutrients div { display: flex; justify-content: space-between; gap: 6px; font-size: 0.875rem; border-bottom: 1px dashed var(--line); padding: 2px 0; }
+.shared-nutrients dt { color: var(--ink-3); }
+.shared-nutrients dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.shared-answer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.shared-answers { display: grid; gap: 4px; margin-top: 4px; }

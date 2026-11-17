@@ -14,6 +14,7 @@ import { CommunityTile, useCommunityHome } from "./Community.tsx";
 import { ownAdventure } from "../picks.ts";
 import { Week } from "./Week.tsx";
 import { MilestoneCard } from "./Milestones.tsx";
+import { GroupNudge } from "./SharedMeals.tsx";
 
 function Thumb({ recipe, title }: { recipe: LocalRecipe | undefined; title: string }) {
   return recipe?.body.image ? (
@@ -226,6 +227,7 @@ export function Today() {
           {t("today.waiting", { n: trail.waiting })}
         </p>
       )}
+      <GroupNudge />
       <MilestoneCard />
       <Week />
 

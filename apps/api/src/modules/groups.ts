@@ -60,7 +60,7 @@ const inviteUrl = (id: string) => `${config.publicAppUrl.replace(/\/$/, "")}/#/j
 const notFound = () => new ApiError(404, "not_found", "Group not found");
 
 /** The caller's role, or 404 for people outside the group (its existence is never revealed). */
-async function requireRole(db: Pick<pg.PoolClient, "query">, groupId: string, userId: string, allowed: GroupRole[]): Promise<GroupRole> {
+export async function requireRole(db: Pick<pg.PoolClient, "query">, groupId: string, userId: string, allowed: GroupRole[]): Promise<GroupRole> {
   const role = await roleIn(db, groupId, userId);
   if (!role) throw notFound();
   if (!allowed.includes(role)) {
@@ -79,9 +79,11 @@ async function members(db: Pick<pg.PoolClient, "query">, groupId: string): Promi
   return rows;
 }
 
+type PendingRow = { id: string; email: string; display_name: string; role: "admin" | "member"; created_at: Date; emailed_at: Date | null; expires_at: Date };
+
 export async function groupDetail(groupId: string, userId: string): Promise<GroupDetail> {
   const role = await requireRole(pool, groupId, userId, ["owner", "admin", "member"]);
-  const [group, list, invites] = await Promise.all([
+  const [group, list, invites, pending] = await Promise.all([
     pool.query<{ name: string }>("select name from groups where id = $1", [groupId]),
     members(pool, groupId),
     isAdminRole(role)
@@ -89,6 +91,14 @@ export async function groupDetail(groupId: string, userId: string): Promise<Grou
           .query<InviteRow>("select * from group_invites where group_id = $1 and used_at is null and revoked_at is null and expires_at > now() order by created_at desc", [groupId])
           .then((r) => r.rows)
       : Promise.resolve([] as InviteRow[]),
+    isAdminRole(role) && config.features.groupEmailInvites
+      ? pool
+          .query<PendingRow>(
+            "select id, email, display_name, role, created_at, emailed_at, expires_at from group_pending_members where group_id = $1 and expires_at > now() order by created_at",
+            [groupId],
+          )
+          .then((r) => r.rows)
+      : Promise.resolve([] as PendingRow[]),
   ]);
   return {
     id: groupId,
@@ -105,11 +115,16 @@ export async function groupDetail(groupId: string, userId: string): Promise<Grou
       ownedByMe: m.owner_user_id === userId,
     })),
     invites: invites.map((i) => ({ id: i.id, role: i.role, url: inviteUrl(i.id), createdAt: i.created_at.toISOString(), expiresAt: i.expires_at.toISOString() })),
+    pending: pending.map((p) => ({
+      id: p.id, email: p.email, name: p.display_name, role: p.role,
+      invitedAt: p.created_at.toISOString(), emailedAt: p.emailed_at?.toISOString() ?? null, expiresAt: p.expires_at.toISOString(),
+    })),
+    features: { emailInvites: config.features.groupEmailInvites, mealShares: config.features.groupMealShares },
   };
 }
 
 /** Sends the group's recipes again to every member's kitchen (after someone joins). */
-async function resendGroupRecipes(client: pg.PoolClient, groupId: string) {
+export async function resendGroupRecipes(client: pg.PoolClient, groupId: string) {
   await lockUsers(client, await groupUserIds(client, groupId));
   await client.query("update recipes set server_seq = nextval('change_seq') where group_id = $1 and deleted_at is null", [groupId]);
 }
