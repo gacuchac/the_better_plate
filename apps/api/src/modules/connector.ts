@@ -3,7 +3,7 @@ import { createMcpHandler, isLegacyRequest, McpServer, WebStandardStreamableHTTP
 import { oauthProviderAuthServerMetadata } from "@better-auth/oauth-provider";
 import { createLocalJWKSet, errors as joseErrors, type JSONWebKeySet, jwtVerify } from "jose";
 import { z } from "zod";
-import { AI_TOOLS, RecipeBodySchema, type AiToolInput, type AiToolName, type RecipeBody } from "@betterplate/contracts";
+import { AI_TOOLS, COOKING_GUIDE, RecipeBodySchema, type AiToolInput, type AiToolName, type RecipeBody } from "@betterplate/contracts";
 import { reviseGoal, sumMeals } from "@betterplate/nutrition";
 import { auth, CONNECTOR_SCOPES, MCP_RESOURCE } from "../auth.ts";
 import { config } from "../config.ts";
@@ -27,6 +27,7 @@ const RESOURCE_METADATA_URL = `${new URL(MCP_RESOURCE).origin}/.well-known/oauth
 
 export const CONNECTOR_INSTRUCTIONS = `The Better Plate is a home-cooking app with estimated nutrition from USDA FoodData Central. These tools act in the signed-in person's kitchen; changes appear in their app.
 - Foods must come from search_foods; use those ids and amounts in grams. Never invent food ids.
+- In save_recipe, mark every ingredient raw or cooked (with the method) from the recipe's steps; the app uses it to estimate vitamins and minerals lost in cooking.
 - Nutrition numbers come only from tool results. Never state nutrient amounts from your own knowledge, and call them estimates. "Not reported" means the source has no value, not zero.
 - log_meal only when the person says they ate something; plan_meal is for meals they intend to eat. A plan is never food eaten.
 - Give no medical advice or diagnosis, and do not compute intake targets. set_goal only with numbers the person stated; never suggest or judge goal amounts.
@@ -136,7 +137,10 @@ const DESTRUCTIVE = new Set<ConnectorTool>(["delete_recipe", "remove_eaten_meal"
 const DESCRIPTIONS: Partial<Record<ConnectorTool, string>> = {
   search_foods: "Search The Better Plate's USDA foods (English USDA names, e.g. 'chicken breast raw'). Returns up to 10 foods with ids to use in recipes; never invent ids.",
   save_recipe:
-    "Create a recipe (omit recipeId) or replace an existing one (pass recipeId and the complete new version; read it with get_recipe first). It appears in the person's app. Returns estimated macros per serving.",
+    "Create a recipe (omit recipeId) or replace an existing one (pass recipeId and the complete new version; read it with get_recipe first). It appears in the person's app. Returns estimated macros per serving. " +
+    "Ingredients are weighed raw, and each one needs cooking: {state: raw} or {state: cooked, method}. " +
+    COOKING_GUIDE +
+    " Cooked ingredients keep the share of each vitamin and mineral that USDA's retention factors give; energy and macros don't change.",
   delete_recipe: "Delete one of the person's recipes. Ask them first.",
   remove_eaten_meal: "Remove a meal from what the person ate (logId from get_day). Ask them first.",
   set_recipe_photo: "Use a photo from find_photos on a recipe; its credit is stored and shown in the app. Pick one whose title clearly shows the same dish.",
@@ -190,6 +194,8 @@ const TOOLS: { [N in ConnectorTool]: Impl<N> } = {
         amount: `${i.quantity} ${i.unit === "portion" ? "portion" : i.unit}`,
         role: i.role,
         oilDiscardedGrams: i.oilDiscardedGrams ?? null,
+        cooking: i.cooking ? { state: i.cooking.state, method: i.cooking.method, guessedFromSteps: i.cooking.source === "inferred" } : null,
+        cookingLossesApplied: i.cooking?.state === "cooked" ? !r.nutrition?.disclosures.some((d) => d.code === "no_retention_factor" && d.ingredientId === i.id) : null,
       })),
       estimatedPerServing: r.nutrition?.perServing.map((n) => ({ key: n.key, amount: round(n.amount), unit: n.unit, status: n.status })) ?? null,
       disclosures: r.nutrition?.disclosures.map((d) => d.code) ?? [],
@@ -213,12 +219,17 @@ const TOOLS: { [N in ConnectorTool]: Impl<N> } = {
         portionIndex: null,
         role: i.role,
         oilDiscardedGrams: i.role === "cooking_oil" ? (i.oilDiscardedGrams ?? null) : null,
+        cooking: { state: i.cooking.state, method: i.cooking.state === "cooked" ? (i.cooking.method ?? null) : null, source: "stated" },
       })),
     });
     const id = previous?.id ?? uid();
     const outcome = await withTransaction((client) => putRecipe(client, userId, id, previous?.version ?? null, body));
     if (outcome.status !== "applied") outcomeError(outcome);
-    return { recipeId: id, saved: true, version: outcome.version, estimatedPerServing: macros(outcome.recipe?.nutrition?.perServing ?? []) };
+    const noFactor = (outcome.recipe?.nutrition?.disclosures ?? []).filter((d) => d.code === "no_retention_factor").length;
+    return {
+      recipeId: id, saved: true, version: outcome.version, estimatedPerServing: macros(outcome.recipe?.nutrition?.perServing ?? []),
+      cooking: noFactor ? `${noFactor} cooked ingredient(s) have no USDA retention factor; their raw values are used` : "Cooking losses applied with USDA retention factors",
+    };
   },
 
   async delete_recipe({ recipeId }, userId) {

@@ -124,12 +124,12 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     const found = await tool(token, "search_foods", { query: "chicken breast raw" });
     const chicken = found.data.foods[0].id as string;
     expect(chicken).toMatch(/^fdc:\d+$/);
-    const saved = await tool(token, "save_recipe", { title: "Connector chicken", description: "Simple and juicy.", servings: 2, ingredients: [{ foodId: chicken, grams: 300 }], method: "Cook to 165°F." });
+    const saved = await tool(token, "save_recipe", { title: "Connector chicken", description: "Simple and juicy.", servings: 2, ingredients: [{ foodId: chicken, grams: 300, cooking: { state: "cooked", method: "grilled" } }], method: "Cook to 165°F." });
     expect(saved.data.estimatedPerServing.find((n: { key: string }) => n.key === "protein").amount).toBeGreaterThan(0);
     const recipeId = saved.data.recipeId as string;
     expect((await tool(token, "get_recipe", { recipeId })).data.description).toBe("Simple and juicy.");
 
-    expect((await tool(token, "save_recipe", { title: "Bad", servings: 1, ingredients: [{ foodId: "fdc:999999999", grams: 10 }] })).isError).toBe(true);
+    expect((await tool(token, "save_recipe", { title: "Bad", servings: 1, ingredients: [{ foodId: "fdc:999999999", grams: 10, cooking: { state: "raw" } }] })).isError).toBe(true);
     expect((await tool(token, "plan_meal", { recipeId, date: today, slot: "dinner", servings: 1 })).data.planned).toBe(true);
     expect((await tool(token, "log_meal", { recipeId, date: today, slot: "dinner", servings: 1 })).data.loggedAsEaten).toBe(true);
     expect((await tool(token, "log_meal", { recipeId, date: "2999-01-01", slot: "dinner", servings: 1 })).isError).toBe(true);
@@ -154,13 +154,40 @@ describe("Claude/ChatGPT connector (MCP with OAuth)", () => {
     expect(JSON.stringify(changes)).toContain(recipeId);
   });
 
+  it("requires a cooked or raw state on every ingredient and applies USDA cooking losses", async () => {
+    const { access_token: token } = await connect(alice);
+    const tools = (await (await mcp(token, "tools/list")).json()).result.tools as { name: string; description: string; inputSchema: { properties: { ingredients: { items: { required: string[] } } } } }[];
+    const save = tools.find((t) => t.name === "save_recipe")!;
+    expect(save.inputSchema.properties.ingredients.items.required).toContain("cooking");
+    expect(save.description).toContain("salad greens");
+    const spinach = (await tool(token, "search_foods", { query: "spinach raw" })).data.foods[0].id as string;
+
+    const missing = await tool(token, "save_recipe", { title: "No state", servings: 1, ingredients: [{ foodId: spinach, grams: 100 }], method: "Boil the spinach." });
+    expect(missing.isError).toBe(true);
+    expect(missing.text).toContain("Every ingredient needs cooking");
+    const noMethod = await tool(token, "save_recipe", { title: "No method", servings: 1, ingredients: [{ foodId: spinach, grams: 100, cooking: { state: "cooked" } }] });
+    expect(noMethod.isError).toBe(true);
+    expect(noMethod.text).toContain("give cooking.method");
+
+    const raw = await tool(token, "save_recipe", { title: "Spinach salad", servings: 1, ingredients: [{ foodId: spinach, grams: 100, cooking: { state: "raw" } }], method: "Toss." });
+    const boiled = await tool(token, "save_recipe", { title: "Boiled spinach", servings: 1, ingredients: [{ foodId: spinach, grams: 100, cooking: { state: "cooked", method: "boiled" } }], method: "Boil and drain." });
+    expect(boiled.data.cooking).toBe("Cooking losses applied with USDA retention factors");
+    const per = async (recipeId: string, key: string) =>
+      ((await tool(token, "get_recipe", { recipeId })).data.estimatedPerServing as { key: string; amount: number }[]).find((n) => n.key === key)!.amount;
+    // USDA: leafy greens boiled and drained keep 55% of vitamin C; energy is unchanged.
+    expect(await per(boiled.data.recipeId, "vitamin_c")).toBeCloseTo((await per(raw.data.recipeId, "vitamin_c")) * 0.55, 0);
+    expect(await per(boiled.data.recipeId, "energy_kcal")).toBe(await per(raw.data.recipeId, "energy_kcal"));
+    const read = (await tool(token, "get_recipe", { recipeId: boiled.data.recipeId })).data;
+    expect(read.ingredients[0]).toMatchObject({ cooking: { state: "cooked", method: "boiled", guessedFromSteps: false }, cookingLossesApplied: true });
+  });
+
   it("removes a recipe's photo and keeps the recipe, only for the person's own recipes and with write permission", async () => {
     const { access_token: token } = await connect(alice);
     const tools = (await (await mcp(token, "tools/list")).json()).result.tools as { name: string; annotations: { destructiveHint?: boolean } }[];
     expect(tools.find((t) => t.name === "remove_recipe_photo")!.annotations.destructiveHint).toBe(true);
 
     const chicken = (await tool(token, "search_foods", { query: "chicken breast raw" })).data.foods[0].id as string;
-    const saved = await tool(token, "save_recipe", { title: "Photo to remove", servings: 2, ingredients: [{ foodId: chicken, grams: 300 }], method: "Cook to 165°F." });
+    const saved = await tool(token, "save_recipe", { title: "Photo to remove", servings: 2, ingredients: [{ foodId: chicken, grams: 300, cooking: { state: "cooked", method: "grilled" } }], method: "Cook to 165°F." });
     const recipeId = saved.data.recipeId as string;
     const photo = (await sharp({ create: { width: 400, height: 300, channels: 3, background: "#a7c9d8" } }).jpeg().toBuffer()).toString("base64");
     expect((await tool(token, "upload_recipe_photo", { recipeId, imageBase64: photo, rightsConfirmed: true })).data.verified).toBe(true);

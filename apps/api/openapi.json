@@ -1516,6 +1516,59 @@
                                   ],
                                   "minimum": 0,
                                   "maximum": 100000
+                                },
+                                "cooking": {
+                                  "type": [
+                                    "object",
+                                    "null"
+                                  ],
+                                  "properties": {
+                                    "state": {
+                                      "type": "string",
+                                      "enum": [
+                                        "raw",
+                                        "cooked"
+                                      ]
+                                    },
+                                    "method": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ],
+                                      "enum": [
+                                        "boiled",
+                                        "simmered",
+                                        "braised",
+                                        "slow_cooked",
+                                        "pressure_cooked",
+                                        "steamed",
+                                        "blanched",
+                                        "poached",
+                                        "microwaved",
+                                        "baked",
+                                        "roasted",
+                                        "grilled",
+                                        "pan_fried",
+                                        "sauteed",
+                                        "stir_fried",
+                                        "deep_fried",
+                                        "air_fried",
+                                        null
+                                      ]
+                                    },
+                                    "source": {
+                                      "type": "string",
+                                      "enum": [
+                                        "stated",
+                                        "inferred"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "state",
+                                    "method",
+                                    "source"
+                                  ]
                                 }
                               },
                               "required": [
@@ -2052,6 +2105,59 @@
                           ],
                           "minimum": 0,
                           "maximum": 100000
+                        },
+                        "cooking": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "raw",
+                                "cooked"
+                              ]
+                            },
+                            "method": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "enum": [
+                                "boiled",
+                                "simmered",
+                                "braised",
+                                "slow_cooked",
+                                "pressure_cooked",
+                                "steamed",
+                                "blanched",
+                                "poached",
+                                "microwaved",
+                                "baked",
+                                "roasted",
+                                "grilled",
+                                "pan_fried",
+                                "sauteed",
+                                "stir_fried",
+                                "deep_fried",
+                                "air_fried",
+                                null
+                              ]
+                            },
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "stated",
+                                "inferred"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "state",
+                            "method",
+                            "source"
+                          ]
                         }
                       },
                       "required": [
@@ -2296,6 +2402,59 @@
                             ],
                             "minimum": 0,
                             "maximum": 100000
+                          },
+                          "cooking": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "raw",
+                                  "cooked"
+                                ]
+                              },
+                              "method": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "enum": [
+                                  "boiled",
+                                  "simmered",
+                                  "braised",
+                                  "slow_cooked",
+                                  "pressure_cooked",
+                                  "steamed",
+                                  "blanched",
+                                  "poached",
+                                  "microwaved",
+                                  "baked",
+                                  "roasted",
+                                  "grilled",
+                                  "pan_fried",
+                                  "sauteed",
+                                  "stir_fried",
+                                  "deep_fried",
+                                  "air_fried",
+                                  null
+                                ]
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "stated",
+                                  "inferred"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "state",
+                              "method",
+                              "source"
+                            ]
                           }
                         },
                         "required": [
@@ -2844,6 +3003,59 @@
                           ],
                           "minimum": 0,
                           "maximum": 100000
+                        },
+                        "cooking": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "raw",
+                                "cooked"
+                              ]
+                            },
+                            "method": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "enum": [
+                                "boiled",
+                                "simmered",
+                                "braised",
+                                "slow_cooked",
+                                "pressure_cooked",
+                                "steamed",
+                                "blanched",
+                                "poached",
+                                "microwaved",
+                                "baked",
+                                "roasted",
+                                "grilled",
+                                "pan_fried",
+                                "sauteed",
+                                "stir_fried",
+                                "deep_fried",
+                                "air_fried",
+                                null
+                              ]
+                            },
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "stated",
+                                "inferred"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "state",
+                            "method",
+                            "source"
+                          ]
                         }
                       },
                       "required": [
@@ -2855,6 +3067,10 @@
                       ]
                     },
                     "maxItems": 100
+                  },
+                  "method": {
+                    "type": "string",
+                    "maxLength": 10000
                   }
                 },
                 "required": [
@@ -3249,6 +3465,59 @@
                             ],
                             "minimum": 0,
                             "maximum": 100000
+                          },
+                          "cooking": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "raw",
+                                  "cooked"
+                                ]
+                              },
+                              "method": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "enum": [
+                                  "boiled",
+                                  "simmered",
+                                  "braised",
+                                  "slow_cooked",
+                                  "pressure_cooked",
+                                  "steamed",
+                                  "blanched",
+                                  "poached",
+                                  "microwaved",
+                                  "baked",
+                                  "roasted",
+                                  "grilled",
+                                  "pan_fried",
+                                  "sauteed",
+                                  "stir_fried",
+                                  "deep_fried",
+                                  "air_fried",
+                                  null
+                                ]
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "stated",
+                                  "inferred"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "state",
+                              "method",
+                              "source"
+                            ]
                           }
                         },
                         "required": [
@@ -3798,6 +4067,59 @@
                           ],
                           "minimum": 0,
                           "maximum": 100000
+                        },
+                        "cooking": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "raw",
+                                "cooked"
+                              ]
+                            },
+                            "method": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "enum": [
+                                "boiled",
+                                "simmered",
+                                "braised",
+                                "slow_cooked",
+                                "pressure_cooked",
+                                "steamed",
+                                "blanched",
+                                "poached",
+                                "microwaved",
+                                "baked",
+                                "roasted",
+                                "grilled",
+                                "pan_fried",
+                                "sauteed",
+                                "stir_fried",
+                                "deep_fried",
+                                "air_fried",
+                                null
+                              ]
+                            },
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "stated",
+                                "inferred"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "state",
+                            "method",
+                            "source"
+                          ]
                         }
                       },
                       "required": [
@@ -4038,6 +4360,59 @@
                             ],
                             "minimum": 0,
                             "maximum": 100000
+                          },
+                          "cooking": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "raw",
+                                  "cooked"
+                                ]
+                              },
+                              "method": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "enum": [
+                                  "boiled",
+                                  "simmered",
+                                  "braised",
+                                  "slow_cooked",
+                                  "pressure_cooked",
+                                  "steamed",
+                                  "blanched",
+                                  "poached",
+                                  "microwaved",
+                                  "baked",
+                                  "roasted",
+                                  "grilled",
+                                  "pan_fried",
+                                  "sauteed",
+                                  "stir_fried",
+                                  "deep_fried",
+                                  "air_fried",
+                                  null
+                                ]
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "stated",
+                                  "inferred"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "state",
+                              "method",
+                              "source"
+                            ]
                           }
                         },
                         "required": [
@@ -5167,6 +5542,59 @@
                                       ],
                                       "minimum": 0,
                                       "maximum": 100000
+                                    },
+                                    "cooking": {
+                                      "type": [
+                                        "object",
+                                        "null"
+                                      ],
+                                      "properties": {
+                                        "state": {
+                                          "type": "string",
+                                          "enum": [
+                                            "raw",
+                                            "cooked"
+                                          ]
+                                        },
+                                        "method": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "enum": [
+                                            "boiled",
+                                            "simmered",
+                                            "braised",
+                                            "slow_cooked",
+                                            "pressure_cooked",
+                                            "steamed",
+                                            "blanched",
+                                            "poached",
+                                            "microwaved",
+                                            "baked",
+                                            "roasted",
+                                            "grilled",
+                                            "pan_fried",
+                                            "sauteed",
+                                            "stir_fried",
+                                            "deep_fried",
+                                            "air_fried",
+                                            null
+                                          ]
+                                        },
+                                        "source": {
+                                          "type": "string",
+                                          "enum": [
+                                            "stated",
+                                            "inferred"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "state",
+                                        "method",
+                                        "source"
+                                      ]
                                     }
                                   },
                                   "required": [
@@ -12241,6 +12669,59 @@
                                             ],
                                             "minimum": 0,
                                             "maximum": 100000
+                                          },
+                                          "cooking": {
+                                            "type": [
+                                              "object",
+                                              "null"
+                                            ],
+                                            "properties": {
+                                              "state": {
+                                                "type": "string",
+                                                "enum": [
+                                                  "raw",
+                                                  "cooked"
+                                                ]
+                                              },
+                                              "method": {
+                                                "type": [
+                                                  "string",
+                                                  "null"
+                                                ],
+                                                "enum": [
+                                                  "boiled",
+                                                  "simmered",
+                                                  "braised",
+                                                  "slow_cooked",
+                                                  "pressure_cooked",
+                                                  "steamed",
+                                                  "blanched",
+                                                  "poached",
+                                                  "microwaved",
+                                                  "baked",
+                                                  "roasted",
+                                                  "grilled",
+                                                  "pan_fried",
+                                                  "sauteed",
+                                                  "stir_fried",
+                                                  "deep_fried",
+                                                  "air_fried",
+                                                  null
+                                                ]
+                                              },
+                                              "source": {
+                                                "type": "string",
+                                                "enum": [
+                                                  "stated",
+                                                  "inferred"
+                                                ]
+                                              }
+                                            },
+                                            "required": [
+                                              "state",
+                                              "method",
+                                              "source"
+                                            ]
                                           }
                                         },
                                         "required": [
@@ -14808,6 +15289,59 @@
                                   ],
                                   "minimum": 0,
                                   "maximum": 100000
+                                },
+                                "cooking": {
+                                  "type": [
+                                    "object",
+                                    "null"
+                                  ],
+                                  "properties": {
+                                    "state": {
+                                      "type": "string",
+                                      "enum": [
+                                        "raw",
+                                        "cooked"
+                                      ]
+                                    },
+                                    "method": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ],
+                                      "enum": [
+                                        "boiled",
+                                        "simmered",
+                                        "braised",
+                                        "slow_cooked",
+                                        "pressure_cooked",
+                                        "steamed",
+                                        "blanched",
+                                        "poached",
+                                        "microwaved",
+                                        "baked",
+                                        "roasted",
+                                        "grilled",
+                                        "pan_fried",
+                                        "sauteed",
+                                        "stir_fried",
+                                        "deep_fried",
+                                        "air_fried",
+                                        null
+                                      ]
+                                    },
+                                    "source": {
+                                      "type": "string",
+                                      "enum": [
+                                        "stated",
+                                        "inferred"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "state",
+                                    "method",
+                                    "source"
+                                  ]
                                 }
                               },
                               "required": [
@@ -15376,6 +15910,59 @@
                             ],
                             "minimum": 0,
                             "maximum": 100000
+                          },
+                          "cooking": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "raw",
+                                  "cooked"
+                                ]
+                              },
+                              "method": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "enum": [
+                                  "boiled",
+                                  "simmered",
+                                  "braised",
+                                  "slow_cooked",
+                                  "pressure_cooked",
+                                  "steamed",
+                                  "blanched",
+                                  "poached",
+                                  "microwaved",
+                                  "baked",
+                                  "roasted",
+                                  "grilled",
+                                  "pan_fried",
+                                  "sauteed",
+                                  "stir_fried",
+                                  "deep_fried",
+                                  "air_fried",
+                                  null
+                                ]
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "stated",
+                                  "inferred"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "state",
+                              "method",
+                              "source"
+                            ]
                           }
                         },
                         "required": [
@@ -24981,6 +25568,59 @@
                                         ],
                                         "minimum": 0,
                                         "maximum": 100000
+                                      },
+                                      "cooking": {
+                                        "type": [
+                                          "object",
+                                          "null"
+                                        ],
+                                        "properties": {
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "raw",
+                                              "cooked"
+                                            ]
+                                          },
+                                          "method": {
+                                            "type": [
+                                              "string",
+                                              "null"
+                                            ],
+                                            "enum": [
+                                              "boiled",
+                                              "simmered",
+                                              "braised",
+                                              "slow_cooked",
+                                              "pressure_cooked",
+                                              "steamed",
+                                              "blanched",
+                                              "poached",
+                                              "microwaved",
+                                              "baked",
+                                              "roasted",
+                                              "grilled",
+                                              "pan_fried",
+                                              "sauteed",
+                                              "stir_fried",
+                                              "deep_fried",
+                                              "air_fried",
+                                              null
+                                            ]
+                                          },
+                                          "source": {
+                                            "type": "string",
+                                            "enum": [
+                                              "stated",
+                                              "inferred"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "state",
+                                          "method",
+                                          "source"
+                                        ]
                                       }
                                     },
                                     "required": [
@@ -25386,6 +26026,59 @@
                                             ],
                                             "minimum": 0,
                                             "maximum": 100000
+                                          },
+                                          "cooking": {
+                                            "type": [
+                                              "object",
+                                              "null"
+                                            ],
+                                            "properties": {
+                                              "state": {
+                                                "type": "string",
+                                                "enum": [
+                                                  "raw",
+                                                  "cooked"
+                                                ]
+                                              },
+                                              "method": {
+                                                "type": [
+                                                  "string",
+                                                  "null"
+                                                ],
+                                                "enum": [
+                                                  "boiled",
+                                                  "simmered",
+                                                  "braised",
+                                                  "slow_cooked",
+                                                  "pressure_cooked",
+                                                  "steamed",
+                                                  "blanched",
+                                                  "poached",
+                                                  "microwaved",
+                                                  "baked",
+                                                  "roasted",
+                                                  "grilled",
+                                                  "pan_fried",
+                                                  "sauteed",
+                                                  "stir_fried",
+                                                  "deep_fried",
+                                                  "air_fried",
+                                                  null
+                                                ]
+                                              },
+                                              "source": {
+                                                "type": "string",
+                                                "enum": [
+                                                  "stated",
+                                                  "inferred"
+                                                ]
+                                              }
+                                            },
+                                            "required": [
+                                              "state",
+                                              "method",
+                                              "source"
+                                            ]
                                           }
                                         },
                                         "required": [
@@ -26037,6 +26730,59 @@
                                       ],
                                       "minimum": 0,
                                       "maximum": 100000
+                                    },
+                                    "cooking": {
+                                      "type": [
+                                        "object",
+                                        "null"
+                                      ],
+                                      "properties": {
+                                        "state": {
+                                          "type": "string",
+                                          "enum": [
+                                            "raw",
+                                            "cooked"
+                                          ]
+                                        },
+                                        "method": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "enum": [
+                                            "boiled",
+                                            "simmered",
+                                            "braised",
+                                            "slow_cooked",
+                                            "pressure_cooked",
+                                            "steamed",
+                                            "blanched",
+                                            "poached",
+                                            "microwaved",
+                                            "baked",
+                                            "roasted",
+                                            "grilled",
+                                            "pan_fried",
+                                            "sauteed",
+                                            "stir_fried",
+                                            "deep_fried",
+                                            "air_fried",
+                                            null
+                                          ]
+                                        },
+                                        "source": {
+                                          "type": "string",
+                                          "enum": [
+                                            "stated",
+                                            "inferred"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "state",
+                                        "method",
+                                        "source"
+                                      ]
                                     }
                                   },
                                   "required": [
@@ -26985,6 +27731,59 @@
                                       ],
                                       "minimum": 0,
                                       "maximum": 100000
+                                    },
+                                    "cooking": {
+                                      "type": [
+                                        "object",
+                                        "null"
+                                      ],
+                                      "properties": {
+                                        "state": {
+                                          "type": "string",
+                                          "enum": [
+                                            "raw",
+                                            "cooked"
+                                          ]
+                                        },
+                                        "method": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "enum": [
+                                            "boiled",
+                                            "simmered",
+                                            "braised",
+                                            "slow_cooked",
+                                            "pressure_cooked",
+                                            "steamed",
+                                            "blanched",
+                                            "poached",
+                                            "microwaved",
+                                            "baked",
+                                            "roasted",
+                                            "grilled",
+                                            "pan_fried",
+                                            "sauteed",
+                                            "stir_fried",
+                                            "deep_fried",
+                                            "air_fried",
+                                            null
+                                          ]
+                                        },
+                                        "source": {
+                                          "type": "string",
+                                          "enum": [
+                                            "stated",
+                                            "inferred"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "state",
+                                        "method",
+                                        "source"
+                                      ]
                                     }
                                   },
                                   "required": [
@@ -27475,6 +28274,59 @@
                                           ],
                                           "minimum": 0,
                                           "maximum": 100000
+                                        },
+                                        "cooking": {
+                                          "type": [
+                                            "object",
+                                            "null"
+                                          ],
+                                          "properties": {
+                                            "state": {
+                                              "type": "string",
+                                              "enum": [
+                                                "raw",
+                                                "cooked"
+                                              ]
+                                            },
+                                            "method": {
+                                              "type": [
+                                                "string",
+                                                "null"
+                                              ],
+                                              "enum": [
+                                                "boiled",
+                                                "simmered",
+                                                "braised",
+                                                "slow_cooked",
+                                                "pressure_cooked",
+                                                "steamed",
+                                                "blanched",
+                                                "poached",
+                                                "microwaved",
+                                                "baked",
+                                                "roasted",
+                                                "grilled",
+                                                "pan_fried",
+                                                "sauteed",
+                                                "stir_fried",
+                                                "deep_fried",
+                                                "air_fried",
+                                                null
+                                              ]
+                                            },
+                                            "source": {
+                                              "type": "string",
+                                              "enum": [
+                                                "stated",
+                                                "inferred"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "state",
+                                            "method",
+                                            "source"
+                                          ]
                                         }
                                       },
                                       "required": [

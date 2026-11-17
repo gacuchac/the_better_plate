@@ -9,7 +9,7 @@ import {
   type RecipeBody,
   type RecipeNutritionDto,
 } from "@betterplate/contracts";
-import { calculateRecipe } from "@betterplate/nutrition";
+import { calculateRecipe, withInferredCooking } from "@betterplate/nutrition";
 import { pool, withTransaction } from "../db/pool.ts";
 import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
 import { currentCatalog, foodsByIds } from "./catalog.ts";
@@ -60,12 +60,15 @@ export type WriteOutcome =
  * Authoritative nutrition: recomputed on the server from catalog records, never trusted
  * from the client. Unknown foods are rejected so a recipe cannot reference made-up data.
  */
-export async function computeNutrition(input: Pick<RecipeBody, "servings" | "ingredients">) {
+export async function computeNutrition(input: Pick<RecipeBody, "servings" | "ingredients"> & { method?: string }) {
   const ids = [...new Set(input.ingredients.map((i) => i.foodId))];
   const [foods, catalog] = await Promise.all([foodsByIds(ids), currentCatalog()]);
   const unknown = ids.filter((id) => !foods.has(id));
   if (unknown.length) return { ok: false as const, unknown };
-  const result = calculateRecipe(input, foods, catalog.nutrients);
+  // With the method (a recipe, not a meal's snapshot), an ingredient with no cooked or raw state
+  // (older app versions) gets one guessed from the steps, marked as a guess (ADR-014).
+  const ingredients = input.method === undefined ? input.ingredients : withInferredCooking(input.method, input.ingredients, foods);
+  const result = calculateRecipe({ servings: input.servings, ingredients }, foods, catalog.nutrients);
   const nutrition: RecipeNutritionDto = {
     engineVersion: result.engineVersion,
     catalogVersion: catalog.version,
@@ -74,7 +77,7 @@ export async function computeNutrition(input: Pick<RecipeBody, "servings" | "ing
     perServing: result.perServing,
     disclosures: result.disclosures,
   };
-  return { ok: true as const, nutrition, ingredients: result.ingredients };
+  return { ok: true as const, nutrition, ingredients: result.ingredients, recipeIngredients: ingredients };
 }
 
 /** Serializes one user's writes so change-feed sequence order equals commit order for that user. */
@@ -130,7 +133,7 @@ export async function putRecipe(
   const image = kept ? { ok: true as const, image: kept } : await resolveRecipeImage(client, userId, body.image);
 
   const version = row ? row.version + 1 : 1;
-  const stored = { ingredients: body.ingredients, description: body.description, method: body.method, image: image.ok ? image.image : null };
+  const stored = { ingredients: calc.recipeIngredients, description: body.description, method: body.method, image: image.ok ? image.image : null };
   const values = [body.title, body.servings, JSON.stringify(stored), JSON.stringify(calc.nutrition), version];
   // The owner and group stay as they are on edits: an admin editing a group recipe does not take it over.
   const { rows } = row
@@ -204,7 +207,12 @@ function throwFor(outcome: Exclude<WriteOutcome, { status: "applied" }>): never 
 const json = <T extends z.ZodType>(schema: T) => ({ content: { "application/json": { schema } } });
 const RecipeListSchema = z.object({ recipes: z.array(RecipeSchema) });
 const CreateRecipeSchema = RecipeBodySchema.extend({ id: z.uuid().optional() });
-const CalculateSchema = z.object({ servings: z.number().positive().max(100), ingredients: z.array(RecipeIngredientSchema).max(100) });
+const CalculateSchema = z.object({
+  servings: z.number().positive().max(100),
+  ingredients: z.array(RecipeIngredientSchema).max(100),
+  /** The recipe's method: ingredients with no cooked or raw state get one guessed from it. */
+  method: z.string().max(10_000).optional(),
+});
 const etagHeader = { ETag: { schema: { type: "string" as const }, description: 'Recipe version, e.g. "v3"' } };
 
 export const recipeRoutes = new OpenAPIHono<AppEnv>();

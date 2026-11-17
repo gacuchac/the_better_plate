@@ -8,6 +8,7 @@ on:
     branches-ignore: [main, dev]
     paths:
       - scripts/usda/**
+      - "!scripts/usda/import_retention.py"
       - .github/workflows/catalog-import.yml
   workflow_dispatch:
 

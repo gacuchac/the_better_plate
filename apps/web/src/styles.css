@@ -832,3 +832,8 @@ p.label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--in
 .expandable { margin: 0 0 8px; }
 .expandable > p { margin-bottom: 0; }
 .see-more { min-height: 32px; padding: 0; font-size: 0.875rem; }
+
+/* Cooked or raw state on each ingredient (ADR-014). */
+.cooking-state { margin-top: 8px; }
+.cooking-state label { margin-top: 0; }
+.cooking-state .hint { margin: 4px 0 0; }

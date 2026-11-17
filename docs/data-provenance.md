@@ -8,11 +8,16 @@
 - **License:** FoodData Central data is public domain (CC0 1.0) per USDA.
 - **Integrity:** the snapshot carries a SHA-256 of its content; `import_starter.py --check` (run by `pnpm test`) verifies it and duplicate IDs.
 
+## Nutrient retention factors (ADR-014)
+- **What:** USDA Table of Nutrient Retention Factors, Release 6 (2007), USDA ARS Nutrient Data Laboratory: 270 food-and-method codes, 26 nutrients, percent retained after cooking. Snapshot `data/catalog/retention-factors.json` with the source file's SHA-256 and a content hash.
+- **How:** `scripts/usda/import_retention.py` downloads `retn06.txt` from ars.usda.gov in GitHub Actions (`.github/workflows/retention-import.yml`); `scripts/gen-retention-data.mjs` writes `packages/nutrition/src/retention-data.ts`. A test checks every value against the JSON.
+- **Used for:** vitamins and minerals of ingredients marked cooked. The food-group-to-code mapping in `retention.ts` is ours and is tested against the file; foods with no fitting code keep raw values and are disclosed.
+
 ## Test fixtures
 `packages/nutrition/src/calculate.test.ts` uses synthetic round numbers labeled `TEST FIXTURE`; they are never loaded into the catalog.
 
 ## Not yet sourced
-Retention and yield factors, cooking temperatures and safety guidance, Daily Values/DRIs, nutrient education, kosher information, allergen statements from product labels, food images (except recipe photos the person chooses; see below). None are shown in the app until imported with sources.
+Yield factors, cooking temperatures and safety guidance, Daily Values/DRIs, nutrient education, kosher information, allergen statements from product labels, food images (except recipe photos the person chooses; see below). None are shown in the app until imported with sources.
 
 ## Recipe photos (ADR-006)
 

@@ -6,5 +6,6 @@ say "typecheck"
 pnpm -r --if-present typecheck
 say "catalog snapshot integrity"
 python3 scripts/usda/import_starter.py --check
+python3 scripts/usda/import_retention.py --check
 say "unit and API tests"
 pnpm -r --if-present test

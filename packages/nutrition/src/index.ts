@@ -14,3 +14,6 @@ export * from "./estimate.ts";
 export * from "./weekly.ts";
 export * from "./milestones.ts";
 export * from "./cooking.ts";
+export * from "./retention.ts";
+export * from "./cooking-state.ts";
+export { RETENTION_FACTORS, RETENTION_SOURCE } from "./retention-data.ts";

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RecipeBodySchema, type RecipeBody, type RecipeIngredientInput } from "@betterplate/contracts";
-import { calculateRecipe, type FoodRecord } from "@betterplate/nutrition";
+import { calculateRecipe, COOKING_METHODS, withInferredCooking, type CookingMethod, type FoodRecord } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
 import { api, ApiRequestError } from "../api.ts";
 import { useApp } from "../store.tsx";
@@ -21,6 +21,27 @@ export const MACROS: { key: string; label: MessageKey }[] = [
   { key: "carbohydrate", label: "macro.carbs" },
   { key: "fat_total", label: "macro.fat" },
 ];
+
+/** How each cooking method reads in the ingredient's cooked or raw picker. */
+export const METHOD_LABEL: Record<CookingMethod, MessageKey> = {
+  boiled: "cooking.method.boiled",
+  simmered: "cooking.method.simmered",
+  braised: "cooking.method.braised",
+  slow_cooked: "cooking.method.slow_cooked",
+  pressure_cooked: "cooking.method.pressure_cooked",
+  steamed: "cooking.method.steamed",
+  blanched: "cooking.method.blanched",
+  poached: "cooking.method.poached",
+  microwaved: "cooking.method.microwaved",
+  baked: "cooking.method.baked",
+  roasted: "cooking.method.roasted",
+  grilled: "cooking.method.grilled",
+  pan_fried: "cooking.method.pan_fried",
+  sauteed: "cooking.method.sauteed",
+  stir_fried: "cooking.method.stir_fried",
+  deep_fried: "cooking.method.deep_fried",
+  air_fried: "cooking.method.air_fried",
+};
 
 const blank = (): RecipeBody => ({ title: "", description: "", servings: 2, ingredients: [], method: "" });
 
@@ -54,8 +75,11 @@ export function RecipeEditor({ id }: { id: string }) {
 
   const foods = catalog.status === "ready" ? catalog.foods : new Map<string, FoodRecord>();
   const nutrients = catalog.status === "ready" ? catalog.bundle.nutrients : [];
+  // Ingredients with no cooked or raw state yet (new ones, older recipes) get one guessed from the
+  // method, shown as a guess until the person picks one (ADR-014).
+  const ingredients = useMemo(() => withInferredCooking(draft.method, draft.ingredients, foods), [draft.method, draft.ingredients, foods]);
   // Live, local and deterministic: no network call per keystroke.
-  const nutrition = useMemo(() => calculateRecipe(draft, foods, nutrients), [draft, foods, nutrients]);
+  const nutrition = useMemo(() => calculateRecipe({ ...draft, ingredients }, foods, nutrients), [draft, ingredients, foods, nutrients]);
 
   if (!engine || catalog.status === "loading" || loaded === undefined) return <p className="hint pad">{t("common.loading")}</p>;
   if (catalog.status === "unavailable") return <EmptyState title={t("catalog.notOnDevice")}>{t("catalog.unavailable")}</EmptyState>;
@@ -98,7 +122,7 @@ export function RecipeEditor({ id }: { id: string }) {
   };
 
   async function save() {
-    const parsed = RecipeBodySchema.safeParse({ ...draft, title: draft.title.trim() });
+    const parsed = RecipeBodySchema.safeParse({ ...draft, ingredients, title: draft.title.trim() });
     if (!parsed.success) {
       // Messages by field, so they read in the interface language.
       setErrors([...new Set(parsed.error.issues.map((i) => t(i.path[0] === "title" ? "editor.errTitle" : i.path[0] === "servings" ? "editor.errServings" : "editor.errOther")))]);
@@ -203,7 +227,7 @@ export function RecipeEditor({ id }: { id: string }) {
           </div>
           {draft.ingredients.length === 0 && <p className="hint">{t("editor.addHint")}</p>}
           <ul className="ingredients">
-            {draft.ingredients.map((ing) => {
+            {ingredients.map((ing) => {
               const food = foods.get(ing.foodId);
               return (
                 <li key={ing.id} className="ingredient" data-testid="ingredient-row">
@@ -255,6 +279,36 @@ export function RecipeEditor({ id }: { id: string }) {
                     />
                     {t("editor.cookingOil")}
                   </label>
+                  {ing.role === "ingredient" && (
+                    <div className="cooking-state">
+                      <label htmlFor={`c-${ing.id}`}>{t("cooking.label")}</label>
+                      <select
+                        id={`c-${ing.id}`}
+                        data-testid="cooking-select"
+                        value={ing.cooking?.state === "cooked" && ing.cooking.method ? ing.cooking.method : "raw"}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          updateIngredient(ing.id, {
+                            cooking: v === "raw" ? { state: "raw", method: null, source: "stated" } : { state: "cooked", method: v as CookingMethod, source: "stated" },
+                          });
+                        }}
+                      >
+                        <option value="raw">{t("cooking.raw")}</option>
+                        <optgroup label={t("cooking.cookedGroup")}>
+                          {COOKING_METHODS.map((m) => (
+                            <option key={m} value={m}>
+                              {t(METHOD_LABEL[m])}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                      {ing.cooking?.source === "inferred" && (
+                        <p className="hint" data-testid="cooking-guessed">
+                          {t("cooking.guessed")}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {ing.role === "cooking_oil" && (
                     <div className="oil">
                       <label htmlFor={`d-${ing.id}`}>{t("editor.oilDiscarded")}</label>
@@ -328,7 +382,7 @@ export function RecipeEditor({ id }: { id: string }) {
           )}
         </section>
         <aside className="editor-side" id="nutrition">
-          <NutritionPanel nutrition={nutrition} nutrients={nutrients} foods={foods} ingredients={draft.ingredients} catalogVersion={catalog.bundle.version} />
+          <NutritionPanel nutrition={nutrition} nutrients={nutrients} foods={foods} ingredients={ingredients} catalogVersion={catalog.bundle.version} />
         </aside>
       </div>
       <div className={`action-bar${dirty || !loaded ? " single" : ""}`} data-testid="recipe-actions">

@@ -8,9 +8,10 @@ import type {
   RecipeNutrition,
 } from "./types.ts";
 import { ingredientGrams } from "./units.ts";
+import { retentionFor } from "./retention.ts";
 
 /** Bump when calculation semantics change; stored with every server-side nutrition snapshot. */
-export const ENGINE_VERSION = "1.0.0";
+export const ENGINE_VERSION = "2.0.0";
 
 /**
  * Deterministic recipe nutrition. Pure: same inputs, same output, offline or on the server.
@@ -22,6 +23,9 @@ export const ENGINE_VERSION = "1.0.0";
  * - Cooking oil counts added grams minus measured discarded grams. When discard is not
  *   measured, all added oil is counted and a disclosure is returned.
  * - Ingredients whose mass cannot be resolved contribute nothing and are disclosed.
+ * - A cooked ingredient keeps the percentage of each vitamin and mineral that USDA's retention
+ *   factor for its food group and method gives (ADR-014). Energy and macronutrients are unchanged.
+ *   No factor: raw values, disclosed. No state (older recipes): raw.
  */
 export function calculateRecipe(
   recipe: RecipeForCalculation,
@@ -51,12 +55,21 @@ export function calculateRecipe(
       }
     }
 
+    const cooking = ingredient.cooking;
+    // Fats (cooking oil) have no retention factors.
+    const retention =
+      food && ingredient.role === "ingredient" && cooking?.state === "cooked" && cooking.method ? retentionFor(food, cooking.method) : null;
+    if (food && ingredient.role === "ingredient" && cooking?.state === "cooked" && !retention) {
+      disclosures.push({ code: "no_retention_factor", ingredientId: ingredient.id });
+    }
+
     const contributions: Record<string, number | null> = {};
     for (const n of nutrients) {
       const per100 = food?.nutrientsPer100g[n.key];
-      contributions[n.key] = counted !== null && per100 !== undefined ? (per100 * counted) / 100 : null;
+      const kept = retention?.percent[n.key] ?? 100;
+      contributions[n.key] = counted !== null && per100 !== undefined ? (((per100 * counted) / 100) * kept) / 100 : null;
     }
-    breakdown.push({ ingredientId: ingredient.id, foodId: ingredient.foodId, grams, countedGrams: counted, contributions });
+    breakdown.push({ ingredientId: ingredient.id, foodId: ingredient.foodId, grams, countedGrams: counted, retentionCode: retention?.code ?? null, contributions });
   }
 
   // Only ingredients with a resolved, positive counted mass decide nutrient coverage.
