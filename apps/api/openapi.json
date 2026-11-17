@@ -7463,11 +7463,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -7829,11 +7833,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -8200,11 +8208,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -9393,11 +9405,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -9790,11 +9806,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -10379,11 +10399,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -10764,11 +10788,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -13676,6 +13704,417 @@
         }
       }
     },
+    "/v1/groups/{id}/plans/everyone": {
+      "post": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Plan one meal for everyone in the group, or for the people chosen (owner or admin)",
+        "description": "Each person gets their own planned meal, as when an admin plans for one member; it reaches their kitchen through sync and they can't change it. Someone who already has this recipe planned for that day and meal is skipped, so sending it twice plans nothing twice. Each answer carries an allergen alert from that person's listed allergies; it never blocks.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "breakfast",
+                      "lunch",
+                      "dinner",
+                      "snack"
+                    ]
+                  },
+                  "recipeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "servings": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100,
+                    "default": 1
+                  },
+                  "memberIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "date",
+                  "slot",
+                  "recipeId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Planned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "planned": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "memberId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "plan": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "slot": {
+                                "type": "string",
+                                "enum": [
+                                  "breakfast",
+                                  "lunch",
+                                  "dinner",
+                                  "snack"
+                                ]
+                              },
+                              "recipeId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "servings": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "maximum": 100
+                              },
+                              "profileId": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "version": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "planned",
+                                  "proposed",
+                                  "declined"
+                                ]
+                              },
+                              "groupId": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "authorId": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "plannedBy": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "date",
+                              "slot",
+                              "recipeId",
+                              "title",
+                              "servings",
+                              "id",
+                              "version",
+                              "createdAt",
+                              "updatedAt",
+                              "status",
+                              "groupId",
+                              "authorId",
+                              "plannedBy"
+                            ]
+                          },
+                          "alert": {
+                            "type": "object",
+                            "properties": {
+                              "matches": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "possible": {
+                                "type": "boolean"
+                              },
+                              "rulesVersion": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "matches",
+                              "possible",
+                              "rulesVersion"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "memberId",
+                          "name",
+                          "plan",
+                          "alert"
+                        ]
+                      }
+                    },
+                    "skipped": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "memberId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "memberId",
+                          "name"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "planned",
+                    "skipped"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Not a group recipe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {}
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/groups/{id}/plans/{planId}/approve": {
       "post": {
         "tags": [
@@ -15630,11 +16069,15 @@
                             },
                             "mealShares": {
                               "type": "boolean"
+                            },
+                            "planning": {
+                              "type": "boolean"
                             }
                           },
                           "required": [
                             "emailInvites",
-                            "mealShares"
+                            "mealShares",
+                            "planning"
                           ]
                         }
                       },
@@ -16031,11 +16474,15 @@
                             },
                             "mealShares": {
                               "type": "boolean"
+                            },
+                            "planning": {
+                              "type": "boolean"
                             }
                           },
                           "required": [
                             "emailInvites",
-                            "mealShares"
+                            "mealShares",
+                            "planning"
                           ]
                         }
                       },
@@ -16404,12 +16851,12 @@
       }
     },
     "/v1/me/group-invites": {
-      "get": {
+      "post": {
         "tags": [
           "groups"
         ],
-        "summary": "Groups that added me by email, waiting for me to join",
-        "description": "Only for the email this account signed in with and proved it owns.",
+        "summary": "Join the groups that added me by email; list what's left and what I joined",
+        "description": "Only for the email this account signed in with and proved it owns, and only once the privacy notice is agreed (agreeing joins them too). `joined` lists groups joined this way until the person dismisses the note; `invites` lists any that couldn't be joined automatically because a limit was reached.",
         "responses": {
           "200": {
             "description": "Invites",
@@ -16456,14 +16903,207 @@
                           "expiresAt"
                         ]
                       }
+                    },
+                    "joined": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "groupId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "groupName": {
+                            "type": "string"
+                          },
+                          "memberId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "invitedBy": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "groupId",
+                          "groupName",
+                          "memberId",
+                          "invitedBy"
+                        ]
+                      }
                     }
                   },
                   "required": [
-                    "invites"
+                    "invites",
+                    "joined"
                   ]
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/groups/{groupId}/welcome-seen": {
+      "post": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Dismiss the note that a group added me",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "groupId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Dismissed"
           },
           "400": {
             "description": "Invalid request",
@@ -16818,11 +17458,15 @@
                         },
                         "mealShares": {
                           "type": "boolean"
+                        },
+                        "planning": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "emailInvites",
-                        "mealShares"
+                        "mealShares",
+                        "planning"
                       ]
                     }
                   },
@@ -17319,6 +17963,13 @@
                     "sharedAt": {
                       "type": "string"
                     },
+                    "recipeId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
                     "myReaction": {
                       "type": [
                         "object",
@@ -17388,6 +18039,7 @@
                     "image",
                     "sharedBy",
                     "sharedAt",
+                    "recipeId",
                     "myReaction",
                     "reactions"
                   ]
@@ -17719,6 +18371,13 @@
                           "sharedAt": {
                             "type": "string"
                           },
+                          "recipeId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
                           "myReaction": {
                             "type": [
                               "object",
@@ -17788,6 +18447,7 @@
                           "image",
                           "sharedBy",
                           "sharedAt",
+                          "recipeId",
                           "myReaction",
                           "reactions"
                         ]
@@ -18112,6 +18772,13 @@
                     "sharedAt": {
                       "type": "string"
                     },
+                    "recipeId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
                     "myReaction": {
                       "type": [
                         "object",
@@ -18181,6 +18848,7 @@
                     "image",
                     "sharedBy",
                     "sharedAt",
+                    "recipeId",
                     "myReaction",
                     "reactions"
                   ]
@@ -18891,6 +19559,13 @@
                     "sharedAt": {
                       "type": "string"
                     },
+                    "recipeId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
                     "myReaction": {
                       "type": [
                         "object",
@@ -18960,6 +19635,7 @@
                     "image",
                     "sharedBy",
                     "sharedAt",
+                    "recipeId",
                     "myReaction",
                     "reactions"
                   ]

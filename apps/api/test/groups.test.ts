@@ -3,12 +3,14 @@ import {
   AllergenSchema,
   FoodPreferencesSchema,
   GroupDetailSchema,
+  type GroupPlanEveryoneResult,
   MealFeedbackSchema,
   ShoppingListSchema,
   SyncBatchResponseSchema,
   SyncChangesResponseSchema,
 } from "@betterplate/contracts";
 import { ALLERGENS } from "@betterplate/nutrition";
+import { config } from "../src/config.ts";
 import { pool } from "../src/db/pool.ts";
 import { type Client, findFood, signIn } from "./helpers.ts";
 
@@ -448,5 +450,65 @@ describe("groups", () => {
     expect((await owner.request("/v1/me", { method: "DELETE" })).status).toBe(204);
     expect((await (await admin.request("/v1/groups")).json()).groups).toEqual([]);
     expect((await (await admin.request(`/v1/recipes/${gr.id}`)).json())).toMatchObject({ groupId: null, title: "Helper's rice" });
+  });
+
+  it("plans one meal for the whole group: a plan each, the kid's in the parent's kitchen, alerts per person, never twice", async () => {
+    const mom = await signIn();
+    const dad = await signIn();
+    const teen = await signIn();
+    const group = await createGroup(mom);
+    expect(group.features.planning).toBe(true);
+    await join(dad, (await invite(mom, group.id, "admin")).id, "Dad");
+    await join(teen, (await invite(mom, group.id, "member")).id, "Sam");
+    const kidId = uuid();
+    const g = GroupDetailSchema.parse(await (await mom.request(`/v1/groups/${group.id}/profiles`, { method: "POST", json: { id: kidId, name: "Lucy" } })).json());
+    const named = (n: string) => g.members.find((m) => m.name === n)!;
+    const [momM, dadM, samM, lucyM] = [named("Mom"), named("Dad"), named("Sam"), named("Lucy")];
+    await mom.request(`/v1/groups/${group.id}/members/${lucyM.id}/preferences`, { method: "PUT", json: { allergyAnswer: "listed", allergens: ["peanut"], likes: [], dislikes: [], notes: "" } });
+    const own = await saveRecipe(mom, { title: "Peanut rice", servings: 4, ingredients: [ingredient(rice, 300), ingredient(peanuts, 60)] });
+    const plan = (body: Record<string, unknown>, who: Client = mom) => who.request(`/v1/groups/${group.id}/plans/everyone`, { method: "POST", json: body });
+
+    // Only the group's recipes, and only admins.
+    expect((await plan({ date: "2026-11-20", slot: "dinner", recipeId: own })).status).toBe(422);
+    const gr = await (await mom.request(`/v1/groups/${group.id}/recipes`, { method: "POST", json: { recipeId: own } })).json();
+    expect((await plan({ date: "2026-11-20", slot: "dinner", recipeId: gr.id }, teen)).status).toBe(403);
+
+    const res = await plan({ date: "2026-11-20", slot: "dinner", recipeId: gr.id });
+    expect(res.status).toBe(201);
+    const out = (await res.json()) as GroupPlanEveryoneResult;
+    expect(out.skipped).toEqual([]);
+    expect(out.planned.map((p) => p.name).sort()).toEqual(["Dad", "Lucy", "Mom", "Sam"]);
+    for (const p of out.planned) expect(p.plan).toMatchObject({ date: "2026-11-20", slot: "dinner", recipeId: gr.id, title: "Peanut rice", servings: 1, status: "planned", groupId: group.id });
+    expect(out.planned.find((p) => p.name === "Lucy")!.alert.matches).toEqual(["peanut"]);
+    expect(out.planned.find((p) => p.name === "Sam")!.alert.matches).toEqual([]);
+
+    // Each person gets it in their own kitchen; Lucy's lands in Mom's, as her profile's.
+    const samPlan = out.planned.find((p) => p.memberId === samM.id)!.plan;
+    expect((await changes(teen)).changes.find((c) => c.entity === "planned_meal" && c.entityId === samPlan.id)?.plannedMeal).toMatchObject({ profileId: null, plannedBy: "Mom" });
+    const momFeed = (await changes(mom)).changes.filter((c) => c.entity === "planned_meal").map((c) => c.plannedMeal);
+    expect(momFeed.map((p) => p?.profileId ?? null).sort()).toEqual([kidId, null].sort());
+    // A plan never counts as eaten.
+    expect((await (await teen.request("/v1/meals?from=2026-11-20&to=2026-11-20")).json()).eaten).toEqual([]);
+
+    // Sending it again plans nothing twice; choosing people plans only for them.
+    const again = (await (await plan({ date: "2026-11-20", slot: "dinner", recipeId: gr.id })).json()) as GroupPlanEveryoneResult;
+    expect(again.planned).toEqual([]);
+    expect(again.skipped).toHaveLength(4);
+    const some = (await (await plan({ date: "2026-11-21", slot: "lunch", recipeId: gr.id, servings: 2, memberIds: [dadM.id, momM.id] }, dad)).json()) as GroupPlanEveryoneResult;
+    expect(some.planned.map((p) => p.name).sort()).toEqual(["Dad", "Mom"]);
+    expect(some.planned[0]!.plan.servings).toBe(2);
+    expect((await plan({ date: "2026-11-21", slot: "lunch", recipeId: gr.id, memberIds: [uuid()] })).status).toBe(404);
+
+    // The admins' week shows it for everyone.
+    const week = await (await mom.request(`/v1/groups/${group.id}/meals?from=2026-11-20&to=2026-11-21`)).json();
+    expect(week.members.find((m: { memberId: string }) => m.memberId === samM.id).planned).toHaveLength(1);
+
+    config.features.groupPlanning = false;
+    try {
+      expect((await plan({ date: "2026-11-22", slot: "lunch", recipeId: gr.id })).status).toBe(404);
+      expect(GroupDetailSchema.parse(await (await mom.request(`/v1/groups/${group.id}`)).json()).features.planning).toBe(false);
+    } finally {
+      config.features.groupPlanning = true;
+    }
   });
 });

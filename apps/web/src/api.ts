@@ -10,6 +10,9 @@ import type {
   MealReactionKind,
   MealsToReview,
   MyGroupInvite,
+  MyGroupInvites,
+  GroupPlanEveryone,
+  GroupPlanEveryoneResult,
   SharedMeal,
   MealLog,
   PlannedMeal,
@@ -206,7 +209,10 @@ export const api = {
     request<{ group: GroupDetail; emailed: boolean }>(`/v1/groups/${groupId}/pending`, { method: "POST", json: body }),
   resendInvite: (groupId: string, pendingId: string) => request<{ group: GroupDetail; emailed: boolean }>(`/v1/groups/${groupId}/pending/${pendingId}/resend`, { method: "POST" }),
   removePending: (groupId: string, pendingId: string) => request<void>(`/v1/groups/${groupId}/pending/${pendingId}`, { method: "DELETE" }),
-  myGroupInvites: () => request<{ invites: MyGroupInvite[] }>("/v1/me/group-invites", { cache: "no-store" }),
+  /** Joins the groups that added me by email (once I agreed to the privacy notice) and lists what's left. */
+  myGroupInvites: () => request<MyGroupInvites>("/v1/me/group-invites", { method: "POST" }),
+  groupWelcomeSeen: (groupId: string) => request<void>(`/v1/me/groups/${groupId}/welcome-seen`, { method: "POST" }),
+  planForEveryone: (groupId: string, body: GroupPlanEveryone) => request<GroupPlanEveryoneResult>(`/v1/groups/${groupId}/plans/everyone`, { method: "POST", json: body }),
   joinByEmailInvite: (inviteId: string, myName: string) => request<GroupDetail>(`/v1/me/group-invites/${inviteId}/join`, { method: "POST", json: { myName } }),
   declineEmailInvite: (inviteId: string) => request<void>(`/v1/me/group-invites/${inviteId}/decline`, { method: "POST" }),
   // Meals shared with a group (FEATURE_GROUP_MEAL_SHARES_ENABLED).

@@ -3,7 +3,8 @@ import sharp from "sharp";
 import {
   GroupDetailSchema,
   MealsToReviewSchema,
-  MyGroupInviteSchema,
+  MyGroupInvitesSchema,
+  PRIVACY_NOTICE,
   PendingMemberCreatedSchema,
   SharedMealListSchema,
   SharedMealSchema,
@@ -37,10 +38,16 @@ async function addByEmail(admin: Client, groupId: string, email: string, name = 
   return admin.request(`/v1/groups/${groupId}/pending`, { method: "POST", json: { email, name, role } });
 }
 
-async function myInvites(client: Client) {
-  const res = await client.request("/v1/me/group-invites");
+async function checkInvites(client: Client) {
+  const res = await client.request("/v1/me/group-invites", { method: "POST" });
   expect(res.status).toBe(200);
-  return MyGroupInviteSchema.array().parse((await res.json()).invites);
+  return MyGroupInvitesSchema.parse(await res.json());
+}
+const myInvites = async (client: Client) => (await checkInvites(client)).invites;
+
+async function consent(client: Client) {
+  const res = await client.request("/v1/me/consent", { method: "POST", json: { noticeVersion: PRIVACY_NOTICE.version, adultConfirmed: true } });
+  expect(res.status).toBe(201);
 }
 
 async function joinByEmail(client: Client, inviteId: string, myName: string) {
@@ -98,32 +105,53 @@ describe("adding people by email", () => {
     expect(created.emailed).toBe(true);
     expect(created.group.pending).toEqual([expect.objectContaining({ email, name: "Grandma", role: "member", emailedAt: expect.any(String) })]);
     expect(created.group.members).toHaveLength(1);
-    expect(created.group.features).toEqual({ emailInvites: true, mealShares: true });
+    expect(created.group.features).toEqual({ emailInvites: true, mealShares: true, planning: true });
 
     // One invite email, naming the inviter and the group, with no admin-written text.
     const mail = devOutbox(email);
     expect(mail).toHaveLength(1);
     expect(mail[0]!.subject).toBe("Mom added you to The Garcias on The Better Plate");
     expect(mail[0]!.text).toContain(`sign in with this email address (${email})`);
-    expect(mail[0]!.text).toContain("you choose whether to join");
+    expect(mail[0]!.text).toContain("You'll be in the group as soon as you sign in, and you can leave it at any time.");
 
     // Adding the same email again is refused; resending too soon is refused.
     expect((await addByEmail(owner, g.id, email)).status).toBe(409);
     expect((await owner.request(`/v1/groups/${g.id}/pending/${created.group.pending[0]!.id}/resend`, { method: "POST" })).status).toBe(429);
 
-    // First sign-in creates the account; the invite waits for a tap and joining is not automatic.
+    // First sign-in creates the account. Nothing joins before they agree to the privacy notice;
+    // agreeing puts them in the group, with the name the admin gave them.
     const grandma = await signIn(email);
-    const invites = await myInvites(grandma);
-    expect(invites).toEqual([expect.objectContaining({ groupName: "The Garcias", invitedBy: "Mom", suggestedName: "Grandma", role: "member" })]);
+    expect(await myInvites(grandma)).toEqual([expect.objectContaining({ groupName: "The Garcias", invitedBy: "Mom", suggestedName: "Grandma", role: "member" })]);
     expect((await (await grandma.request("/v1/groups")).json()).groups).toEqual([]);
-
-    const joined = await joinByEmail(grandma, invites[0]!.id, "Abuela");
-    expect(joined.status).toBe(200);
-    const detail = GroupDetailSchema.parse(await joined.json());
-    expect(detail.members.map((m) => [m.name, m.role])).toEqual([["Mom", "owner"], ["Abuela", "member"]]);
+    await consent(grandma);
+    const groups = (await (await grandma.request("/v1/groups")).json()).groups;
+    expect(groups.map((x: { name: string; role: string }) => [x.name, x.role])).toEqual([["The Garcias", "member"]]);
+    const detail = GroupDetailSchema.parse(await (await grandma.request(`/v1/groups/${g.id}`)).json());
+    expect(detail.members.map((m) => [m.name, m.role])).toEqual([["Mom", "owner"], ["Grandma", "member"]]);
     expect(detail.pending).toEqual([]); // members never see pending people
-    expect(await myInvites(grandma)).toEqual([]);
     expect((await owner.request(`/v1/groups/${g.id}`).then((r) => r.json())).pending).toEqual([]);
+
+    // Home says who added them until they dismiss it; leaving stays one tap away.
+    const after = await checkInvites(grandma);
+    expect(after.invites).toEqual([]);
+    expect(after.joined).toEqual([{ groupId: g.id, groupName: "The Garcias", memberId: detail.members[1]!.id, invitedBy: "Mom" }]);
+    expect((await grandma.request(`/v1/me/groups/${g.id}/welcome-seen`, { method: "POST" })).status).toBe(204);
+    expect((await checkInvites(grandma)).joined).toEqual([]);
+    expect((await grandma.request(`/v1/groups/${g.id}/members/${detail.members[1]!.id}`, { method: "DELETE" })).status).toBe(204);
+    expect((await (await grandma.request("/v1/groups")).json()).groups).toEqual([]);
+  });
+
+  it("joins an account that already agreed the next time it checks", async () => {
+    const [owner, existing] = await Promise.all([signIn(), signIn()]);
+    await consent(existing);
+    const g = await createGroup(owner);
+    expect((await addByEmail(owner, g.id, existing.email, "Uncle")).status).toBe(201);
+    const out = await checkInvites(existing);
+    expect(out.invites).toEqual([]);
+    expect(out.joined.map((j) => [j.groupName, j.invitedBy])).toEqual([["The Garcias", "Mom"]]);
+    // Checking again joins nothing twice.
+    expect((await checkInvites(existing)).joined).toHaveLength(1);
+    expect(GroupDetailSchema.parse(await (await owner.request(`/v1/groups/${g.id}`)).json()).members.map((m) => m.name)).toEqual(["Mom", "Uncle"]);
   });
 
   it("answers the same whether or not the email has an account, and matches only that verified email", async () => {
@@ -210,7 +238,7 @@ describe("adding people by email", () => {
       const res = await addByEmail(owner, g.id, newEmail());
       expect(res.status).toBe(404);
       expect((await res.json()).error.code).toBe("feature_disabled");
-      expect((await owner.request("/v1/me/group-invites")).status).toBe(404);
+      expect((await owner.request("/v1/me/group-invites", { method: "POST" })).status).toBe(404);
       expect(GroupDetailSchema.parse(await (await owner.request(`/v1/groups/${g.id}`)).json()).features.emailInvites).toBe(false);
     } finally {
       config.features.groupEmailInvites = true;
@@ -246,7 +274,7 @@ describe("shared meals", () => {
     const seen = (await meals(member, g.id)).meals[0]!;
     expect(seen.reactions).toBeNull();
     const raw = JSON.stringify(await (await member.request(`/v1/groups/${g.id}/meal-shares`)).json());
-    expect(raw).not.toMatch(/SECRET METHOD|ingredients|foodId|created_by|recipeId/);
+    expect(raw).not.toMatch(/SECRET METHOD|ingredients|foodId|created_by|"recipeId":"/);
     expect(raw).not.toContain(rice);
 
     // The photo is served to people in the group only.
@@ -377,6 +405,6 @@ describe("shared meals", () => {
 
   it("needs sign-in", async () => {
     expect((await call(`/v1/me/meals-to-review`)).status).toBe(401);
-    expect((await call(`/v1/me/group-invites`)).status).toBe(401);
+    expect((await call(`/v1/me/group-invites`, { method: "POST" })).status).toBe(401);
   });
 });

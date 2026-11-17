@@ -129,6 +129,8 @@ function loadConfig() {
   const groupEmailInvitesEnabled = emailInvitesRaw ? emailInvitesRaw === "true" : appEnv !== "production";
   const mealSharesRaw = process.env.FEATURE_GROUP_MEAL_SHARES_ENABLED?.trim();
   const groupMealSharesEnabled = mealSharesRaw ? mealSharesRaw === "true" : appEnv !== "production";
+  const planningRaw = process.env.FEATURE_GROUP_PLANNING_ENABLED?.trim();
+  const groupPlanningEnabled = planningRaw ? planningRaw === "true" : appEnv !== "production";
 
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
@@ -152,7 +154,7 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled, groupPlanning: groupPlanningEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
     house: houseConfig(),

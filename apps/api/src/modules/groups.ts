@@ -8,6 +8,7 @@ import {
   GroupDetailSchema,
   GroupInviteSchema,
   GroupPlanCreateSchema,
+  GroupPlanEveryoneSchema,
   GroupPlanUpdateSchema,
   GroupRecipeCopySchema,
   GroupSummarySchema,
@@ -119,7 +120,7 @@ export async function groupDetail(groupId: string, userId: string): Promise<Grou
       id: p.id, email: p.email, name: p.display_name, role: p.role,
       invitedAt: p.created_at.toISOString(), emailedAt: p.emailed_at?.toISOString() ?? null, expiresAt: p.expires_at.toISOString(),
     })),
-    features: { emailInvites: config.features.groupEmailInvites, mealShares: config.features.groupMealShares },
+    features: { emailInvites: config.features.groupEmailInvites, mealShares: config.features.groupMealShares, planning: config.features.groupPlanning },
   };
 }
 
@@ -741,6 +742,66 @@ groupRoutes.openapi(
       await tombstonePlan(client, row);
     });
     return c.body(null, 204);
+  },
+);
+
+const GroupPlanEveryoneResultSchema = z.object({
+  planned: z.array(z.object({ memberId: z.uuid(), name: z.string(), plan: PlannedMealSchema, alert: AllergenAlertSchema })),
+  skipped: z.array(z.object({ memberId: z.uuid(), name: z.string() })),
+});
+
+groupRoutes.openapi(
+  createRoute({
+    method: "post", path: "/v1/groups/{id}/plans/everyone", tags: ["groups"], summary: "Plan one meal for everyone in the group, or for the people chosen (owner or admin)",
+    description:
+      "Each person gets their own planned meal, as when an admin plans for one member; it reaches their kitchen through sync and they can't change it. " +
+      "Someone who already has this recipe planned for that day and meal is skipped, so sending it twice plans nothing twice. Each answer carries an allergen alert " +
+      "from that person's listed allergies; it never blocks.",
+    request: { params: GroupParam, body: { required: true, ...json(GroupPlanEveryoneSchema) } },
+    responses: {
+      201: { description: "Planned", ...json(GroupPlanEveryoneResultSchema) },
+      403: Err("Not an admin"), 422: Err("Not a group recipe"), ...ErrorResponses,
+    },
+  }),
+  async (c) => {
+    if (!config.features.groupPlanning) throw new ApiError(404, "feature_disabled", "Planning for the whole group isn't available");
+    const user = requireUser(c);
+    const { id } = c.req.valid("param");
+    const input = c.req.valid("json");
+    const result = await withTransaction(async (client) => {
+      await requireRole(client, id, user.id, ["owner", "admin"]);
+      const recipe = await groupRecipe(client, id, input.recipeId);
+      const everyone = await members(client, id);
+      const wanted = input.memberIds ? new Set(input.memberIds) : null;
+      const chosen = wanted ? everyone.filter((m) => wanted.has(m.id)) : everyone;
+      if (wanted && chosen.length !== wanted.size) throw new ApiError(404, "not_found", "Someone you chose isn't in this group");
+      const subjects = chosen.map((m) => ({ member: m, feedOwner: (m.user_id ?? m.owner_user_id)!, profileId: m.profile_id }));
+      await lockUsers(client, subjects.map((s) => s.feedOwner));
+      const planned = [];
+      const skipped = [];
+      for (const s of subjects) {
+        const dup = await client.query(
+          `select 1 from planned_meals where user_id = $1 and profile_id is not distinct from $2 and local_date = $3 and slot = $4 and recipe_id = $5
+             and deleted_at is null and status <> 'declined' limit 1`,
+          [s.feedOwner, s.profileId, input.date, input.slot, recipe.id],
+        );
+        if (dup.rows.length) {
+          skipped.push({ memberId: s.member.id, name: s.member.display_name });
+          continue;
+        }
+        const planId = crypto.randomUUID();
+        const body = { date: input.date, slot: input.slot, recipeId: recipe.id, title: recipe.title, servings: input.servings, profileId: s.profileId };
+        await writePlan(client, { actorId: user.id, feedOwner: s.feedOwner, profileId: s.profileId, groupId: id }, planId, undefined, body, "planned");
+        planned.push({
+          memberId: s.member.id,
+          name: s.member.display_name,
+          plan: toPlan((await loadPlanForWrite(client, planId))!),
+          alert: await alertFor(await subjectPreferences(client, s), recipe.ingredients),
+        });
+      }
+      return { planned, skipped };
+    });
+    return c.json(result, 201);
   },
 );
 

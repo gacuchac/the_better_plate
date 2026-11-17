@@ -14,7 +14,7 @@ import { FAVORITE_COLUMNS, toFavorite } from "./favorites.ts";
 import { shareUrl } from "./shares.ts";
 import { toFeedback, toPreferences, type FeedbackRow, type PreferencesRow } from "./preferences.ts";
 import { endOwnedGroups } from "./groups.ts";
-import { forgetInvitesTo } from "./invites.ts";
+import { forgetInvitesTo, joinPendingFor } from "./invites.ts";
 
 const PrivacyStatusSchema = z.object({
   currentVersion: z.string(),
@@ -70,6 +70,8 @@ accountRoutes.openapi(
       [PRIVACY_NOTICE.version, noticeSha256, PRIVACY_NOTICE.reviewStatus],
     );
     await pool.query(`insert into consent_events (user_id, notice_version, action, adult_confirmed) values ($1, $2, 'accepted', true)`, [user.id, noticeVersion]);
+    // Groups that added this person by email take them in now that they have agreed.
+    await joinPendingFor(user);
     return c.json(await privacyStatus(user.id), 201);
   },
 );
