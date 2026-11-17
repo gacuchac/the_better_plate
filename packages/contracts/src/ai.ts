@@ -18,12 +18,46 @@ export const AiTurnProviderSchema = z.enum(["anthropic", "openai", "house"]);
 export type AiTurnProvider = z.infer<typeof AiTurnProviderSchema>;
 
 const uuid = z.uuid();
+
+const COOKING_METHODS = [
+  "boiled", "simmered", "braised", "slow_cooked", "pressure_cooked", "steamed", "blanched", "poached", "microwaved",
+  "baked", "roasted", "grilled", "pan_fried", "sauteed", "stir_fried", "deep_fried", "air_fried",
+] as const;
+
+export const COOKING_GUIDE =
+  "Decide from the recipe's steps, for every ingredient: an ingredient that goes through a heating step is cooked, with that step's method; " +
+  "one added after the last heating step or never heated (salad greens, fresh herbs, garnish, dressing) is raw. Weigh it raw either way. " +
+  "Methods: boiled (in water that is drained off, like pasta or potatoes); simmered, braised, slow_cooked or pressure_cooked (in liquid that is eaten, like soup, stew or sauce); " +
+  "steamed, blanched, poached, microwaved; baked, roasted or grilled (dry heat); pan_fried, sauteed, stir_fried, deep_fried or air_fried. " +
+  "If it is cooked more than one way (browned, then simmered), give the last one.";
+
+const MISSING_COOKING =
+  'Every ingredient needs cooking: {"state":"raw"} or {"state":"cooked","method":"<method>"}. ' +
+  "Read the recipe's steps: cooked if a heating step cooks it, raw if it's added after the last heating step or never heated.";
+
+const IngredientCookingInput = z
+  .object(
+    {
+    state: z.enum(["raw", "cooked"], { error: 'cooking.state must be "raw" or "cooked"' }).describe("Does the recipe heat this ingredient? Decide from the steps."),
+    method: z
+      .enum(COOKING_METHODS, { error: `cooking.method must be one of: ${COOKING_METHODS.join(", ")}` })
+      .optional()
+      .describe("Required when state is cooked: the heating step's method. Leave out when raw."),
+    },
+    { error: (iss) => (iss.input === undefined || iss.input === null ? MISSING_COOKING : undefined) },
+  )
+  .superRefine((c, ctx) => {
+    if (c.state === "cooked" && !c.method) ctx.addIssue({ code: "custom", message: `This ingredient is cooked, so give cooking.method (one of: ${COOKING_METHODS.join(", ")}), from the step that heats it` });
+    if (c.state === "raw" && c.method) ctx.addIssue({ code: "custom", message: "A raw ingredient has no cooking.method; leave it out" });
+  });
+
 const IngredientInput = z.object({
   foodId: z.string().regex(/^fdc:\d{1,9}$/, "Use a foodId from search_foods"),
   grams: z.number().positive().max(5000),
   /** cooking_oil counts only what stays in the food: grams minus oilDiscardedGrams. */
   role: z.enum(["ingredient", "cooking_oil"]).default("ingredient"),
   oilDiscardedGrams: z.number().min(0).max(5000).nullable().optional(),
+  cooking: IngredientCookingInput.describe(`Whether the recipe cooks this ingredient. ${COOKING_GUIDE}`),
 });
 
 /**
@@ -63,7 +97,8 @@ export const AI_TOOLS = {
   save_recipe: {
     confirm: false,
     description:
-      "Create a recipe (omit recipeId) or replace an existing one (pass recipeId and the complete new version; read it with get_recipe first). Saved on the device and synced. The person can undo.",
+      "Create a recipe (omit recipeId) or replace an existing one (pass recipeId and the complete new version; read it with get_recipe first). Saved on the device and synced. The person can undo. " +
+      "Every ingredient needs cooking (raw, or cooked with a method), decided from the steps; cooked ingredients lose some vitamins and minerals by USDA retention factors.",
     input: z.object({
       recipeId: uuid.optional(),
       title: z.string().trim().min(1).max(120),

@@ -74,7 +74,7 @@ function plan(message: string, done: { name: string; output: unknown }[], has: (
         call("save_recipe", {
           title: "Companion lemon chicken",
           servings: 2,
-          ingredients: [{ foodId: food.id, grams: 300 }],
+          ingredients: [{ foodId: food.id, grams: 300, cooking: { state: "cooked", method: "pan_fried" } }],
           method: "1. Pat the chicken dry.\n2. Cook until it reaches 165°F (74°C) inside.",
         }),
       ];

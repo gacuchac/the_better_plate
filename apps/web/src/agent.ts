@@ -112,7 +112,7 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
         method: r.body.method,
         ingredients: r.body.ingredients.map((i) => {
           const b = nutrition.ingredients.find((x) => x.ingredientId === i.id);
-          return { foodId: i.foodId, name: env.foods.get(i.foodId)?.description ?? i.foodId, grams: round(b?.grams ?? null), role: i.role, oilDiscardedGrams: i.oilDiscardedGrams ?? null };
+          return { foodId: i.foodId, name: env.foods.get(i.foodId)?.description ?? i.foodId, grams: round(b?.grams ?? null), role: i.role, oilDiscardedGrams: i.oilDiscardedGrams ?? null, cooking: i.cooking ? { state: i.cooking.state, method: i.cooking.method, guessedFromSteps: i.cooking.source === "inferred" } : null };
         }),
         estimatedPerServing: perServing,
         disclosures: nutrition.disclosures.map((d) => d.code),
@@ -139,6 +139,7 @@ const TOOLS: { [N in AiToolName]: Impl<N> } = {
         portionIndex: null,
         role: i.role,
         oilDiscardedGrams: i.role === "cooking_oil" ? (i.oilDiscardedGrams ?? null) : null,
+        cooking: { state: i.cooking.state, method: i.cooking.state === "cooked" ? (i.cooking.method ?? null) : null, source: "stated" },
       })),
     });
     await env.engine.saveRecipe(id, body);

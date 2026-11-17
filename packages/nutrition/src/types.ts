@@ -1,3 +1,5 @@
+import type { CookingMethod } from "./retention.ts";
+
 /** Food record as stored in the versioned catalog (values per 100 g, as published by the source). */
 export interface FoodPortion {
   label: string;
@@ -34,6 +36,18 @@ export type MassUnit = "g" | "kg" | "oz" | "lb";
 export type IngredientUnit = MassUnit | "portion";
 export type IngredientRole = "ingredient" | "cooking_oil";
 
+/**
+ * Whether the recipe cooks this ingredient (it is still weighed raw). Cooked ingredients lose some
+ * vitamins and minerals by USDA retention factors (retention.ts). source "inferred" means the app
+ * guessed it from the method text; "stated" means a person or agent chose it.
+ */
+export interface IngredientCooking {
+  state: "raw" | "cooked";
+  /** Required when cooked; one of COOKING_METHODS. */
+  method: CookingMethod | null;
+  source: "stated" | "inferred";
+}
+
 export interface RecipeIngredient {
   id: string;
   foodId: string;
@@ -48,6 +62,8 @@ export interface RecipeIngredient {
    * and a disclosure says so. No absorption fraction is ever assumed.
    */
   oilDiscardedGrams?: number | null;
+  /** Missing on recipes saved before cooking states existed: counted as raw. */
+  cooking?: IngredientCooking | null;
 }
 
 export interface RecipeForCalculation {
@@ -75,7 +91,9 @@ export type DisclosureCode =
   | "oil_discard_not_measured"
   | "food_not_in_catalog"
   | "portion_not_found"
-  | "oil_discard_exceeds_added";
+  | "oil_discard_exceeds_added"
+  /** Cooked, but USDA has no retention factors for this food and method: raw values used. */
+  | "no_retention_factor";
 
 export interface Disclosure {
   code: DisclosureCode;
@@ -89,6 +107,8 @@ export interface IngredientBreakdown {
   grams: number | null;
   /** Mass counted toward nutrition (oil minus measured discard), or null. */
   countedGrams: number | null;
+  /** USDA retention code applied (cooked ingredients), or null when raw or none applies. */
+  retentionCode: number | null;
   /** Nutrient key -> contribution; null when the food does not report it. */
   contributions: Record<string, number | null>;
 }

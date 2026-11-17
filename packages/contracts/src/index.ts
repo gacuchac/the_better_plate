@@ -11,6 +11,21 @@ export const MAX_SYNC_OPS = 100;
 
 const trimmed = (max: number) => z.string().trim().max(max);
 
+/** Same list as COOKING_METHODS in @betterplate/nutrition (a test keeps them equal). */
+export const CookingMethodSchema = z.enum([
+  "boiled", "simmered", "braised", "slow_cooked", "pressure_cooked", "steamed", "blanched", "poached", "microwaved",
+  "baked", "roasted", "grilled", "pan_fried", "sauteed", "stir_fried", "deep_fried", "air_fried",
+]);
+
+/** Whether the recipe cooks the ingredient; missing on recipes saved before states existed. */
+export const IngredientCookingSchema = z
+  .object({
+    state: z.enum(["raw", "cooked"]),
+    method: CookingMethodSchema.nullable(),
+    source: z.enum(["stated", "inferred"]),
+  })
+  .refine((c) => (c.state === "cooked") === (c.method !== null), { message: "A cooked ingredient needs a method; a raw one has none" });
+
 export const RecipeIngredientSchema = z.object({
   id: z.uuid(),
   foodId: z.string().regex(/^fdc:\d{1,9}$/, "foodId must look like fdc:<id>"),
@@ -19,6 +34,7 @@ export const RecipeIngredientSchema = z.object({
   portionIndex: z.number().int().min(0).max(100).nullable().optional(),
   role: z.enum(["ingredient", "cooking_oil"]),
   oilDiscardedGrams: z.number().min(0).max(100_000).nullable().optional(),
+  cooking: IngredientCookingSchema.nullable().optional(),
 });
 
 // ---------- recipe photos: openly licensed photos or images generated on the person's key ----------

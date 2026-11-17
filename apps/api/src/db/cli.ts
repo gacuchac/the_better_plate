@@ -1,6 +1,7 @@
 import { pool } from "./pool.ts";
 import { migrate } from "./migrate.ts";
 import { seedCatalog } from "./seed.ts";
+import { backfillCookingState } from "./backfill.ts";
 
 const command = process.argv[2];
 try {
@@ -16,6 +17,8 @@ try {
   }
   if (command === "migrate" || command === "setup") await migrate(pool);
   if (command === "seed" || command === "setup") await seedCatalog(pool);
+  // Data backfills need the catalog, so they run after the seed; each runs once per database.
+  if (command === "setup") await backfillCookingState(pool);
   if (!["migrate", "seed", "setup", "reset"].includes(command ?? "")) {
     console.error("usage: cli.ts migrate|seed|setup|reset");
     process.exitCode = 2;

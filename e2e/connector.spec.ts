@@ -69,7 +69,14 @@ test("a person signs in, approves an assistant, then disconnects it", async ({ p
     });
   const found = await (await mcp(1, "tools/call", { name: "search_foods", arguments: { query: "chicken breast raw" } })).json();
   const foodId = JSON.parse(found.result.content[0].text).foods[0].id as string;
-  const saved = await mcp(2, "tools/call", { name: "save_recipe", arguments: { title: "Recipe from my assistant", servings: 2, ingredients: [{ foodId, grams: 300 }] } });
+  // Every ingredient must say whether the recipe cooks it; the error tells the agent how to decide.
+  const missing = await (await mcp(2, "tools/call", { name: "save_recipe", arguments: { title: "Recipe from my assistant", servings: 2, ingredients: [{ foodId, grams: 300 }] } })).json();
+  expect(missing.result.isError).toBe(true);
+  expect(missing.result.content[0].text).toContain("Every ingredient needs cooking");
+  const saved = await mcp(2, "tools/call", {
+    name: "save_recipe",
+    arguments: { title: "Recipe from my assistant", servings: 2, ingredients: [{ foodId, grams: 300, cooking: { state: "cooked", method: "grilled" } }] },
+  });
   expect((await saved.json()).result.isError).toBeFalsy();
   await expect(page.getByTestId("recipe-card").filter({ hasText: "Recipe from my assistant" })).toBeVisible({ timeout: 12_000 });
   await shot(page, info, "assistant-recipe-live", "Your recipes: a recipe saved by the connected assistant appears without reloading");

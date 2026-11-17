@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DAILY_VALUE_SOURCE, percentDailyValue, type FoodRecord, type NutrientDefinition, type NutrientTotal, type RecipeNutrition } from "@betterplate/nutrition";
+import { DAILY_VALUE_SOURCE, percentDailyValue, RETENTION_FACTORS, type FoodRecord, type NutrientDefinition, type NutrientTotal, type RecipeNutrition } from "@betterplate/nutrition";
 import type { RecipeIngredientInput } from "@betterplate/contracts";
 import { Sheet } from "./common.tsx";
 import { useApp } from "../store.tsx";
@@ -18,6 +18,8 @@ export function disclosureText(code: string, foodName: string): string {
       return translate("disclosure.foodMissing");
     case "portion_not_found":
       return translate("disclosure.portionMissing", { food: foodName });
+    case "no_retention_factor":
+      return translate("disclosure.noRetention", { food: foodName });
     default:
       return code;
   }
@@ -81,6 +83,11 @@ export function NutritionPanel({
       <button type="button" className="btn-link" onClick={() => setShowAll((v) => !v)}>
         {showAll ? t("nutrition.showFewer") : t("nutrition.showAll")}
       </button>
+      {ingredients.some((i) => i.role === "ingredient" && i.cooking?.state === "cooked") && (
+        <p className="fine" data-testid="cooking-note">
+          {t("nutrition.cookingNote")}
+        </p>
+      )}
       {nutrition.disclosures.length > 0 && (
         <ul className="disclosures" data-testid="disclosures">
           {nutrition.disclosures.map((d) => (
@@ -129,6 +136,9 @@ function SourceList({
               {ing?.role === "cooking_oil" && b.grams !== null && b.countedGrams !== b.grams ? ` ${t("sources.ofAdded", { g: b.grams.toFixed(1) })}` : ""}
               {" · "}
               {per100 === undefined ? t("sources.notReported") : t("sources.contribution", { amount: formatQty(b.contributions[nutrientKey] ?? null, unit), per100: `${per100} ${unit}` })}
+              {b.retentionCode !== null && per100 !== undefined && RETENTION_FACTORS[b.retentionCode]?.r[nutrientKey] !== undefined
+                ? ` · ${t("sources.retained", { pct: RETENTION_FACTORS[b.retentionCode]!.r[nutrientKey]! })}`
+                : ""}
             </span>
             {food && (
               <a href={food.source.url} target="_blank" rel="noopener noreferrer">
