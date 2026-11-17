@@ -10,13 +10,19 @@ test("hosted: redesigned screens, signed in", async ({ page }, info) => {
 
   // Nav: Create is the raised button in the middle.
   const labels = (await page.getByRole("navigation", { name: "Main" }).locator(".nav-item").allInnerTexts()).map((l) => l.trim());
-  expect(labels).toEqual(["Kitchen", "Explore", "Create", "Groups", "You"]);
+  expect(labels).toEqual(["Home", "Kitchen", "Create", "Groups", "You"]);
   await expect(page.locator(".nav-create")).toBeVisible();
 
   // Today: the plan first (empty or not), then "Let's cook something".
   await expect(page.getByTestId("today-card")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Let's cook something" })).toBeVisible();
   await shot(page, info, "hosted-today", "Today: the plan, then Let's cook something");
+
+  // Kitchen: every recipe, with the shopping list and the food lookup.
+  await page.goto("/#/kitchen");
+  await expect(page.getByRole("heading", { name: "Your recipes", exact: true })).toBeVisible();
+  await expect(page.getByTestId("explore-link")).toBeVisible();
+  await shot(page, info, "hosted-kitchen", "Kitchen: every recipe");
 
   await page.goto("/#/explore");
   await expect(page.getByRole("heading", { name: "Foods", exact: true })).toBeVisible();

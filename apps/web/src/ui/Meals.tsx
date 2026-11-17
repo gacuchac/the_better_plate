@@ -115,7 +115,7 @@ export function Meals({ date: routeDate }: { date?: string }) {
           />
         ) : null;
       })()}
-      {planning && <PickRecipeToPlan date={date} subject={subject} onClose={() => setPlanning(false)} />}
+      {planning && <PickRecipe mode="plan" date={date} subject={subject} onClose={() => setPlanning(false)} />}
       {details && day.totals && (
         <Sheet title={t("meals.whatYouAte", { day: dayName(date, today) })} onClose={() => setDetails(false)}>
           <p className="hint">{t("meals.sumHint")}</p>
@@ -347,19 +347,22 @@ function WeekList({ week, today, onPick }: { week: DaySummary[]; today: string; 
   );
 }
 
-function PickRecipeToPlan({ date, subject, onClose }: { date: string; subject: Subject; onClose: () => void }) {
-  const { recipes } = useApp();
+/** Pick a recipe, then plan it or log it as eaten: two taps from wherever the button is. Favorites come first. */
+export function PickRecipe({ mode, date, subject, onClose }: { mode: "plan" | "log"; date: string; subject: Subject; onClose: () => void }) {
+  const { recipes, favorites } = useApp();
   const t = useT();
   const [picked, setPicked] = useState<string | null>(null);
+  const sorted = useMemo(() => [...recipes.filter((r) => favorites.has(r.id)), ...recipes.filter((r) => !favorites.has(r.id))], [recipes, favorites]);
   const recipe = recipes.find((r) => r.id === picked);
-  if (recipe) return <PlanSheet recipeId={recipe.id} title={recipe.body.title} initialDate={date} profileId={subject} onClose={onClose} />;
+  if (recipe && mode === "plan") return <PlanSheet recipeId={recipe.id} title={recipe.body.title} initialDate={date} profileId={subject} onClose={onClose} />;
+  if (recipe) return <LogSheet recipeId={recipe.id} recipe={recipe.body} initialDate={date} profileId={subject} onClose={onClose} />;
   return (
-    <Sheet title={t("meals.planMeal")} onClose={onClose}>
+    <Sheet title={mode === "plan" ? t("meals.planMeal") : t("today.whatDidYouEat")} onClose={onClose}>
       {recipes.length === 0 ? (
-        <p className="hint">{t("meals.saveFirst")}</p>
+        <p className="hint">{mode === "plan" ? t("meals.saveFirst") : t("today.saveFirstLog")}</p>
       ) : (
         <ul className="food-results" aria-label={t("meals.yourRecipes")}>
-          {recipes.map((r) => (
+          {sorted.map((r) => (
             <li key={r.id}>
               <button type="button" onClick={() => setPicked(r.id)}>
                 <span>{r.body.title}</span>

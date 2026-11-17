@@ -75,8 +75,12 @@ test("core screens have no automatically detectable WCAG 2.2 AA violations", asy
   await page.getByRole("tab", { name: "7 days" }).or(page.getByRole("button", { name: "7 days" })).click();
   await audit(page, "meals-week");
 
-  await page.goto("/#/kitchen");
+  await page.goto("/#/home");
   await expect(page.getByTestId("today-card")).toBeVisible();
+  await audit(page, "home-with-recipe");
+
+  await page.goto("/#/kitchen");
+  await expect(page.getByTestId("recipe-card").first()).toBeVisible();
   await audit(page, "kitchen-with-recipe");
 
   await page.goto("/#/explore");

@@ -8,7 +8,7 @@ import { Icon, type IconName } from "./icons.tsx";
 import { Meals } from "./Meals.tsx";
 import { ReportIssue } from "./ReportIssue.tsx";
 import { RecipeEditor } from "./RecipeEditor.tsx";
-import { Explore, Kitchen, Recipes, You } from "./Screens.tsx";
+import { Explore, Home, Kitchen, You } from "./Screens.tsx";
 import { CommunityRecipePage } from "./Community.tsx";
 import { PRIVACY_NOTICE } from "@betterplate/contracts";
 import { ConsentScreen, PrivacyPage } from "./Privacy.tsx";
@@ -24,8 +24,8 @@ import { ConnectConsent, ResumeConnect, takePendingConnect } from "./Connect.tsx
 import { useT, type MessageKey } from "../i18n.ts";
 
 const NAV: { path: string; label: MessageKey; icon: IconName }[] = [
-  { path: "/kitchen", label: "nav.kitchen", icon: "kitchen" },
-  { path: "/explore", label: "nav.explore", icon: "search" },
+  { path: "/home", label: "nav.home", icon: "kitchen" },
+  { path: "/kitchen", label: "nav.kitchen", icon: "pan" },
   { path: "/create", label: "nav.create", icon: "plus" },
   { path: "/groups", label: "groups.title", icon: "people" },
   { path: "/you", label: "nav.you", icon: "user" },
@@ -109,14 +109,16 @@ export function App() {
   const groupMatch = /^\/groups\/([0-9a-f-]{36})$/.exec(route);
   const joinMatch = /^\/join\/([0-9a-f-]{36})$/.exec(route);
   const communityMatch = /^\/community\/([0-9a-f-]{36})$/.exec(route);
-  const inKitchen = !!(recipeMatch || mealsMatch || shoppingMatch || communityMatch) || route === "/recipes" || route === "/cheers";
+  // Kitchen is every recipe and what goes with them; Home is today (the plan, the meal log, cheers).
+  const inKitchen = !!(recipeMatch || shoppingMatch || communityMatch) || ["/kitchen", "/recipes", "/explore"].includes(route);
+  const inHome = !!mealsMatch || route === "/cheers";
   const inYou = ["/goals", "/targets", "/ai", "/preferences"].includes(route);
   const inGroups = route === "/groups" || !!groupMatch || !!joinMatch;
-  const section = inKitchen ? "/kitchen" : inYou ? "/you" : inGroups ? "/groups" : route;
+  const section = inKitchen ? "/kitchen" : inHome ? "/home" : inYou ? "/you" : inGroups ? "/groups" : route === "/create" ? route : "/home";
   let screen;
   if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;
-  else if (route === "/recipes") screen = <Recipes />;
+  else if (route === "/kitchen" || route === "/recipes") screen = <Kitchen />;
   else if (route === "/cheers") screen = <CheersPage />;
   else if (communityMatch) screen = <CommunityRecipePage key={communityMatch[1]} id={communityMatch[1]!} />;
   else if (route === "/explore") screen = <Explore />;
@@ -127,7 +129,7 @@ export function App() {
   else if (route === "/groups") screen = <Groups />;
   else if (groupMatch) screen = <GroupScreen key={groupMatch[1]} id={groupMatch[1]!} />;
   else if (joinMatch) screen = <JoinGroup key={joinMatch[1]} token={joinMatch[1]!} />;
-  else screen = <Kitchen />;
+  else screen = <Home />;
 
   return (
     <div className={`shell${recipeMatch ? " has-action-bar" : ""}`}>
@@ -149,9 +151,13 @@ export function App() {
       </nav>
       <div className="content">
         <div className="topbar">
-          {inKitchen ? (
+          {inKitchen && route !== "/kitchen" && route !== "/recipes" ? (
             <a className="back" href="#/kitchen" aria-label={t("nav.backToKitchen")}>
               <Icon name="back" /> {t("nav.kitchen")}
+            </a>
+          ) : inHome ? (
+            <a className="back" href="#/home" aria-label={t("nav.backToHome")}>
+              <Icon name="back" /> {t("nav.home")}
             </a>
           ) : groupMatch ? (
             <a className="back" href="#/groups">

@@ -74,7 +74,7 @@ export function milestoneText(t: ReturnType<typeof useT>, side: "yours" | "post"
 
 // ---------- home: one card, a suggestion to share or a nudge to cheer others ----------
 
-/** One slot on Your Kitchen. Shows nothing offline, when switched off, or with nothing to say. */
+/** One slot on Home. Shows nothing offline, when switched off, or with nothing to say. */
 export function MilestoneCard() {
   const { logs, catalog } = useApp();
   const t = useT();

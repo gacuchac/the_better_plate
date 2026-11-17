@@ -8,7 +8,7 @@ import { useGentle } from "../gentle.ts";
 import { Meter } from "./Meter.tsx";
 
 /**
- * The last seven days on Your Kitchen, next to today: what was eaten against the person's own
+ * The last seven days on Home, next to today: what was eaten against the person's own
  * daily goals, each day counted with the goal it had, so one day over or under still shows where
  * the week stands. Logged meals only; days with nothing logged are left out; hidden in gentle mode.
  */

@@ -35,7 +35,7 @@ export function PrivacyPage() {
   return (
     <div className="public-page">
       <header className="public-head">
-        <a className="public-brand" href="#/kitchen">
+        <a className="public-brand" href="#/home">
           The Better Plate
         </a>
       </header>
@@ -43,7 +43,7 @@ export function PrivacyPage() {
         <p className="eyebrow">{t("privacy.eyebrow")}</p>
         <h1 lang="en">{PRIVACY_NOTICE.title}</h1>
         <NoticeBody />
-        <a className="btn-secondary" href="#/kitchen">
+        <a className="btn-secondary" href="#/home">
           {t("common.back")}
         </a>
       </main>

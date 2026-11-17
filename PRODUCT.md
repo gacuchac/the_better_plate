@@ -40,7 +40,7 @@ This file defines **what must be true for the product**, not which framework, cl
 | Report issue | Anywhere → issue sheet prefilled with activity → preview screenshot → submit | Queue offline until approved sync | Public |
 | Chef quote/order | Recipe → controlled inquiry → quote → payment/order | No | Internal staging only until release gates |
 
-**Navigation:** five public destinations: Your Kitchen (home), Create, Explore, Groups, You; nested kitchen areas Ingredients, Recipes, Meal Plan, Sync. Responsive mobile bottom nav and desktop rail. Persistent unobtrusive Report issue action and contextual AI companion overlay. No invisible controls or maze of dialogs. Avoid cart/checkout teasers when gated OFF.
+**Navigation:** five public destinations: Home (today: the plan, logging, the week, what to cook), Kitchen (every recipe, the shopping list and the food lookup, formerly Explore), Create, Groups, You (owner decision, 2026-11-17, ADR-013); nested areas Ingredients, Recipes, Meal Plan, Sync. Responsive mobile bottom nav and desktop rail. Persistent unobtrusive Report issue action and contextual AI companion overlay. No invisible controls or maze of dialogs. Avoid cart/checkout teasers when gated OFF.
 
 **First run:** public landing → sign up with email, optional name → simple preference/safety information (no clinical profile) → starter-catalog installed indicator → Your Kitchen. Let a guest browse public examples but do not silently associate local personal records with a new account without clear import/consent.
 
