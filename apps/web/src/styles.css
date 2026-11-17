@@ -397,7 +397,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .cook-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
 .cook-list li { border: 1px solid #3a4844; border-radius: var(--radius); }
 .cook-list li.current { border-color: var(--sage-night); background: #1f2a26; }
-.cook-list label { display: grid; grid-template-columns: 32px 24px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px 14px; min-height: 56px; margin: 0; cursor: pointer; color: #f4f6f5; font-size: inherit; font-weight: 500; }
+.cook-list label { display: grid; grid-template-columns: 32px 24px minmax(0, 1fr) 44px; gap: 10px; align-items: start; padding: 12px 14px; min-height: 56px; margin: 0; cursor: pointer; color: #f4f6f5; font-size: inherit; font-weight: 500; }
 .cook-list input[type="checkbox"] { width: 28px; height: 28px; margin: 0; accent-color: var(--sage-night); cursor: pointer; }
 .cook-list-n { color: #b7c2bd; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 28px; }
 .cook-list-text { font-size: 1.0625rem; line-height: 1.45; overflow-wrap: anywhere; }
@@ -405,6 +405,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .cook-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; text-decoration: none; }
 .cook-chip { font-size: 0.75rem; font-weight: 650; padding: 2px 8px; border-radius: 999px; background: #2c3a36; color: #dfe6e2; display: inline-block; }
 .cook-step { font-size: clamp(1.375rem, 5.5vw, 1.75rem); }
+.cook-shot { display: block; width: 44px; height: 44px; border-radius: 12px; object-fit: cover; background: #24302c; }
+.cook-shot.large { width: 100%; height: auto; aspect-ratio: 16 / 9; max-height: 180px; border-radius: var(--radius); }
+.cook-shot.empty { display: grid; place-items: center; align-content: center; gap: 6px; border: 1px dashed #4a5a55; color: #8c9893; }
+.cook-shot-note { font-size: 0.8125rem; color: #b7c2bd; }
+.cook-list li.done .cook-shot { opacity: 0.5; }
 
 /* ---------- report an issue ---------- */
 .report-steps { list-style: decimal; padding-left: 22px; margin: 8px 0 0; display: grid; gap: 2px; font-size: 0.9375rem; }
