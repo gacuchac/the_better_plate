@@ -41,6 +41,7 @@
 | Recipes (including group recipes), plans, eaten logs, goals, preferences, meal feedback, profiles, cached group list, outbox, sync cursor | Browser IndexedDB `betterplate-user-<id>` | Offline use | Deleted on sign-out or when another account signs in |
 | Last account id and email | Browser `localStorage` `bp.account` | Open offline | Removed on sign-out |
 | Shopping-list ticks; whose meals are shown | Browser `localStorage` `bp.shop.*`; `sessionStorage` `bp.subject` | Convenience | Device only; removed with browser data |
+| Cook it ticks (step numbers done per recipe) | Browser `localStorage` `bp.cook.*` | Convenience | Device only; cleared on Finish or Start over, ignored after a day without a tick or when the steps change |
 | Issue reports waiting to send (at most 5) | Browser `localStorage` `bp.feedback.queue` | Offline report queue | Removed once sent |
 | Recent readable steps and last error message | Browser memory only | Prefill issue reports | Gone when the tab closes |
 | USDA catalog | Browser IndexedDB `betterplate-catalog` | Offline foods | Public data; kept |

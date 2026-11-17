@@ -514,31 +514,51 @@ test("calculate goals from published tables without storing what was typed", asy
   expect(stored).not.toMatch(/heightCm|weightKg|"sex"|"age"|"activity"/);
 });
 
-test("cook mode shows your steps one at a time, timers, and cited safe temperatures", async ({ page }, info) => {
+test("Cook it turns your steps into a checklist with the next step, its technique, safe temperatures and kept ticks", async ({ page }, info) => {
   await signIn(page, newEmail("cook"));
   await page.getByRole("button", { name: "New recipe" }).click();
   await page.getByLabel("Recipe name").fill("Seared chicken");
   await addIngredient(page, "chicken breast raw", "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw");
-  await page.getByLabel("Method").fill("1. Pat the chicken dry and season.\n2. Sear 6 minutes per side.\n3. Rest before slicing.");
+  await page.getByLabel("Method").fill("Weeknight chicken.\n\n1. Pat the chicken dry and season.\n2. Sear the chicken 6 minutes per side.\n3. Rest before slicing.");
   await saveAndSync(page);
 
-  await page.getByRole("link", { name: "Cook" }).click();
-  await expect(page.getByTestId("cook-mode")).toContainText("Before you start");
+  await page.getByRole("link", { name: "Cook it" }).click();
+  const list = page.getByTestId("cook-checklist");
+  await expect(list.getByRole("checkbox")).toHaveCount(3);
+  await expect(page.getByTestId("cook-mode")).toContainText("Weeknight chicken.");
+  await expect(page.getByTestId("cook-count")).toHaveText("0 of 3 done");
+  const next = page.getByTestId("cook-next");
+  await expect(next).toContainText("Step 1 of 3");
+  await expect(page.getByTestId("cook-step")).toHaveText("Pat the chicken dry and season.");
+  await expect(page.getByTestId("cook-technique")).toContainText("Season");
   const safe = page.getByTestId("safe-temperatures");
   await expect(safe).toContainText("165°F (74°C)");
   await expect(safe.getByRole("link")).toHaveAttribute("href", /foodsafety\.gov/);
-  await shot(page, info, "cook-before-start", "Cook mode: safe minimum temperature from FoodSafety.gov with source");
+  await shot(page, info, "cook-checklist", "Cook it: the next step with its technique, then every step as a checkbox");
 
-  await page.getByRole("button", { name: "Start cooking" }).click();
-  await expect(page.getByTestId("cook-step")).toHaveText("Pat the chicken dry and season.");
-  await page.getByRole("button", { name: "Next step" }).click();
+  await next.getByRole("button", { name: "Mark done" }).click();
+  await expect(list.getByRole("checkbox").first()).toBeChecked();
+  await expect(page.getByTestId("cook-step")).toHaveText("Sear the chicken 6 minutes per side.");
+  await expect(page.getByTestId("cook-technique")).toContainText("Cook the surface over high heat until browned");
+  await expect(page.getByTestId("cook-step-safety")).toContainText("165°F (74°C)");
   await expect(page.getByTestId("cook-timer")).toContainText("06:00");
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
-  await shot(page, info, "cook-step-timer", "Step 2 of 3 with the timer the cook wrote (6 minutes)");
-  await page.getByRole("button", { name: "Next step" }).click();
-  await page.getByRole("link", { name: "Done" }).click();
+  await shot(page, info, "cook-next-sear", "Step 2: Sear, what it means, the safe temperature for chicken and the 6-minute timer");
+
+  // Ticks stay on this device after a reload; tapping a step's box ticks it too.
+  await page.reload();
+  await expect(page.getByTestId("cook-count")).toHaveText("1 of 3 done");
+  await list.getByRole("checkbox", { name: /Rest before slicing/ }).check();
+  await expect(page.getByTestId("cook-step")).toHaveText("Sear the chicken 6 minutes per side.");
+  await list.getByRole("checkbox", { name: /Sear the chicken/ }).check();
+  await expect(page.getByTestId("cook-all-done")).toContainText("All steps done");
+  await shot(page, info, "cook-all-done", "Every step ticked");
+
+  await page.getByRole("link", { name: "Finish" }).click();
   await expect(page.getByLabel("Recipe name")).toHaveValue("Seared chicken");
+  await page.getByRole("link", { name: "Cook it" }).click();
+  await expect(page.getByTestId("cook-count")).toHaveText("0 of 3 done");
 });
 
 test("report an issue from any screen: readable steps, previewed screenshot, offline queue", async ({ page, context }, info) => {
@@ -703,7 +723,7 @@ test("use the app in Spanish: interface, Spanish food words, nutrient names and 
   await expect(dialog).toContainText("Los nombres de los alimentos vienen del USDA en inglés");
   await shot(page, info, "es-food-search", "Spanish words find USDA foods, whose names stay in English");
   await dialog.getByRole("list", { name: "Alimentos" }).getByRole("button", { name: /^Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw/ }).first().click();
-  await page.getByLabel("Preparación").fill("1. Seca el pollo.\n2. Dóralo 6 minutos por lado.");
+  await page.getByLabel("Preparación").fill("1. Seca el pollo.\n2. Dora el pollo 6 minutos por lado.");
   await page.getByRole("button", { name: "Guardar receta" }).click();
   await expect(page.getByTestId("save-message")).toContainText("Guardado en este dispositivo");
   await expect(page.getByTestId("sync-status")).toHaveText("Sincronizado", { timeout: 15_000 });
@@ -720,7 +740,11 @@ test("use the app in Spanish: interface, Spanish food words, nutrient names and 
   await expect(safe).toContainText("Temperaturas internas mínimas seguras");
   await expect(safe).toContainText("165°F (74°C)");
   await expect(safe).toContainText("Pollo, pavo y otras aves");
-  await shot(page, info, "es-cook", "Cook mode safety chart in Spanish, still citing FoodSafety.gov");
+  await expect(page.getByTestId("cook-count")).toHaveText("0 de 2 listos");
+  await page.getByRole("button", { name: "Marcar como hecho" }).click();
+  await expect(page.getByTestId("cook-technique")).toContainText("Dorar");
+  await expect(page.getByTestId("cook-step-safety")).toContainText("Revisa la temperatura");
+  await shot(page, info, "es-cook", "Cook it checklist in Spanish: Dorar, the safe temperature, still citing FoodSafety.gov");
   await page.getByRole("link", { name: "Salir" }).click();
 
   // Back to English for anyone else on this device.
