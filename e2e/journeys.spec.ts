@@ -532,7 +532,7 @@ test("Cook it turns your steps into a checklist with the next step, its techniqu
   await expect(page.getByTestId("cook-step")).toHaveText("Pat the chicken dry and season.");
   await expect(page.getByTestId("cook-technique")).toContainText("Season");
   await expect(list.getByTestId("cook-step-photo")).toHaveCount(3);
-  await expect(next.getByTestId("cook-step-photo")).toContainText("No photo for this step yet");
+  await expect(next.getByTestId("cook-step-photo")).toHaveCount(1);
   const safe = page.getByTestId("safe-temperatures");
   await expect(safe).toContainText("165°F (74°C)");
   await expect(safe.getByRole("link")).toHaveAttribute("href", /foodsafety\.gov/);

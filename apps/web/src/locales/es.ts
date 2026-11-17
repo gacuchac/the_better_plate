@@ -357,7 +357,6 @@ export const es: Messages = {
   "cook.ownSteps": "Estos pasos son tuyos. Aún no tenemos guías de cocción curadas con tiempos y temperaturas probados.",
   "cook.doneOf": "{done} de {total} listos",
   "cook.markDone": "Marcar como hecho",
-  "cook.noStepPhoto": "Aún no hay foto de este paso",
   "cook.allSteps": "Todos los pasos",
   "cook.technique": "Técnica",
   "cook.techniqueNote": "Las técnicas se leen de las palabras de cada paso.",

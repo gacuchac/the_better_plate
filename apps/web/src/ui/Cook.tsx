@@ -134,17 +134,16 @@ function writeProgress(key: string, fingerprint: string, done: Set<number>) {
 }
 
 /**
- * A step's picture. Steps have no photos yet, so this shows a placeholder slot in the
- * app's no-photo style; pass `src` once a step can carry its own photo.
+ * A step's picture: a small box, the same size in the next-step card and the checklist.
+ * Steps have no photos yet, so it shows the image icon, like a recipe without a photo.
+ * When steps get photos, keep them small and light: a compressed thumbnail sized for this
+ * box (about 2x its size for sharp screens), lazy-loaded, never the full-size upload.
  */
-function StepPhoto({ src, alt, large = false }: { src?: string; alt?: string; large?: boolean }) {
-  const t = useT();
-  const cls = `cook-shot${large ? " large" : ""}`;
-  if (src) return <img className={cls} src={src} alt={alt ?? ""} loading="lazy" />;
+function StepPhoto({ src, alt }: { src?: string; alt?: string }) {
+  if (src) return <img className="cook-shot" src={src} alt={alt ?? ""} width={44} height={44} loading="lazy" decoding="async" />;
   return (
-    <span className={`${cls} empty`} data-testid="cook-step-photo" aria-hidden={large ? undefined : true}>
-      <Icon name="image" size={large ? 28 : 20} />
-      {large && <span className="cook-shot-note">{t("cook.noStepPhoto")}</span>}
+    <span className="cook-shot empty" data-testid="cook-step-photo" aria-hidden="true">
+      <Icon name="image" size={20} />
     </span>
   );
 }
@@ -259,11 +258,13 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
         </>
       ) : step ? (
         <section className="cook-next" aria-labelledby="cook-next-title" data-testid="cook-next">
-          <h1 id="cook-next-title" className="cook-next-head">
-            {t("cook.stepOf", { index: current + 1, total })}
-            {step.label ? ` · ${step.label}` : ""}
-          </h1>
-          <StepPhoto large />
+          <div className="cook-next-row">
+            <StepPhoto />
+            <h1 id="cook-next-title" className="cook-next-head">
+              {t("cook.stepOf", { index: current + 1, total })}
+              {step.label ? ` · ${step.label}` : ""}
+            </h1>
+          </div>
           <p className="cook-step" data-testid="cook-step">{step.text}</p>
           <Techniques techniques={step.techniques} />
           {reminders.length > 0 && (
