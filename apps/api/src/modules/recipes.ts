@@ -25,7 +25,7 @@ type RecipeRow = {
   group_id: string | null;
   title: string;
   servings: string;
-  body: { ingredients?: RecipeBody["ingredients"]; method?: string; description?: string; image?: RecipeBody["image"] };
+  body: { ingredients?: RecipeBody["ingredients"]; method?: string; description?: string; image?: RecipeBody["image"]; origin?: RecipeBody["origin"] };
   nutrition: RecipeNutritionDto | null;
   version: number;
   server_seq: string;
@@ -44,6 +44,7 @@ export function toRecipe(r: RecipeRow): Recipe {
     description: r.body.description ?? "",
     method: r.body.method ?? "",
     image: r.body.image ?? null,
+    ...(r.body.origin ? { origin: r.body.origin } : {}),
     version: r.version,
     createdAt: r.created_at.toISOString(),
     updatedAt: r.updated_at.toISOString(),
@@ -133,7 +134,13 @@ export async function putRecipe(
   const image = kept ? { ok: true as const, image: kept } : await resolveRecipeImage(client, userId, body.image);
 
   const version = row ? row.version + 1 : 1;
-  const stored = { ingredients: calc.recipeIngredients, description: body.description, method: body.method, image: image.ok ? image.image : null };
+  const stored = {
+    ingredients: calc.recipeIngredients,
+    description: body.description,
+    method: body.method,
+    image: image.ok ? image.image : null,
+    ...(body.origin ? { origin: body.origin } : {}),
+  };
   const values = [body.title, body.servings, JSON.stringify(stored), JSON.stringify(calc.nutrition), version];
   // The owner and group stay as they are on edits: an admin editing a group recipe does not take it over.
   const { rows } = row

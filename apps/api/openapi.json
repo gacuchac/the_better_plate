@@ -386,13 +386,25 @@
               "currentVersion",
               "acceptedVersion"
             ]
+          },
+          "features": {
+            "type": "object",
+            "properties": {
+              "recipePhotoImport": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "recipePhotoImport"
+            ]
           }
         },
         "required": [
           "id",
           "email",
           "displayName",
-          "privacy"
+          "privacy",
+          "features"
         ]
       },
       "SignInMethods": {
@@ -1718,6 +1730,33 @@
                               "generator"
                             ]
                           },
+                          "origin": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "photo"
+                                ]
+                              },
+                              "importedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "methodFingerprint": {
+                                "type": "string",
+                                "pattern": "^[0-9a-f]{8}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "importedAt",
+                              "methodFingerprint"
+                            ]
+                          },
                           "id": {
                             "type": "string",
                             "format": "uuid"
@@ -2307,6 +2346,33 @@
                       "generator"
                     ]
                   },
+                  "origin": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "photo"
+                        ]
+                      },
+                      "importedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "methodFingerprint": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "importedAt",
+                      "methodFingerprint"
+                    ]
+                  },
                   "id": {
                     "type": "string",
                     "format": "uuid"
@@ -2602,6 +2668,33 @@
                         "kind",
                         "credit",
                         "generator"
+                      ]
+                    },
+                    "origin": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo"
+                          ]
+                        },
+                        "importedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "methodFingerprint": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}$"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "importedAt",
+                        "methodFingerprint"
                       ]
                     },
                     "id": {
@@ -3667,6 +3760,33 @@
                         "generator"
                       ]
                     },
+                    "origin": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo"
+                          ]
+                        },
+                        "importedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "methodFingerprint": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}$"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "importedAt",
+                        "methodFingerprint"
+                      ]
+                    },
                     "id": {
                       "type": "string",
                       "format": "uuid"
@@ -4268,6 +4388,33 @@
                       "credit",
                       "generator"
                     ]
+                  },
+                  "origin": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "photo"
+                        ]
+                      },
+                      "importedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "methodFingerprint": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "importedAt",
+                      "methodFingerprint"
+                    ]
                   }
                 },
                 "required": [
@@ -4560,6 +4707,33 @@
                         "kind",
                         "credit",
                         "generator"
+                      ]
+                    },
+                    "origin": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo"
+                          ]
+                        },
+                        "importedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "methodFingerprint": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}$"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "importedAt",
+                        "methodFingerprint"
                       ]
                     },
                     "id": {
@@ -15491,6 +15665,33 @@
                               "generator"
                             ]
                           },
+                          "origin": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "photo"
+                                ]
+                              },
+                              "importedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "methodFingerprint": {
+                                "type": "string",
+                                "pattern": "^[0-9a-f]{8}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "importedAt",
+                              "methodFingerprint"
+                            ]
+                          },
                           "id": {
                             "type": "string",
                             "format": "uuid"
@@ -16110,6 +16311,33 @@
                         "kind",
                         "credit",
                         "generator"
+                      ]
+                    },
+                    "origin": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "photo"
+                          ]
+                        },
+                        "importedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "methodFingerprint": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}$"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "importedAt",
+                        "methodFingerprint"
                       ]
                     },
                     "id": {
@@ -25769,6 +25997,33 @@
                                     "credit",
                                     "generator"
                                   ]
+                                },
+                                "origin": {
+                                  "type": [
+                                    "object",
+                                    "null"
+                                  ],
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "photo"
+                                      ]
+                                    },
+                                    "importedAt": {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    },
+                                    "methodFingerprint": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-f]{8}$"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "importedAt",
+                                    "methodFingerprint"
+                                  ]
                                 }
                               },
                               "required": [
@@ -26932,6 +27187,33 @@
                                   "generator"
                                 ]
                               },
+                              "origin": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "photo"
+                                    ]
+                                  },
+                                  "importedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "methodFingerprint": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-f]{8}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "importedAt",
+                                  "methodFingerprint"
+                                ]
+                              },
                               "id": {
                                 "type": "string",
                                 "format": "uuid"
@@ -27931,6 +28213,33 @@
                                   "kind",
                                   "credit",
                                   "generator"
+                                ]
+                              },
+                              "origin": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "photo"
+                                    ]
+                                  },
+                                  "importedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "methodFingerprint": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-f]{8}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "importedAt",
+                                  "methodFingerprint"
                                 ]
                               },
                               "id": {
@@ -31852,6 +32161,362 @@
               },
               "image/png": {
                 "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/recipe-imports": {
+      "post": {
+        "tags": [
+          "recipes"
+        ],
+        "summary": "Read a recipe from 1 to 4 photos",
+        "description": "The photos (JPEG, PNG, WebP, HEIC…, base64) are re-encoded with all metadata dropped, read once by an AI model (the person's own key, or the included companion within its daily read limit) and never stored. Each ingredient line is matched to a USDA catalog food by catalog search plus a constrained pick (the model can only choose among search results or none). The answer is a draft: nothing is saved until the person reviews it and saves the recipe as usual.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 8000000
+                    },
+                    "minItems": 1,
+                    "maxItems": 4
+                  },
+                  "rightsConfirmed": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "required": [
+                  "images",
+                  "rightsConfirmed"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The recipe as read, for review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "servings": {
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "exclusiveMinimum": 0,
+                      "maximum": 100
+                    },
+                    "language": {
+                      "type": "string",
+                      "maxLength": 10
+                    },
+                    "method": {
+                      "type": "string",
+                      "maxLength": 10000
+                    },
+                    "lines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "original": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "foodName": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "notes": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "quantity": {
+                            "type": [
+                              "number",
+                              "null"
+                            ],
+                            "exclusiveMinimum": 0
+                          },
+                          "unitText": {
+                            "type": "string",
+                            "maxLength": 40
+                          },
+                          "foodId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^fdc:\\d{1,9}$"
+                          },
+                          "candidates": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "foodId": {
+                                  "type": "string",
+                                  "pattern": "^fdc:\\d{1,9}$"
+                                },
+                                "description": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "foodId",
+                                "description"
+                              ]
+                            },
+                            "maxItems": 8
+                          },
+                          "amount": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "quantity": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "unit": {
+                                "type": "string",
+                                "enum": [
+                                  "g",
+                                  "kg",
+                                  "oz",
+                                  "lb",
+                                  "portion"
+                                ]
+                              },
+                              "portionIndex": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ],
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "quantity",
+                              "unit",
+                              "portionIndex"
+                            ]
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "ingredient",
+                              "cooking_oil"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "original",
+                          "foodName",
+                          "notes",
+                          "quantity",
+                          "unitText",
+                          "foodId",
+                          "candidates",
+                          "amount",
+                          "role"
+                        ]
+                      },
+                      "maxItems": 100
+                    },
+                    "importedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "readsLeftToday": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "description",
+                    "servings",
+                    "language",
+                    "method",
+                    "lines",
+                    "importedAt",
+                    "readsLeftToday"
+                  ]
+                }
               }
             }
           },

@@ -67,6 +67,10 @@ function houseConfig() {
     dailyRequests: Math.floor(num("AI_HOUSE_DAILY_REQUESTS", 20)),
     /** Generated recipe photos per person per day; images cost far more than chat. */
     dailyImages: Math.floor(num("AI_HOUSE_DAILY_IMAGES", 3)),
+    /** Recipe photos and grocery receipts read per person per day. */
+    dailyImports: Math.floor(num("AI_HOUSE_DAILY_IMPORTS", 20)),
+    /** Model that reads recipe photos and receipts; the chat model unless set (it must accept images). */
+    importModel: process.env.AI_HOUSE_IMPORT_MODEL?.trim() || process.env.AI_HOUSE_MODEL?.trim() || "gpt-6-luna",
     monthlyBudgetUsd: num("AI_HOUSE_MONTHLY_BUDGET_USD", 10),
     /** USD per million tokens (gpt-6-luna list price, 2026-10-19). */
     inputPricePerMTok: num("AI_HOUSE_INPUT_PRICE_PER_MTOK", 0.1),
@@ -132,6 +136,8 @@ function loadConfig() {
   const planningRaw = process.env.FEATURE_GROUP_PLANNING_ENABLED?.trim();
   const groupPlanningEnabled = planningRaw ? planningRaw === "true" : appEnv !== "production";
 
+  const photoImportRaw = process.env.FEATURE_RECIPE_PHOTO_IMPORT_ENABLED?.trim();
+  const recipePhotoImportEnabled = photoImportRaw ? photoImportRaw === "true" : appEnv !== "production";
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
 
@@ -154,7 +160,7 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled, groupPlanning: groupPlanningEnabled },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled, groupPlanning: groupPlanningEnabled, recipePhotoImport: recipePhotoImportEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
     house: houseConfig(),

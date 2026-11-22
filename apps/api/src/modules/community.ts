@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
+  methodFromPhoto,
   CommunityHomeSchema,
   CommunityRecipeSchema,
   CommunityReportSchema,
@@ -91,6 +92,10 @@ async function liveOwn(userId: string, recipeId: string): Promise<CommunityRow |
 export async function shareWithCommunity(userId: string, recipeId: string, includeMethod: boolean, includeImage: boolean): Promise<CommunityStatus> {
   const recipe = await getRecipe(userId, recipeId);
   if (!recipe || recipe.groupId) throw new ApiError(404, "not_found", "Recipe not found");
+  // A method read from a cookbook photo is someone else's words until the cook rewrites it.
+  if (includeMethod && methodFromPhoto(recipe)) {
+    throw new ApiError(422, "method_from_photo", "This method was read from a photo; write it in your own words before sharing it with the community, or share without the method");
+  }
   const snapshot = await buildSnapshot(userId, recipe, includeMethod, includeImage);
   const foodIds = [...new Set(recipe.ingredients.map((i) => i.foodId))];
   const row = await withTransaction(async (client) => {

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { RecipeBodySchema, type RecipeBody, type RecipeIngredientInput } from "@betterplate/contracts";
+import { methodFromPhoto, RecipeBodySchema, type RecipeBody, type RecipeIngredientInput } from "@betterplate/contracts";
 import { calculateRecipe, COOKING_METHODS, withInferredCooking, type CookingMethod, type FoodRecord } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
 import { api, ApiRequestError } from "../api.ts";
@@ -13,6 +13,7 @@ import { NutritionPanel } from "./Nutrition.tsx";
 import { ShareSheet } from "./Share.tsx";
 import { CommunitySheet, useCommunityAvailable } from "./Community.tsx";
 import { describeRecipe, PhotoSheet, RecipePhoto } from "./Photos.tsx";
+import { PhotoImportSheet } from "./PhotoImport.tsx";
 import { formatQty, useT, type MessageKey } from "../i18n.ts";
 
 export const MACROS: { key: string; label: MessageKey }[] = [
@@ -59,7 +60,7 @@ export function RecipeEditor({ id }: { id: string }) {
   const [picking, setPicking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "community" | "photo" | "group" | null>(null);
+  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "community" | "photo" | "group" | "import" | null>(null);
 
   useEffect(() => {
     if (!engine) return;
@@ -146,6 +147,21 @@ export function RecipeEditor({ id }: { id: string }) {
       {loaded?.state === "rejected" && (
         <p className="banner banner-warn" role="alert">
           {t("editor.rejected", { reason: loaded.rejection ?? "" })}
+        </p>
+      )}
+      {!loaded && !dirty && account?.features?.recipePhotoImport && (
+        <div className="banner banner-info" data-testid="import-offer">
+          <p>{t("import.offer")}</p>
+          <div className="banner-actions">
+            <button type="button" className="btn-secondary" onClick={() => setSheet("import")} disabled={!online}>
+              <Icon name="image" size={18} /> {t("import.title")}
+            </button>
+          </div>
+        </div>
+      )}
+      {draft.origin?.kind === "photo" && (
+        <p className="banner banner-info" data-testid="import-origin">
+          {methodFromPhoto(draft) ? t("import.originMethod") : t("import.origin")}
         </p>
       )}
       {groupId && (
@@ -414,6 +430,17 @@ export function RecipeEditor({ id }: { id: string }) {
           onClose={() => setSheet(null)}
           onPick={(image) => {
             update({ image });
+            setSheet(null);
+          }}
+        />
+      )}
+      {sheet === "import" && (
+        <PhotoImportSheet
+          foods={foods}
+          online={online}
+          onClose={() => setSheet(null)}
+          onUse={(body) => {
+            update(body);
             setSheet(null);
           }}
         />

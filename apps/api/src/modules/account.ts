@@ -21,7 +21,16 @@ const PrivacyStatusSchema = z.object({
   /** Latest notice version this account agreed to; null if none yet. */
   acceptedVersion: z.string().nullable(),
 });
-const MeSchema = z.object({ id: z.uuid(), email: z.string(), displayName: z.string().nullable(), privacy: PrivacyStatusSchema }).openapi("Me");
+const MeSchema = z
+  .object({
+    id: z.uuid(),
+    email: z.string(),
+    displayName: z.string().nullable(),
+    privacy: PrivacyStatusSchema,
+    /** Which optional screens the app shows; the server refuses their routes when off. */
+    features: z.object({ recipePhotoImport: z.boolean() }),
+  })
+  .openapi("Me");
 const ConsentSchema = z.object({ noticeVersion: z.string().max(40), adultConfirmed: z.literal(true) });
 
 const noticeSha256 = createHash("sha256").update(JSON.stringify(PRIVACY_NOTICE)).digest("hex");
@@ -46,7 +55,10 @@ accountRoutes.openapi(
   }),
   async (c) => {
     const user = requireUser(c);
-    return c.json({ id: user.id, email: user.email, displayName: user.name || null, privacy: await privacyStatus(user.id) }, 200);
+    return c.json(
+      { id: user.id, email: user.email, displayName: user.name || null, privacy: await privacyStatus(user.id), features: { recipePhotoImport: config.features.recipePhotoImport } },
+      200,
+    );
   },
 );
 
@@ -124,7 +136,7 @@ export async function exportAccount(userId: string) {
       "select id, kind, mime, bytes, credit, generator, rights_confirmed_at, upload_source, created_at from recipe_images where user_id = $1 order by created_at",
     ),
     q<{ day: Date; model: string; requests: number; input_tokens: string; output_tokens: string; images: number }>(
-      "select day, model, requests, input_tokens, output_tokens, images from ai_house_usage where user_id = $1 order by day",
+      "select day, model, requests, input_tokens, output_tokens, images, imports from ai_house_usage where user_id = $1 order by day",
     ),
     q<{ name: string | null; redirect_uris: string[] | null; scopes: string[]; created_at: Date }>(
       `select c.name, c."redirectUris" as redirect_uris, k.scopes, k."createdAt" as created_at

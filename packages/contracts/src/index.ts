@@ -5,6 +5,7 @@ import { z } from "zod";
 export { PRIVACY_NOTICE } from "./privacy.ts";
 export * from "./ai.ts";
 export * from "./groups.ts";
+export * from "./imports.ts";
 
 export const MAX_INGREDIENTS = 100;
 export const MAX_SYNC_OPS = 100;
@@ -75,7 +76,33 @@ export const RecipeBodySchema = z.object({
   ingredients: z.array(RecipeIngredientSchema).max(MAX_INGREDIENTS),
   method: trimmed(10_000).default(""),
   image: RecipeImageSchema.nullable().optional(),
+  /** Set when the recipe was read from a photo (cookbook page, recipe card). */
+  origin: z
+    .object({
+      kind: z.literal("photo"),
+      importedAt: z.iso.datetime(),
+      /** textFingerprint of the method as it was read; while it still matches, the method isn't the cook's own words. */
+      methodFingerprint: z.string().regex(/^[0-9a-f]{8}$/),
+    })
+    .nullable()
+    .optional(),
 });
+
+/** Short, stable fingerprint of a text, ignoring case and spacing (FNV-1a, 32 bits, hex). */
+export function textFingerprint(text: string): string {
+  const s = text.toLowerCase().replace(/\s+/g, " ").trim();
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
+}
+
+/** True while a recipe's method is still the text read from a photo (someone else's words). */
+export function methodFromPhoto(body: { method?: string; origin?: { methodFingerprint: string } | null }): boolean {
+  return !!body.origin && !!body.method?.trim() && textFingerprint(body.method) === body.origin.methodFingerprint;
+}
 
 export const PhotoSearchResultSchema = PhotoCreditSchema.extend({
   /** Preview served by Openverse; the app loads it with no referrer. */

@@ -18,6 +18,7 @@ import type {
   PlannedMeal,
   ShoppingList,
 } from "@betterplate/contracts";
+import type { RecipeImport } from "@betterplate/contracts";
 import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse, CommunityHome, CommunityRecipe, CommunityReason, CommunityShare, CommunityStatus, Cheer, Milestones, MilestoneShare, MyMilestone } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
@@ -82,6 +83,8 @@ export interface Me {
   displayName: string | null;
   /** Missing on accounts remembered by older app versions until the next online check. */
   privacy?: PrivacyStatus;
+  /** Optional screens the server has on; missing on accounts remembered by older app versions. */
+  features?: { recipePhotoImport?: boolean };
 }
 
 export interface CatalogBundle {
@@ -173,6 +176,7 @@ export const api = {
   searchPhotos: (description: string) => request<{ results: PhotoSearchResult[] }>(`/v1/photos/search?q=${encodeURIComponent(description)}`, { cache: "no-store" }),
   importPhoto: (sourceId: string, alt?: string) => request<RecipeImage>("/v1/images/import", { method: "POST", json: { source: "openverse", sourceId, alt } }),
   uploadImage: (data: string, alt: string) => request<RecipeImage>("/v1/images/upload", { method: "POST", json: { data, alt, rightsConfirmed: true } }),
+  importRecipe: (images: string[]) => request<RecipeImport>("/v1/recipe-imports", { method: "POST", json: { images, rightsConfirmed: true } }),
   generateImage: (prompt: string, alt: string) => request<RecipeImage>("/v1/images/generate", { method: "POST", json: { prompt, alt } }),
   oauthClient: (clientId: string) => request<OAuthClientInfo>(`/v1/auth/oauth2/public-client?client_id=${encodeURIComponent(clientId)}`, { cache: "no-store" }),
   oauthConsent: (accept: boolean, oauthQuery: string) =>
