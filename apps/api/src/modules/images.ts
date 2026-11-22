@@ -206,6 +206,24 @@ export async function normalizeUpload(input: Buffer, formats: "any" | "web" = "a
   }
 }
 
+/**
+ * A photo to be read (recipe page, receipt), never stored: upright, at most 2048 px so small print
+ * stays legible, WebP, all metadata (location, camera) dropped before it leaves the server.
+ */
+export async function normalizeForReading(input: Buffer): Promise<Buffer> {
+  if (input.length === 0) throw unusable();
+  if (input.length > MAX_UPLOAD_BYTES) throw new ApiError(413, "photo_too_large", "That photo is too large; use one under 9 MB");
+  const opts = { limitInputPixels: 80_000_000, failOn: "error" as const };
+  try {
+    const format = formatName(await sharp(input, opts).metadata());
+    if (!format || !UPLOAD_FORMATS.has(format)) throw unusable();
+    return await sharp(input, opts).rotate().resize({ width: 2048, height: 2048, fit: "inside", withoutEnlargement: true }).webp({ quality: 85 }).toBuffer();
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw unusable();
+  }
+}
+
 /** Stores the person's own photo. They confirmed they may use it; that time and where it came from are kept. */
 export async function storeUpload(
   userId: string,
