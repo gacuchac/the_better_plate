@@ -223,10 +223,34 @@ input:focus, select:focus, textarea:focus { border-color: var(--sage); }
 .macro-value { font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .macro-label { font-size: 0.75rem; color: var(--ink-3); }
 .section-head { display: flex; justify-content: space-between; align-items: center; margin: 24px 0 8px; }
-.ingredients { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-.ingredient { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
-.ingredient-name { font-weight: 600; margin-bottom: 8px; overflow-wrap: anywhere; }
 .ingredient-controls { display: grid; grid-template-columns: 96px 1fr 44px; gap: 8px; }
+/* Recipe ingredients: one compact line per ingredient, tap a row to change it. */
+.ing-table { --ing-cols: minmax(0, 1fr) 4.75rem 4.5rem 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+@media (min-width: 520px) { .ing-table { --ing-cols: minmax(0, 1fr) 7rem 8rem 16px; } }
+.ing-head { display: grid; grid-template-columns: var(--ing-cols); gap: 6px; padding: 7px 10px; background: var(--surface-2); color: var(--ink-3); font-size: 0.7rem; font-weight: 650; letter-spacing: 0.05em; text-transform: uppercase; }
+.ing-head span:nth-child(2) { text-align: right; }
+.ing-rows { list-style: none; margin: 0; padding: 0; }
+.ing-row + .ing-row { border-top: 1px solid var(--line); }
+.ing-summary { display: grid; grid-template-columns: var(--ing-cols); gap: 6px; align-items: center; width: 100%; min-height: 44px; padding: 8px 10px; border: 0; border-radius: 0; background: none; text-align: left; font-size: 0.9375rem; line-height: 1.35; cursor: pointer; }
+.ing-summary:hover { background: var(--surface-2); }
+.ing-summary:disabled { cursor: default; background: none; }
+.ing-summary:disabled .ing-chevron { visibility: hidden; }
+.ing-name, .ing-amount, .ing-state { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ing-name { font-weight: 600; color: var(--ink); }
+.ing-row.open .ing-name { white-space: normal; overflow-wrap: anywhere; }
+.ing-amount { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 0.875rem; }
+.ing-state { color: var(--ink-2); font-size: 0.875rem; }
+.ing-state.guessed { color: var(--amber); font-style: italic; }
+.ing-chevron { display: flex; color: var(--ink-3); transition: transform 0.15s; }
+.ing-row.open .ing-chevron { transform: rotate(180deg); }
+.ing-row.open { background: var(--surface-2); }
+.ing-edit { padding: 2px 10px 12px; }
+.ing-edit .cooking-state label, .ing-edit .oil label { margin-top: 10px; }
+.ing-note { margin: 6px 2px 0; }
+.ing-amount.missing, .ing-state.missing { color: var(--danger); font-style: normal; font-weight: 600; }
+.ing-row.is-off .ing-summary { opacity: 0.55; }
+.import-table .ing-edit > label:first-child { margin-top: 6px; }
+.import-amount { grid-template-columns: 96px 1fr; margin-top: 8px; }
 .check { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-weight: 500; min-height: 44px; color: var(--ink); }
 .check input { width: 20px; min-height: 20px; height: 20px; flex: none; accent-color: var(--sage-ink); }
 .oil label { margin-top: 4px; }
@@ -724,7 +748,6 @@ fieldset.plain:disabled input, fieldset.plain:disabled textarea, fieldset.plain:
 .bar { height: 10px; border-radius: 10px; }
 .bar > span { border-radius: 10px; }
 .nutrient-list { background: var(--surface); border-radius: var(--radius-lg); padding: 4px 14px; }
-.ingredient { border-radius: var(--radius-lg); }
 
 /* ---------- Trail: week strip on the meal plan ---------- */
 .week-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 0 0 16px; }
@@ -837,7 +860,6 @@ p.label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--in
 .cooking-state { margin-top: 8px; }
 .cooking-state label { margin-top: 0; }
 .cooking-state .hint { margin: 4px 0 0; }
-.ingredient.is-off { opacity: 0.55; }
 
 /* Cooking for others */
 .field { margin: 0; }

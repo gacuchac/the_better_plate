@@ -2,9 +2,10 @@ import { useState } from "react";
 import { textFingerprint, type ImportedLine, type RecipeBody, type RecipeImport, type RecipeIngredientInput } from "@betterplate/contracts";
 import type { FoodRecord } from "@betterplate/nutrition";
 import { api, ApiRequestError } from "../api.ts";
-import { useT } from "../i18n.ts";
+import { dateLocale, useT } from "../i18n.ts";
 import { Sheet } from "./common.tsx";
 import { FoodPicker } from "./FoodPicker.tsx";
+import { Icon } from "./icons.tsx";
 
 /** At most this many pixels on the long side are sent; plenty for print, and phone photos shrink a lot. */
 const SEND_PX = 2400;
@@ -65,6 +66,8 @@ export function PhotoImportSheet({ foods, online, onClose, onUse }: { foods: Map
   const [draft, setDraft] = useState<RecipeImport | null>(null);
   const [lines, setLines] = useState<ReviewLine[]>([]);
   const [picking, setPicking] = useState<string | null>(null);
+  // One compact line per printed line; lines that need fixing start open.
+  const [openLines, setOpenLines] = useState<Set<string>>(() => new Set());
 
   async function readPhotos() {
     setBusy(true);
@@ -72,8 +75,10 @@ export function PhotoImportSheet({ foods, online, onClose, onUse }: { foods: Map
     try {
       const images = await Promise.all(files.map(photoToBase64));
       const result = await api.importRecipe(images);
+      const review = result.lines.map(toReview);
       setDraft(result);
-      setLines(result.lines.map(toReview));
+      setLines(review);
+      setOpenLines(new Set(review.filter((l) => problem(l) !== null).map((l) => l.line.id)));
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : t("import.offline"));
     } finally {
@@ -84,6 +89,19 @@ export function PhotoImportSheet({ foods, online, onClose, onUse }: { foods: Map
   const patch = (id: string, p: Partial<ReviewLine>) => setLines((ls) => ls.map((l) => (l.line.id === id ? { ...l, ...p } : l)));
   const problem = (l: ReviewLine) => (!l.keep ? null : !l.foodId ? "food" : !l.quantity || l.quantity <= 0 ? "amount" : null);
   const open = lines.filter((l) => problem(l) !== null).length;
+  const toggleLine = (id: string) =>
+    setOpenLines((o) => {
+      const next = new Set(o);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const amountText = (l: ReviewLine, food: FoodRecord | undefined) => {
+    if (!l.quantity) return null;
+    const q = l.quantity.toLocaleString(dateLocale(), { maximumFractionDigits: 2 });
+    if (l.unit !== "portion") return `${q} ${l.unit}`;
+    return `${q} × ${food?.portions[l.portionIndex ?? 0]?.label.replace(/^1(\.0+)?\s+/, "") ?? ""}`;
+  };
 
   function use() {
     if (!draft) return;
@@ -154,84 +172,109 @@ export function PhotoImportSheet({ foods, online, onClose, onUse }: { foods: Map
             {draft.servings ? ` · ${t("common.servings", { n: draft.servings })}` : ""}
           </p>
           <p className="hint">{open ? t("import.toFix", { n: open }) : t("import.allSet")}</p>
-          <ul className="ingredients">
-            {lines.map((l) => {
-              const food = l.foodId ? foods.get(l.foodId) : undefined;
-              const issue = problem(l);
-              return (
-                <li key={l.line.id} className={`ingredient${l.keep ? "" : " is-off"}`} data-testid="import-line" data-issue={issue ?? "none"}>
-                  <div className="ingredient-name">“{l.line.original}”</div>
-                  {l.keep && (
-                    <>
-                      <label htmlFor={`if-${l.line.id}`}>{t("import.food")}</label>
-                      <select
-                        id={`if-${l.line.id}`}
-                        value={l.foodId ?? ""}
-                        onChange={(e) => {
-                          if (e.target.value === "__other") setPicking(l.line.id);
-                          else patch(l.line.id, { foodId: e.target.value || null, unit: l.unit === "portion" ? "g" : l.unit, portionIndex: null });
-                        }}
-                      >
-                        <option value="">{t("import.noFood")}</option>
-                        {l.foodId && !l.line.candidates.some((c) => c.foodId === l.foodId) && <option value={l.foodId}>{food?.description ?? l.foodId}</option>}
-                        {l.line.candidates.map((c) => (
-                          <option key={c.foodId} value={c.foodId}>
-                            {c.description}
-                          </option>
-                        ))}
-                        <option value="__other">{t("import.searchOther")}</option>
-                      </select>
-                      <div className="ingredient-controls">
-                        <label className="sr-only" htmlFor={`iq-${l.line.id}`}>
-                          {t("editor.amount")}
-                        </label>
-                        <input
-                          id={`iq-${l.line.id}`}
-                          type="number"
-                          min={0}
-                          step="any"
-                          inputMode="decimal"
-                          value={l.quantity ?? ""}
-                          placeholder={t("import.amountNeeded")}
-                          onChange={(e) => patch(l.line.id, { quantity: e.target.value === "" ? null : Number(e.target.value) })}
-                        />
-                        <label className="sr-only" htmlFor={`iu-${l.line.id}`}>
-                          {t("editor.unit")}
-                        </label>
-                        <select
-                          id={`iu-${l.line.id}`}
-                          value={l.unit === "portion" ? `p:${l.portionIndex ?? 0}` : l.unit}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            if (v.startsWith("p:")) patch(l.line.id, { unit: "portion", portionIndex: Number(v.slice(2)) });
-                            else patch(l.line.id, { unit: v as RecipeIngredientInput["unit"], portionIndex: null });
-                          }}
-                        >
-                          <option value="g">g</option>
-                          <option value="oz">oz</option>
-                          <option value="kg">kg</option>
-                          <option value="lb">lb</option>
-                          {food?.portions.map((p, idx) => (
-                            <option key={idx} value={`p:${idx}`}>
-                              × {p.label} ({p.gramWeight} g)
-                            </option>
-                          ))}
-                        </select>
+          <div className="ing-table import-table">
+            <div className="ing-head" aria-hidden="true">
+              <span>{t("import.colLine")}</span>
+              <span>{t("editor.amount")}</span>
+              <span>{t("import.food")}</span>
+              <span />
+            </div>
+            <ul className="ing-rows">
+              {lines.map((l) => {
+                const food = l.foodId ? foods.get(l.foodId) : undefined;
+                const issue = problem(l);
+                const isOpen = openLines.has(l.line.id);
+                const amount = amountText(l, food);
+                return (
+                  <li key={l.line.id} className={`ing-row${isOpen ? " open" : ""}${l.keep ? "" : " is-off"}`} data-testid="import-line" data-issue={issue ?? "none"}>
+                    <button type="button" className="ing-summary" aria-expanded={isOpen} aria-controls={`il-${l.line.id}`} onClick={() => toggleLine(l.line.id)}>
+                      <span className="ing-name" title={l.line.original}>
+                        “{l.line.original}”
+                      </span>
+                      <span className={`ing-amount${l.keep && !amount ? " missing" : ""}`}>{l.keep ? (amount ?? t("import.missing")) : ""}</span>
+                      <span className={`ing-state${l.keep && !food ? " missing" : ""}`} title={food?.description}>
+                        {!l.keep ? t("import.leftOut") : (food?.description ?? t("import.missing"))}
+                      </span>
+                      <span className="ing-chevron" aria-hidden="true">
+                        <Icon name="chevron" size={16} />
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="ing-edit" id={`il-${l.line.id}`}>
+                        {l.keep && (
+                          <>
+                            <label htmlFor={`if-${l.line.id}`}>{t("import.food")}</label>
+                            <select
+                              id={`if-${l.line.id}`}
+                              value={l.foodId ?? ""}
+                              onChange={(e) => {
+                                if (e.target.value === "__other") setPicking(l.line.id);
+                                else patch(l.line.id, { foodId: e.target.value || null, unit: l.unit === "portion" ? "g" : l.unit, portionIndex: null });
+                              }}
+                            >
+                              <option value="">{t("import.noFood")}</option>
+                              {l.foodId && !l.line.candidates.some((c) => c.foodId === l.foodId) && <option value={l.foodId}>{food?.description ?? l.foodId}</option>}
+                              {l.line.candidates.map((c) => (
+                                <option key={c.foodId} value={c.foodId}>
+                                  {c.description}
+                                </option>
+                              ))}
+                              <option value="__other">{t("import.searchOther")}</option>
+                            </select>
+                            <div className="ingredient-controls import-amount">
+                              <label className="sr-only" htmlFor={`iq-${l.line.id}`}>
+                                {t("editor.amount")}
+                              </label>
+                              <input
+                                id={`iq-${l.line.id}`}
+                                type="number"
+                                min={0}
+                                step="any"
+                                inputMode="decimal"
+                                value={l.quantity ?? ""}
+                                placeholder={t("import.amountNeeded")}
+                                onChange={(e) => patch(l.line.id, { quantity: e.target.value === "" ? null : Number(e.target.value) })}
+                              />
+                              <label className="sr-only" htmlFor={`iu-${l.line.id}`}>
+                                {t("editor.unit")}
+                              </label>
+                              <select
+                                id={`iu-${l.line.id}`}
+                                value={l.unit === "portion" ? `p:${l.portionIndex ?? 0}` : l.unit}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (v.startsWith("p:")) patch(l.line.id, { unit: "portion", portionIndex: Number(v.slice(2)) });
+                                  else patch(l.line.id, { unit: v as RecipeIngredientInput["unit"], portionIndex: null });
+                                }}
+                              >
+                                <option value="g">g</option>
+                                <option value="oz">oz</option>
+                                <option value="kg">kg</option>
+                                <option value="lb">lb</option>
+                                {food?.portions.map((p, idx) => (
+                                  <option key={idx} value={`p:${idx}`}>
+                                    × {p.label} ({p.gramWeight} g)
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            {issue && (
+                              <p className="error" data-testid="import-issue">
+                                {issue === "food" ? t("import.needsFood") : t("import.needsAmount")}
+                              </p>
+                            )}
+                          </>
+                        )}
+                        <button type="button" className="btn-link" onClick={() => patch(l.line.id, { keep: !l.keep })}>
+                          {l.keep ? t("import.leaveOut") : t("import.putBack")}
+                        </button>
                       </div>
-                      {issue && (
-                        <p className="error" data-testid="import-issue">
-                          {issue === "food" ? t("import.needsFood") : t("import.needsAmount")}
-                        </p>
-                      )}
-                    </>
-                  )}
-                  <button type="button" className="btn-link" onClick={() => patch(l.line.id, { keep: !l.keep })}>
-                    {l.keep ? t("import.leaveOut") : t("import.putBack")}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
           {draft.readsLeftToday !== null && <p className="fine">{t("import.readsLeft", { n: draft.readsLeftToday })}</p>}
           <button type="button" className="btn-primary" disabled={open > 0} onClick={use} data-testid="import-use">
             {t("import.use")}
