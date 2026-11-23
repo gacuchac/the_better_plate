@@ -6,6 +6,7 @@ const paths = {
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20a7.5 7.5 0 0 1 15 0",
   back: "M15 5l-7 7 7 7",
   forward: "M9 5l7 7-7 7",
+  chevron: "M6 9l6 6 6-6",
   close: "M6 6l12 12M18 6 6 18",
   flag: "M5 21V4M5 4h11l-2 4 2 4H5",
   check: "M5 12.5l4.5 4.5L19 7",

@@ -15,7 +15,7 @@ import { CommunitySheet, useCommunityAvailable } from "./Community.tsx";
 import { describeRecipe, PhotoSheet, RecipePhoto } from "./Photos.tsx";
 import { PhotoImportSheet } from "./PhotoImport.tsx";
 import { CookingForSheet, useIsCook } from "./Cooking.tsx";
-import { formatQty, useT, type MessageKey } from "../i18n.ts";
+import { dateLocale, formatQty, useT, type MessageKey } from "../i18n.ts";
 
 export const MACROS: { key: string; label: MessageKey }[] = [
   { key: "energy_kcal", label: "macro.kcal" },
@@ -59,6 +59,8 @@ export function RecipeEditor({ id }: { id: string }) {
   const [draft, setDraft] = useState<RecipeBody>(blank);
   const [dirty, setDirty] = useState(false);
   const [picking, setPicking] = useState(false);
+  // Ingredient rows read as one compact line each; a tap opens that row's controls.
+  const [openRows, setOpenRows] = useState<Set<string>>(() => new Set());
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [sheet, setSheet] = useState<"plan" | "log" | "share" | "community" | "photo" | "group" | "import" | "cookFor" | null>(null);
@@ -102,16 +104,38 @@ export function RecipeEditor({ id }: { id: string }) {
   const updateIngredient = (ingId: string, patch: Partial<RecipeIngredientInput>) =>
     update({ ingredients: draft.ingredients.map((i) => (i.id === ingId ? { ...i, ...patch } : i)) });
 
+  const toggleRow = (ingId: string) =>
+    setOpenRows((open) => {
+      const next = new Set(open);
+      if (next.has(ingId)) next.delete(ingId);
+      else next.add(ingId);
+      return next;
+    });
+  const amountText = (ing: RecipeIngredientInput, food: FoodRecord | undefined) => {
+    const q = ing.quantity.toLocaleString(dateLocale(), { maximumFractionDigits: 2 });
+    if (ing.unit !== "portion") return `${q} ${ing.unit}`;
+    const label = food?.portions[ing.portionIndex ?? 0]?.label.replace(/^1(\.0+)?\s+/, "") ?? "";
+    return `${q} × ${label}`;
+  };
+  const stateText = (ing: RecipeIngredientInput) => {
+    if (ing.role === "cooking_oil") return t("editor.oilShort");
+    const label = ing.cooking?.state === "cooked" && ing.cooking.method ? t(METHOD_LABEL[ing.cooking.method]) : ing.cooking ? t("cooking.raw") : "";
+    return label.replace(/\s*\(.*\)\s*$/, "");
+  };
+
   const addFood = (food: FoodRecord) => {
     const isOil = /^oil,/i.test(food.description) || food.category === "Fats and Oils";
     // Grams by default: neutral and transparent. Oils start at one tablespoon when USDA lists it.
     const tbsp = isOil ? food.portions.findIndex((p) => /tablespoon|tbsp/i.test(p.label)) : -1;
     const portion = tbsp >= 0 ? tbsp : null;
+    const newId = crypto.randomUUID();
+    // The new row opens so its amount can be set straight away; the others fold back to one line.
+    setOpenRows(new Set([newId]));
     update({
       ingredients: [
         ...draft.ingredients,
         {
-          id: crypto.randomUUID(),
+          id: newId,
           foodId: food.id,
           quantity: portion === null ? 100 : 1,
           unit: portion === null ? "g" : "portion",
@@ -244,109 +268,134 @@ export function RecipeEditor({ id }: { id: string }) {
             </button>
           </div>
           {draft.ingredients.length === 0 && <p className="hint">{t("editor.addHint")}</p>}
-          <ul className="ingredients">
-            {ingredients.map((ing) => {
-              const food = foods.get(ing.foodId);
-              return (
-                <li key={ing.id} className="ingredient" data-testid="ingredient-row">
-                  <div className="ingredient-name">{food?.description ?? t("editor.foodMissing", { id: ing.foodId })}</div>
-                  <div className="ingredient-controls">
-                    <label className="sr-only" htmlFor={`q-${ing.id}`}>
-                      {t("editor.amount")}
-                    </label>
-                    <input
-                      id={`q-${ing.id}`}
-                      type="number"
-                      min={0}
-                      step="any"
-                      inputMode="decimal"
-                      value={ing.quantity}
-                      onChange={(e) => updateIngredient(ing.id, { quantity: Number(e.target.value) })}
-                    />
-                    <label className="sr-only" htmlFor={`u-${ing.id}`}>
-                      {t("editor.unit")}
-                    </label>
-                    <select
-                      id={`u-${ing.id}`}
-                      value={unitValue(ing)}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (v.startsWith("p:")) updateIngredient(ing.id, { unit: "portion", portionIndex: Number(v.slice(2)) });
-                        else updateIngredient(ing.id, { unit: v as RecipeIngredientInput["unit"], portionIndex: null });
-                      }}
-                    >
-                      <option value="g">g</option>
-                      <option value="oz">oz</option>
-                      <option value="kg">kg</option>
-                      <option value="lb">lb</option>
-                      {food?.portions.map((p, idx) => (
-                        <option key={idx} value={`p:${idx}`}>
-                          × {p.label} ({p.gramWeight} g)
-                        </option>
-                      ))}
-                    </select>
-                    <button type="button" className="icon-btn" aria-label={t("editor.remove", { name: food?.description ?? t("editor.anIngredient") })} onClick={() => update({ ingredients: draft.ingredients.filter((i) => i.id !== ing.id) })}>
-                      <Icon name="close" />
-                    </button>
-                  </div>
-                  <label className="check">
-                    <input
-                      type="checkbox"
-                      checked={ing.role === "cooking_oil"}
-                      onChange={(e) => updateIngredient(ing.id, { role: e.target.checked ? "cooking_oil" : "ingredient", oilDiscardedGrams: null })}
-                    />
-                    {t("editor.cookingOil")}
-                  </label>
-                  {ing.role === "ingredient" && (
-                    <div className="cooking-state">
-                      <label htmlFor={`c-${ing.id}`}>{t("cooking.label")}</label>
-                      <select
-                        id={`c-${ing.id}`}
-                        data-testid="cooking-select"
-                        value={ing.cooking?.state === "cooked" && ing.cooking.method ? ing.cooking.method : "raw"}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          updateIngredient(ing.id, {
-                            cooking: v === "raw" ? { state: "raw", method: null, source: "stated" } : { state: "cooked", method: v as CookingMethod, source: "stated" },
-                          });
-                        }}
-                      >
-                        <option value="raw">{t("cooking.raw")}</option>
-                        <optgroup label={t("cooking.cookedGroup")}>
-                          {COOKING_METHODS.map((m) => (
-                            <option key={m} value={m}>
-                              {t(METHOD_LABEL[m])}
-                            </option>
-                          ))}
-                        </optgroup>
-                      </select>
-                      {ing.cooking?.source === "inferred" && (
-                        <p className="hint" data-testid="cooking-guessed">
-                          {t("cooking.guessed")}
-                        </p>
+          {ingredients.length > 0 && (
+            <div className="ing-table">
+              <div className="ing-head" aria-hidden="true">
+                <span>{t("editor.colIngredient")}</span>
+                <span>{t("editor.amount")}</span>
+                <span>{t("editor.colCooking")}</span>
+                <span />
+              </div>
+              <ul className="ing-rows">
+                {ingredients.map((ing) => {
+                  const food = foods.get(ing.foodId);
+                  const name = food?.description ?? t("editor.foodMissing", { id: ing.foodId });
+                  const isOpen = openRows.has(ing.id);
+                  const guessed = ing.role === "ingredient" && ing.cooking?.source === "inferred";
+                  return (
+                    <li key={ing.id} className={`ing-row${isOpen ? " open" : ""}`} data-testid="ingredient-row">
+                      <button type="button" className="ing-summary" aria-expanded={isOpen} aria-controls={`ing-${ing.id}`} onClick={() => toggleRow(ing.id)}>
+                        <span className="ing-name" title={name}>
+                          {name}
+                        </span>
+                        <span className="ing-amount">{amountText(ing, food)}</span>
+                        <span className={`ing-state${guessed ? " guessed" : ""}`}>
+                          {stateText(ing)}
+                          {guessed && <span className="sr-only"> ({t("cooking.guessedShort")})</span>}
+                        </span>
+                        <span className="ing-chevron" aria-hidden="true">
+                          <Icon name="chevron" size={16} />
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="ing-edit" id={`ing-${ing.id}`}>
+                          <div className="ingredient-controls">
+                            <label className="sr-only" htmlFor={`q-${ing.id}`}>
+                              {t("editor.amount")}
+                            </label>
+                            <input
+                              id={`q-${ing.id}`}
+                              type="number"
+                              min={0}
+                              step="any"
+                              inputMode="decimal"
+                              value={ing.quantity}
+                              onChange={(e) => updateIngredient(ing.id, { quantity: Number(e.target.value) })}
+                            />
+                            <label className="sr-only" htmlFor={`u-${ing.id}`}>
+                              {t("editor.unit")}
+                            </label>
+                            <select
+                              id={`u-${ing.id}`}
+                              value={unitValue(ing)}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                if (v.startsWith("p:")) updateIngredient(ing.id, { unit: "portion", portionIndex: Number(v.slice(2)) });
+                                else updateIngredient(ing.id, { unit: v as RecipeIngredientInput["unit"], portionIndex: null });
+                              }}
+                            >
+                              <option value="g">g</option>
+                              <option value="oz">oz</option>
+                              <option value="kg">kg</option>
+                              <option value="lb">lb</option>
+                              {food?.portions.map((p, idx) => (
+                                <option key={idx} value={`p:${idx}`}>
+                                  × {p.label} ({p.gramWeight} g)
+                                </option>
+                              ))}
+                            </select>
+                            <button type="button" className="icon-btn" aria-label={t("editor.remove", { name: food?.description ?? t("editor.anIngredient") })} onClick={() => update({ ingredients: draft.ingredients.filter((i) => i.id !== ing.id) })}>
+                              <Icon name="close" />
+                            </button>
+                          </div>
+                          <div className="cooking-state">
+                            <label htmlFor={`c-${ing.id}`}>{t("cooking.label")}</label>
+                            <select
+                              id={`c-${ing.id}`}
+                              data-testid="cooking-select"
+                              value={ing.role === "cooking_oil" ? "oil" : ing.cooking?.state === "cooked" && ing.cooking.method ? ing.cooking.method : "raw"}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                if (v === "oil") updateIngredient(ing.id, { role: "cooking_oil", oilDiscardedGrams: null });
+                                else
+                                  updateIngredient(ing.id, {
+                                    role: "ingredient",
+                                    oilDiscardedGrams: null,
+                                    cooking: v === "raw" ? { state: "raw", method: null, source: "stated" } : { state: "cooked", method: v as CookingMethod, source: "stated" },
+                                  });
+                              }}
+                            >
+                              <option value="raw">{t("cooking.raw")}</option>
+                              <optgroup label={t("cooking.cookedGroup")}>
+                                {COOKING_METHODS.map((m) => (
+                                  <option key={m} value={m}>
+                                    {t(METHOD_LABEL[m])}
+                                  </option>
+                                ))}
+                              </optgroup>
+                              <option value="oil">{t("editor.cookingOil")}</option>
+                            </select>
+                            {guessed && (
+                              <p className="hint" data-testid="cooking-guessed">
+                                {t("cooking.guessed")}
+                              </p>
+                            )}
+                          </div>
+                          {ing.role === "cooking_oil" && (
+                            <div className="oil">
+                              <label htmlFor={`d-${ing.id}`}>{t("editor.oilDiscarded")}</label>
+                              <input
+                                id={`d-${ing.id}`}
+                                type="number"
+                                min={0}
+                                step="any"
+                                inputMode="decimal"
+                                placeholder={t("editor.notMeasured")}
+                                value={ing.oilDiscardedGrams ?? ""}
+                                onChange={(e) => updateIngredient(ing.id, { oilDiscardedGrams: e.target.value === "" ? null : Number(e.target.value) })}
+                              />
+                              <p className="hint">{t("editor.oilHint")}</p>
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </div>
-                  )}
-                  {ing.role === "cooking_oil" && (
-                    <div className="oil">
-                      <label htmlFor={`d-${ing.id}`}>{t("editor.oilDiscarded")}</label>
-                      <input
-                        id={`d-${ing.id}`}
-                        type="number"
-                        min={0}
-                        step="any"
-                        inputMode="decimal"
-                        placeholder={t("editor.notMeasured")}
-                        value={ing.oilDiscardedGrams ?? ""}
-                        onChange={(e) => updateIngredient(ing.id, { oilDiscardedGrams: e.target.value === "" ? null : Number(e.target.value) })}
-                      />
-                      <p className="hint">{t("editor.oilHint")}</p>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+          {ingredients.some((i) => i.role === "ingredient" && i.cooking?.source === "inferred") && <p className="hint ing-note">{t("editor.guessedNote")}</p>}
 
           <RecipeAllergens recipe={draft} foods={foods} />
           <AllergenAlert recipe={draft} listed={myAllergies} name={null} foods={foods} />

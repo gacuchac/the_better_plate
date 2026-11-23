@@ -23,7 +23,12 @@ test("create a recipe with live nutrition, sources and oil handling, then sync",
   await broc.getByLabel("Amount").fill("150");
   await addIngredient(page, "olive", OIL);
   const oil = page.getByTestId("ingredient-row").filter({ hasText: OIL });
-  await expect(oil.getByLabel("Cooking oil (some may be left in the pan)")).toBeChecked();
+  await expect(oil.getByLabel("In this recipe")).toHaveValue("oil");
+  // Each ingredient reads as one compact line; only the one just added is open for editing.
+  await expect(rice.getByRole("button", { name: new RegExp(`^${RICE}.*300 g`) })).toHaveAttribute("aria-expanded", "false");
+  await expect(rice.getByLabel("Amount")).toHaveCount(0);
+  await expect(oil.getByRole("button", { name: /^Oil, olive.*Oil/ })).toHaveAttribute("aria-expanded", "true");
+  await shot(page, info, "editor-ingredient-table", "Ingredients as a compact table: one line each, the new one open for editing");
 
   // Unmeasured oil is fully counted and disclosed.
   await expect(page.getByTestId("disclosures")).toContainText("counted as eaten");
