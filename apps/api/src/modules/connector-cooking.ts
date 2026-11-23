@@ -17,8 +17,9 @@ import {
   CURRENCIES,
 } from "@betterplate/contracts";
 import { config } from "../config.ts";
-import { pool } from "../db/pool.ts";
-import { ApiError, type AppEnv, type AuthUser, errorBody } from "../lib/http.ts";
+import { type ActingLink, ApiError, type AppEnv, type AuthUser, errorBody } from "../lib/http.ts";
+import { recordRouteActivity } from "./linked/acting.ts";
+import { registerAccountTool } from "./linked/connector.ts";
 import { cookBillingRoutes } from "./cooks/billing.ts";
 import { cookRoutes } from "./cooks/routes.ts";
 import { importRoutes } from "./imports.ts";
@@ -34,17 +35,21 @@ import { photoBytes, PhotoSourceInput, UPLOAD_FILE_PARAMS } from "./connector.ts
  * clients, notes, receipts or statements until the person reconnects and allows it.
  */
 
-type InternalEnv = AppEnv & { Bindings: { user: AuthUser } };
+type InternalEnv = AppEnv & { Bindings: { user: AuthUser; link: ActingLink | null } };
 let internal: OpenAPIHono<InternalEnv> | null = null;
 
 function internalApp() {
   if (internal) return internal;
   const app = new OpenAPIHono<InternalEnv>();
-  // Only ever called below, with the person the access token was verified for.
+  // Only ever called below, with the person the access token was verified for, and the link
+  // registerAccountTool checked when the call names a linked account. requireUser then applies
+  // each route's policy, and a change that succeeds goes into the owner's activity log.
   app.use("*", async (c, next) => {
     c.set("user", c.env.user);
+    if (c.env.link) c.set("link", c.env.link);
     c.set("requestId", "connector");
     await next();
+    await recordRouteActivity(c as never);
   });
   for (const routes of [cookRoutes, cookBillingRoutes, importRoutes]) app.route("/", routes as never);
   app.notFound((c) => c.json(errorBody(c as never, "not_found", "Not found"), 404));
@@ -68,7 +73,10 @@ function failure(status: number, body: unknown): Error {
 }
 
 class Api {
-  constructor(private readonly user: AuthUser) {}
+  constructor(
+    private readonly user: AuthUser,
+    private readonly link: ActingLink | null = null,
+  ) {}
 
   async call(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<unknown> {
     const init: RequestInit = { method };
@@ -76,7 +84,7 @@ class Api {
       init.headers = { "content-type": "application/json" };
       init.body = JSON.stringify(body);
     }
-    const res = await internalApp().request(path, init, { user: this.user });
+    const res = await internalApp().request(path, init, { user: this.user, link: this.link });
     if (res.status === 204) return null;
     const type = res.headers.get("content-type") ?? "";
     if (!res.ok) throw failure(res.status, type.includes("json") ? await res.json().catch(() => null) : null);
@@ -84,12 +92,6 @@ class Api {
     return { bytes: Buffer.from(await res.arrayBuffer()), type: type.split(";")[0]!.trim() };
   }
   get = (path: string) => this.call("GET", path);
-}
-
-async function personFor(userId: string): Promise<AuthUser> {
-  const { rows } = await pool.query<{ email: string; name: string; emailVerified: boolean }>(`select email, name, "emailVerified" from "users" where id = $1`, [userId]);
-  if (!rows[0]) throw new Error("This account no longer exists");
-  return { id: userId, email: rows[0].email, name: rows[0].name, emailVerified: rows[0].emailVerified === true };
 }
 
 const enc = encodeURIComponent;
@@ -510,30 +512,18 @@ export const COOKING_INSTRUCTIONS = `
 export function registerCookingTools(server: McpServer, session: ConnectorAuth) {
   for (const t of TOOLS()) {
     if (!config.features[t.flag]) continue;
-    const needed = `${t.scope}:${t.access}`;
-    server.registerTool(
-      t.name,
-      {
-        description: t.description,
-        inputSchema: z.object(t.input),
-        ...(t.fileParams ? { _meta: { "openai/fileParams": t.fileParams } } : {}),
-        annotations: { readOnlyHint: t.access === "read", destructiveHint: !!t.destructive, idempotentHint: t.access === "read", openWorldHint: !!t.openWorld },
-      },
-      (async (input: unknown) => {
-        if (!session.scopes.has(needed)) {
-          const what = t.scope === "cooking" ? (t.access === "write" ? "change your cooking for others" : "read your cooking for others") : "change the kitchen";
-          return { isError: true, content: [{ type: "text", text: `This connection wasn't given permission to ${what} (${needed}). Reconnect and allow it.` }] };
-        }
-        try {
-          const output = await t.run(input as never, new Api(await personFor(session.userId)));
-          const image = (output as { image?: { bytes: Buffer; type: string } } | null)?.image;
-          if (image && Buffer.isBuffer(image.bytes)) return { content: [{ type: "image", data: image.bytes.toString("base64"), mimeType: image.type || "image/webp" }] };
-          return { content: [{ type: "text", text: JSON.stringify(output) }] };
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Something went wrong";
-          return { isError: true, content: [{ type: "text", text: message.slice(0, 600) }] };
-        }
-      }) as never,
-    );
+    const scopeText = t.scope === "cooking" ? (t.access === "write" ? "change your cooking for others" : "read your cooking for others") : "change the kitchen";
+    registerAccountTool(server, session, {
+      name: t.name,
+      description: t.description,
+      input: t.input,
+      ...(t.fileParams ? { meta: { "openai/fileParams": t.fileParams } } : {}),
+      annotations: { readOnlyHint: t.access === "read", destructiveHint: !!t.destructive, idempotentHint: t.access === "read", openWorldHint: !!t.openWorld },
+      scope: `${t.scope}:${t.access}`,
+      scopeText,
+      // The routes each tool calls decide, with the same policies as in the app.
+      policy: { kind: "routes" },
+      run: (input, ctx) => t.run(input, new Api(ctx.actor, ctx.link)),
+    });
   }
 }

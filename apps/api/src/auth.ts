@@ -12,6 +12,9 @@ import { sendEmail } from "./lib/mailer.ts";
  */
 /** Scopes the connector can ask for; see docs/adr/ADR-007-connector.md. */
 export const CONNECTOR_SCOPES = ["kitchen:read", "kitchen:write", "cooking:read", "cooking:write"] as const;
+/** Lets a connection act in accounts linked to the person's (ADR-015); offered only while that feature is on. */
+export const LINKED_SCOPE = "accounts:linked";
+export const linkedScopes = (): string[] => (config.features.linkedAccounts ? [LINKED_SCOPE] : []);
 /** The MCP endpoint is the protected resource; access tokens carry it as their audience. */
 export const MCP_RESOURCE = `${config.publicApiUrl}/mcp`;
 
@@ -76,14 +79,14 @@ export const authOptions = {
     oauthProvider({
       loginPage: `${config.publicAppUrl}/#/connect/login`,
       consentPage: `${config.publicAppUrl}/#/connect`,
-      scopes: ["openid", "profile", "email", "offline_access", ...CONNECTOR_SCOPES],
+      scopes: ["openid", "profile", "email", "offline_access", ...CONNECTOR_SCOPES, ...linkedScopes()],
       allowDynamicClientRegistration: true,
       // MCP clients register themselves before anyone signs in; the consent screen names them.
       allowUnauthenticatedClientRegistration: true,
       clientRegistrationDefaultApplicationType: "infer",
       // Every registered client may ask for the MCP resource; the person still approves each one.
       clientRegistrationDefaultResources: [MCP_RESOURCE],
-      resources: [{ identifier: MCP_RESOURCE, accessTokenTtl: 900, allowedScopes: ["openid", "profile", "email", "offline_access", ...CONNECTOR_SCOPES] }],
+      resources: [{ identifier: MCP_RESOURCE, accessTokenTtl: 900, allowedScopes: ["openid", "profile", "email", "offline_access", ...CONNECTOR_SCOPES, ...linkedScopes()] }],
     }),
     emailOTP({
       otpLength: 6,

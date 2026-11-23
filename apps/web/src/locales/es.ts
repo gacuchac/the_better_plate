@@ -520,6 +520,7 @@ export const es: Messages = {
   "connect.scopeWrite": "Crear y cambiar recetas, planear comidas y registrar lo que comiste",
   "connect.scopeCookingRead": "Leer lo que cocinas para otros: clientes y tus notas sobre ellos, comidas cocinadas, boletas con sus fotos, precios y estados de cuenta",
   "connect.scopeCookingWrite": "Cambiar lo que cocinas para otros: clientes, comidas, boletas, precios, estados de cuenta y lo que compartes, y enviar invitaciones a clientes cuando lo pidas",
+  "connect.scopeLinked": "Actuar en cuentas que otras personas vincularon a la tuya, solo en lo que cada una compartió y solo si permitió apps de IA",
   "connect.scopeOffline": "Seguir conectado hasta que lo desconectes",
   "connect.cannot": "No puede ver tu correo, tus claves de API ni la configuración de tu cuenta. La nutrición sigue viniendo del catálogo, no del asistente.",
   "connect.undo": "Puedes desconectarlo cuando quieras en Tú, luego Compañero con IA.",

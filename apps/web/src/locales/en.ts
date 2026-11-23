@@ -532,6 +532,7 @@ export const en = {
   "connect.scopeWrite": "Create and change recipes, plan meals and log what you ate",
   "connect.scopeCookingRead": "Read your cooking for others: clients and your notes about them, cooked meals, receipts with their photos, prices and statements",
   "connect.scopeCookingWrite": "Change your cooking for others: clients, meals, receipts, prices, statements and what you share, and email invites to clients when you say so",
+  "connect.scopeLinked": "Act in accounts other people linked to yours, only in what each of them shared and only if they allowed AI apps",
   "connect.scopeOffline": "Stay connected until you disconnect it",
   "connect.cannot": "It can't see your email, your API keys or your account settings. Nutrition still comes from the catalog, not from the assistant.",
   "connect.undo": "You can disconnect it any time under You, then AI companion.",

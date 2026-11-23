@@ -17,6 +17,7 @@ const SCOPE_TEXT: Record<string, MessageKey> = {
   "kitchen:write": "connect.scopeWrite",
   "cooking:read": "connect.scopeCookingRead",
   "cooking:write": "connect.scopeCookingWrite",
+  "accounts:linked": "connect.scopeLinked",
   offline_access: "connect.scopeOffline",
 };
 
