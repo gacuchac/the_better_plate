@@ -19,6 +19,7 @@ import type {
   ShoppingList,
 } from "@betterplate/contracts";
 import type { RecipeImport } from "@betterplate/contracts";
+import type { Acting, Link, LinkActivity, LinkedAccounts, LinkPermissions } from "@betterplate/contracts";
 import type {
   CookClient,
   CookClientBody,
@@ -48,6 +49,16 @@ import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
 import { API_URL } from "./env.ts";
 
+/**
+ * The linked account this device is working in (ADR-015), or null for the signed-in person's own.
+ * Every request names it in X-Act-As; the server checks the link each time.
+ */
+let actingAs: string | null = null;
+export const setActingAs = (id: string | null) => void (actingAs = id);
+export const getActingAs = () => actingAs;
+/** Fired when the server says the linked account this device works in is no longer reachable. */
+export const LINK_ENDED_EVENT = "bp:link-ended";
+
 export class ApiRequestError extends Error {
   constructor(readonly status: number, readonly code: string, message: string, readonly requestId?: string) {
     super(message);
@@ -57,8 +68,14 @@ export class ApiRequestError extends Error {
 /** Network failure (offline, DNS, server down) as opposed to an HTTP error answer. */
 export class NetworkError extends Error {}
 
-async function request<T>(path: string, init: RequestInit & { json?: unknown } = {}): Promise<T> {
+/**
+ * own: always the signed-in person's own account. as: this account exactly (null for your own),
+ * for work that belongs to one account's copy, like sync, whatever the device switched to since.
+ */
+async function request<T>(path: string, init: RequestInit & { json?: unknown; own?: boolean; as?: string | null } = {}): Promise<T> {
   const headers = new Headers(init.headers);
+  const target = init.own ? null : init.as !== undefined ? init.as : actingAs;
+  if (target && !path.startsWith("/v1/auth/")) headers.set("x-act-as", target);
   let body = init.body;
   if (init.json !== undefined) {
     headers.set("content-type", "application/json");
@@ -75,6 +92,7 @@ async function request<T>(path: string, init: RequestInit & { json?: unknown } =
   if (!res.ok) {
     trackFailedRequest(res.headers.get("x-request-id"));
     const e = (data as { error?: { code?: string; message?: string; requestId?: string } }).error ?? {};
+    if (target && target === actingAs && res.status === 403 && e.code === "no_access") dispatchEvent(new Event(LINK_ENDED_EVENT));
     throw new ApiRequestError(res.status, e.code ?? `http_${res.status}`, e.message ?? data?.message ?? res.statusText, e.requestId);
   }
   return data as T;
@@ -108,7 +126,9 @@ export interface Me {
   /** Missing on accounts remembered by older app versions until the next online check. */
   privacy?: PrivacyStatus;
   /** Optional screens the server has on; missing on accounts remembered by older app versions. */
-  features?: { recipePhotoImport?: boolean; cookProfile?: boolean };
+  features?: { recipePhotoImport?: boolean; cookProfile?: boolean; linkedAccounts?: boolean };
+  /** Set while working in someone else's linked account; the fields above are that account's. */
+  acting?: Acting | null;
 }
 
 export interface CatalogBundle {
@@ -121,7 +141,7 @@ export interface CatalogBundle {
 }
 
 /** Stored recipe images are served to their owner only (session cookie). */
-export const imageUrl = (id: string) => `${API_URL}/v1/images/${id}`;
+export const imageUrl = (id: string) => `${API_URL}/v1/images/${id}${actingAs ? `?as=${actingAs}` : ""}`;
 
 export interface OAuthClientInfo {
   client_id: string;
@@ -219,6 +239,15 @@ const cookApi = {
 
 export const api = {
   me: () => request<Me>("/v1/me"),
+  /** The signed-in person's own account, whichever account the device is working in. */
+  myOwnAccount: () => request<Me>("/v1/me", { own: true }),
+  linkedAccounts: () => request<LinkedAccounts>("/v1/linked-accounts", { own: true }),
+  shareAccount: (email: string, permissions: LinkPermissions) => request<Link>("/v1/linked-accounts", { method: "POST", json: { email, permissions }, own: true }),
+  updateLink: (id: string, permissions: LinkPermissions) => request<Link>(`/v1/linked-accounts/${id}`, { method: "PATCH", json: { permissions }, own: true }),
+  endLink: (id: string) => request<void>(`/v1/linked-accounts/${id}`, { method: "DELETE", own: true }),
+  acceptLink: (id: string) => request<Link>(`/v1/linked-accounts/${id}/accept`, { method: "POST", own: true }),
+  linkActivity: (who: "others" | "me", before?: string) =>
+    request<{ entries: LinkActivity[]; before: string | null }>(`/v1/linked-accounts/activity?who=${who}${before ? `&before=${encodeURIComponent(before)}` : ""}`, { own: true }),
   signInMethods: () => request<{ methods: ("email_code" | "google")[] }>("/v1/sign-in-methods"),
   /** Starts Google sign-in; the server answers with Google's URL and the page navigates there. */
   googleSignIn: (returnTo: string) =>
@@ -229,13 +258,13 @@ export const api = {
   sendCode: (email: string) => request<{ success: boolean }>("/v1/auth/email-otp/send-verification-otp", { method: "POST", json: { email, type: "sign-in" } }),
   signIn: (email: string, otp: string) => request<unknown>("/v1/auth/sign-in/email-otp", { method: "POST", json: { email, otp } }),
   signOut: () => request<unknown>("/v1/auth/sign-out", { method: "POST", json: {} }),
-  consent: (noticeVersion: string) => request<PrivacyStatus>("/v1/me/consent", { method: "POST", json: { noticeVersion, adultConfirmed: true } }),
+  consent: (noticeVersion: string) => request<PrivacyStatus>("/v1/me/consent", { method: "POST", json: { noticeVersion, adultConfirmed: true }, own: true }),
   exportData: () => request<{ format: string; exportedAt: string }>("/v1/me/export", { cache: "no-store" }),
   deleteAccount: () => request<void>("/v1/me", { method: "DELETE" }),
   manifest: () => request<Omit<CatalogBundle, "foods"> & { bundleUrl: string }>("/v1/catalog/manifest"),
   bundle: (url: string) => request<CatalogBundle>(url),
-  syncBatch: (body: SyncBatchRequest) => request<SyncBatchResponse>("/v1/sync/batch", { method: "POST", json: body }),
-  changes: (cursor: string) => request<SyncChangesResponse>(`/v1/sync/changes?cursor=${encodeURIComponent(cursor)}&limit=200`),
+  syncBatch: (body: SyncBatchRequest, as?: string | null) => request<SyncBatchResponse>("/v1/sync/batch", { method: "POST", json: body, as }),
+  changes: (cursor: string, as?: string | null) => request<SyncChangesResponse>(`/v1/sync/changes?cursor=${encodeURIComponent(cursor)}&limit=200`, { as }),
   recipe: (id: string) => request<Recipe>(`/v1/recipes/${id}`),
   createShare: (recipeId: string, body: ShareCreate) => request<Share>(`/v1/recipes/${recipeId}/share`, { method: "POST", json: body }),
   shares: (recipeId: string) => request<{ shares: Share[] }>(`/v1/shares?recipeId=${recipeId}`),

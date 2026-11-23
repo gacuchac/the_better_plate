@@ -58,13 +58,14 @@ export async function recordDelegated(c: Context<AppEnv>, action: LinkAction, ta
 const targetOf = (path: string) => path.split("/").find((s) => UUID.test(s)) ?? null;
 
 /**
- * X-Act-As: <account id> makes this request act in that account, if it is linked to the signed-in
+ * X-Act-As: <account id> (or ?as= on a GET) makes this request act in that account, if it is linked to the signed-in
  * person and still active (checked on every request, so ending a link takes effect at once). What a
  * route may do there is decided in requireUser by the route's policy. Changes that succeed are
  * written to the owner's activity log.
  */
 export const actingMiddleware: MiddlewareHandler<AppEnv> = async (c, next) => {
-  const header = c.req.header("x-act-as")?.trim();
+  // A GET may name the account in ?as= instead, for what the browser loads itself (recipe photos).
+  const header = (c.req.header("x-act-as") ?? (c.req.method === "GET" ? c.req.query("as") : undefined))?.trim();
   if (!header) return next();
   if (!config.features.linkedAccounts) throw new ApiError(404, "feature_disabled", "Linked accounts are not available");
   const user = c.get("user");
