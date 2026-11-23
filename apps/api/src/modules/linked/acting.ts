@@ -75,10 +75,14 @@ export const actingMiddleware: MiddlewareHandler<AppEnv> = async (c, next) => {
   if (!link) throw new ApiError(403, "no_access", "You don't have access to this account any more");
   c.set("link", { ...link, via: "app", appName: null, clientId: null });
   await next();
-  const policy = c.get("linkPolicy");
-  if (policy?.kind === "area" && policy.action && c.req.method !== "GET" && c.res.status < 400) {
-    await recordDelegated(c, policy.action, targetOf(c.req.path)).catch((err) =>
-      console.error(JSON.stringify({ level: "error", msg: "linked activity not recorded", requestId: c.get("requestId"), error: (err as Error).message })),
-    );
-  }
+  await recordRouteActivity(c);
 };
+
+/** After a route ran for someone acting in a linked account: logs the change if it succeeded. */
+export async function recordRouteActivity(c: Context<AppEnv>) {
+  const policy = c.get("linkPolicy");
+  if (!c.get("link") || policy?.kind !== "area" || !policy.action || c.req.method === "GET" || c.res.status >= 400) return;
+  await recordDelegated(c, policy.action, targetOf(c.req.path)).catch((err) =>
+    console.error(JSON.stringify({ level: "error", msg: "linked activity not recorded", requestId: c.get("requestId"), error: (err as Error).message })),
+  );
+}

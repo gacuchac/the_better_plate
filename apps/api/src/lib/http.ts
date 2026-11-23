@@ -72,16 +72,19 @@ export function requireUser(c: Context<AppEnv>): AuthUser {
   const link = c.get("link");
   if (!link) return user;
   const policy = policyFor(c.req.method, c.req.routePath);
-  if (!policy || policy.kind === "owner") throw new ApiError(403, "owner_only", `Only ${link.owner.name || "the account's owner"} can do this`);
-  if (policy.kind === "area") {
-    const levels = policy.areas.map((a) => link.permissions.areas[a]);
-    if (!levels.some((l) => allows(l, policy.access))) {
-      const viewOnly = policy.access === "change" && levels.some((l) => allows(l, "view"));
-      throw new ApiError(403, viewOnly ? "view_only" : "not_shared", viewOnly ? "This is shared with you to view only" : "This isn't shared with you", { areas: policy.areas });
-    }
-  }
+  assertLinkAllows(link, policy);
   c.set("linkPolicy", policy);
   return link.owner;
+}
+
+/** Throws what someone acting in a linked account gets when a policy doesn't let them through. */
+export function assertLinkAllows(link: Pick<ActingLink, "owner" | "permissions">, policy: RoutePolicy | null): asserts policy is RoutePolicy {
+  if (!policy || policy.kind === "owner") throw new ApiError(403, "owner_only", `Only ${link.owner.name || "the account's owner"} can do this`);
+  if (policy.kind !== "area") return;
+  const levels = policy.areas.map((a) => link.permissions.areas[a]);
+  if (levels.some((l) => allows(l, policy.access))) return;
+  const viewOnly = policy.access === "change" && levels.some((l) => allows(l, "view"));
+  throw new ApiError(403, viewOnly ? "view_only" : "not_shared", viewOnly ? "This is shared with you to view only" : "This isn't shared with you", { areas: policy.areas });
 }
 
 /** The person signed in, whatever account they act in: for their own limits, keys and reports. */

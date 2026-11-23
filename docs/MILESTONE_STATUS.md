@@ -144,3 +144,17 @@
 5. **Defects and limitations:** nothing to see in the app until part 2; activity is written after the change succeeds, so a database failure between the two can miss an entry (logged).
 6. **Plan changes:** one `account_links` table, and the activity log records who acted instead of author columns on each record; see ADR-015.
 7. **Next:** part 2 (account switcher, banner, Linked accounts settings and activity), part 3 (connector), then a check on dev with a second test account.
+
+
+## Linked accounts, part 3: connector (2026-11-23)
+
+1. **Status:** PARTIAL. Done and tested locally; the check on dev with a second test account follows. Production: flag off.
+2. **Delivered:**
+   - Every connector tool, the cooking tools included, takes an optional `account`; `list_accounts` lists the person's own account and those linked to them, with what each shares.
+   - Acting needs the new connection permission `accounts:linked` (its own line on the connect screen), an active link and the owner's AI-apps toggle, checked on every call; kitchen tools use the app's area rules, cooking tools the app's own route policies.
+   - Changes are in the owner's activity log with the app's name.
+3. **Verification:** `apps/api/test/connector-linked.test.ts` (2 tests) and the existing connector tests pass.
+4. **Deployment:** reaches the cloud dev environment when merged into `dev`.
+5. **Defects and limitations:** a connection made before this needs reconnecting to get `accounts:linked`; until then it gets a "reconnect and allow it" answer.
+6. **Plan changes:** none.
+7. **Next:** check on dev with a second test account.
