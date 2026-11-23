@@ -11,7 +11,7 @@ import { sendEmail } from "./lib/mailer.ts";
  * sign-in; no passwords are stored. Sessions are httpOnly cookies.
  */
 /** Scopes the connector can ask for; see docs/adr/ADR-007-connector.md. */
-export const CONNECTOR_SCOPES = ["kitchen:read", "kitchen:write"] as const;
+export const CONNECTOR_SCOPES = ["kitchen:read", "kitchen:write", "cooking:read", "cooking:write"] as const;
 /** The MCP endpoint is the protected resource; access tokens carry it as their audience. */
 export const MCP_RESOURCE = `${config.publicApiUrl}/mcp`;
 

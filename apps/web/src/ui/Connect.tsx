@@ -15,6 +15,8 @@ const PENDING_KEY = "bp.connect";
 const SCOPE_TEXT: Record<string, MessageKey> = {
   "kitchen:read": "connect.scopeRead",
   "kitchen:write": "connect.scopeWrite",
+  "cooking:read": "connect.scopeCookingRead",
+  "cooking:write": "connect.scopeCookingWrite",
   offline_access: "connect.scopeOffline",
 };
 
