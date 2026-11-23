@@ -19,6 +19,8 @@ const apiEnv = {
   // Companion on with a derived local key; journeys use the scripted fake provider.
   FEATURE_AI_COMPANION_ENABLED: "true",
   FEATURE_MCP_CONNECTOR_ENABLED: "true",
+  FEATURE_COOK_PROFILE_ENABLED: "true",
+  FEATURE_COOK_CLIENT_INVITES_ENABLED: "true",
   // Included companion on a fake owner key, only for these two invited test accounts.
   OPENAI_HOUSE_API_KEY: "fake-local-house",
   AI_HOUSE_ALLOWED_EMAILS: "included-desktop@example.test,included-mobile@example.test",

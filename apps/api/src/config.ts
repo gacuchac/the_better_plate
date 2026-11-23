@@ -138,6 +138,10 @@ function loadConfig() {
 
   const photoImportRaw = process.env.FEATURE_RECIPE_PHOTO_IMPORT_ENABLED?.trim();
   const recipePhotoImportEnabled = photoImportRaw ? photoImportRaw === "true" : appEnv !== "production";
+  const cookRaw = process.env.FEATURE_COOK_PROFILE_ENABLED?.trim();
+  const cookProfileEnabled = cookRaw ? cookRaw === "true" : appEnv !== "production";
+  const cookInvitesRaw = process.env.FEATURE_COOK_CLIENT_INVITES_ENABLED?.trim();
+  const cookClientInvitesEnabled = cookInvitesRaw ? cookInvitesRaw === "true" : appEnv !== "production";
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
 
@@ -160,7 +164,7 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled, groupPlanning: groupPlanningEnabled, recipePhotoImport: recipePhotoImportEnabled },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled, groupPlanning: groupPlanningEnabled, recipePhotoImport: recipePhotoImportEnabled, cookProfile: cookProfileEnabled, cookClientInvites: cookClientInvitesEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
     house: houseConfig(),

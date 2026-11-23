@@ -14,6 +14,7 @@ import { ShareSheet } from "./Share.tsx";
 import { CommunitySheet, useCommunityAvailable } from "./Community.tsx";
 import { describeRecipe, PhotoSheet, RecipePhoto } from "./Photos.tsx";
 import { PhotoImportSheet } from "./PhotoImport.tsx";
+import { CookingForSheet, useIsCook } from "./Cooking.tsx";
 import { formatQty, useT, type MessageKey } from "../i18n.ts";
 
 export const MACROS: { key: string; label: MessageKey }[] = [
@@ -60,7 +61,8 @@ export function RecipeEditor({ id }: { id: string }) {
   const [picking, setPicking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "community" | "photo" | "group" | "import" | null>(null);
+  const [sheet, setSheet] = useState<"plan" | "log" | "share" | "community" | "photo" | "group" | "import" | "cookFor" | null>(null);
+  const isCook = useIsCook(!!account?.features?.cookProfile && online);
 
   useEffect(() => {
     if (!engine) return;
@@ -417,9 +419,15 @@ export function RecipeEditor({ id }: { id: string }) {
             <button type="button" className="btn-secondary" onClick={() => setSheet("log")}>
               {t("meals.iAteThis")}
             </button>
-            <a className="btn-primary" href={`#/cook/${id}`}>
-              {t("editor.cook")}
-            </a>
+            {isCook ? (
+              <button type="button" className="btn-primary" onClick={() => setSheet("cookFor")} data-testid="cook-button">
+                {t("editor.cook")}
+              </button>
+            ) : (
+              <a className="btn-primary" href={`#/cook/${id}`}>
+                {t("editor.cook")}
+              </a>
+            )}
           </>
         )}
       </div>
@@ -434,6 +442,7 @@ export function RecipeEditor({ id }: { id: string }) {
           }}
         />
       )}
+      {sheet === "cookFor" && <CookingForSheet recipe={{ id, title: draft.title, servings: draft.servings }} onClose={() => setSheet(null)} />}
       {sheet === "import" && (
         <PhotoImportSheet
           foods={foods}

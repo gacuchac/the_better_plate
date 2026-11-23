@@ -31,6 +31,9 @@ export async function runMaintenance(): Promise<{ syncOperations: number; sessio
       // Email invites nobody used: the address goes with them. Send records only back the daily cap.
       const invites = await client.query("delete from group_pending_members where expires_at < now()");
       await client.query("delete from group_invite_sends where sent_at < now() - interval '2 days'");
+      // Client invites nobody accepted: the address goes after 30 days.
+      await client.query("update cook_clients set invite_email = null where invite_email is not null and invited_at < now() - interval '30 days'");
+      await client.query("delete from cook_invite_sends where sent_at < now() - interval '2 days'");
       return { syncOperations: ops.rowCount ?? 0, sessions: sessions.rowCount ?? 0, images: images.rowCount ?? 0, expiredInvites: invites.rowCount ?? 0 };
     } finally {
       await client.query("select pg_advisory_unlock(hashtext('betterplate:maintenance'))");

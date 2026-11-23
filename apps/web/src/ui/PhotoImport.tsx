@@ -10,7 +10,7 @@ import { FoodPicker } from "./FoodPicker.tsx";
 const SEND_PX = 2400;
 const MAX_PHOTOS = 4;
 
-async function photoToBase64(file: Blob): Promise<string> {
+export async function photoToBase64(file: Blob): Promise<string> {
   let blob = file;
   if (typeof createImageBitmap === "function") {
     try {

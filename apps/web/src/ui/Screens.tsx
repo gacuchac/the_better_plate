@@ -320,6 +320,24 @@ export function You() {
               <Icon name="forward" size={18} />
             </a>
           </li>
+          {account?.features?.cookProfile && (
+            <>
+              <li>
+                <a className="row-item row-link" href="#/cooking" data-testid="cooking-row">
+                  <span className="row-icon"><Icon name="pan" size={20} /></span>
+                  <span className="row-text"><span className="row-label">{t("cooking.title")}</span><span className="row-value">{t("cooking.rowHint")}</span></span>
+                  <Icon name="forward" size={18} />
+                </a>
+              </li>
+              <li>
+                <a className="row-item row-link" href="#/cooks" data-testid="my-cooks-row">
+                  <span className="row-icon"><Icon name="heart" size={20} /></span>
+                  <span className="row-text"><span className="row-label">{t("cooking.myCooks")}</span><span className="row-value">{t("cooking.myCooksHint")}</span></span>
+                  <Icon name="forward" size={18} />
+                </a>
+              </li>
+            </>
+          )}
           {ai !== false && (
             <li>
               <a className="row-item row-link" href="#/ai" data-testid="ai-summary">

@@ -19,6 +19,30 @@ import type {
   ShoppingList,
 } from "@betterplate/contracts";
 import type { RecipeImport } from "@betterplate/contracts";
+import type {
+  CookClient,
+  CookClientBody,
+  CookMeal,
+  CookMealSummary,
+  CookMealUpdate,
+  CookPrice,
+  CookProfileBody,
+  CookProfileState,
+  CookPublicShare,
+  CookReceipt,
+  CookReceiptBody,
+  CookReceiptSummary,
+  CookShareParts,
+  CookShareStatus,
+  CookShoppingList,
+  CookStatement,
+  CookStatementList,
+  CookTarget,
+  CookTargetRef,
+  GroupCookedMeal,
+  MyCook,
+  MyCookInvite,
+} from "@betterplate/contracts";
 import type { PhotoSearchResult, RecipeImage, AiProvider, AiSettings, AiSettingsUpdate, AiTurnRequest, AiTurnResponse, Recipe, Share, ShareCreate, SharedRecipe, SyncBatchRequest, SyncBatchResponse, SyncChangesResponse, CommunityHome, CommunityRecipe, CommunityReason, CommunityShare, CommunityStatus, Cheer, Milestones, MilestoneShare, MyMilestone } from "@betterplate/contracts";
 import type { FoodRecord, NutrientDefinition } from "@betterplate/nutrition";
 import { trackFailedRequest } from "./activity.ts";
@@ -84,7 +108,7 @@ export interface Me {
   /** Missing on accounts remembered by older app versions until the next online check. */
   privacy?: PrivacyStatus;
   /** Optional screens the server has on; missing on accounts remembered by older app versions. */
-  features?: { recipePhotoImport?: boolean };
+  features?: { recipePhotoImport?: boolean; cookProfile?: boolean };
 }
 
 export interface CatalogBundle {
@@ -131,6 +155,67 @@ export interface GroupPlanInput {
 }
 
 const ifMatch = (version: number) => ({ "if-match": `"v${version}"` });
+
+const noStore = { cache: "no-store" as const };
+const cookApi = {
+  profile: () => request<CookProfileState>("/v1/cook", noStore),
+  saveProfile: (body: CookProfileBody) => request<CookProfileState>("/v1/cook", { method: "PUT", json: body }),
+  clients: () => request<{ clients: CookClient[] }>("/v1/cook/clients", noStore),
+  addClient: (body: CookClientBody) => request<CookClient>("/v1/cook/clients", { method: "POST", json: body }),
+  saveClient: (id: string, body: CookClientBody) => request<CookClient>(`/v1/cook/clients/${id}`, { method: "PUT", json: body }),
+  removeClient: (id: string) => request<void>(`/v1/cook/clients/${id}`, { method: "DELETE" }),
+  inviteClient: (id: string, email: string) => request<CookClient>(`/v1/cook/clients/${id}/invite`, { method: "POST", json: { email } }),
+  uninviteClient: (id: string) => request<CookClient>(`/v1/cook/clients/${id}/invite`, { method: "DELETE" }),
+  targets: () => request<{ targets: CookTarget[] }>("/v1/cook/targets", noStore),
+  meals: (filter: { clientId?: string; groupId?: string; memberId?: string; unbilled?: boolean } = {}) => {
+    const q = new URLSearchParams(Object.entries(filter).flatMap(([k, v]) => (v === undefined ? [] : [[k, String(v)]])));
+    return request<{ meals: CookMealSummary[]; currency: string }>(`/v1/cook/meals?${q}`, noStore);
+  },
+  startMeal: (body: { id: string; name: string; cookedOn: string; target: CookTargetRef; recipeId?: string; servings?: number }) =>
+    request<CookMeal>("/v1/cook/meals", { method: "POST", json: body }),
+  meal: (id: string) => request<CookMeal>(`/v1/cook/meals/${id}`, noStore),
+  updateMeal: (id: string, body: CookMealUpdate) => request<CookMeal>(`/v1/cook/meals/${id}`, { method: "PATCH", json: body }),
+  deleteMeal: (id: string) => request<void>(`/v1/cook/meals/${id}`, { method: "DELETE" }),
+  addMealRecipe: (id: string, recipeId: string, servings: number) => request<CookMeal>(`/v1/cook/meals/${id}/recipes`, { method: "POST", json: { recipeId, servings } }),
+  removeMealRecipe: (id: string, rowId: string) => request<CookMeal>(`/v1/cook/meals/${id}/recipes/${rowId}`, { method: "DELETE" }),
+  timer: (id: string, action: "start" | "pause" | "stop") => request<CookMeal>(`/v1/cook/meals/${id}/timer`, { method: "POST", json: { action } }),
+  addExpense: (id: string, label: string, amountCents: number) => request<CookMeal>(`/v1/cook/meals/${id}/expenses`, { method: "POST", json: { label, amountCents } }),
+  removeExpense: (id: string, expenseId: string) => request<CookMeal>(`/v1/cook/meals/${id}/expenses/${expenseId}`, { method: "DELETE" }),
+  shoppingList: (id: string) => request<CookShoppingList>(`/v1/cook/meals/${id}/shopping-list`, noStore),
+  mealShare: (id: string) => request<CookShareStatus>(`/v1/cook/meals/${id}/share`, noStore),
+  shareMeal: (id: string, parts: CookShareParts, link: boolean) => request<CookShareStatus>(`/v1/cook/meals/${id}/share`, { method: "PUT", json: { parts, link } }),
+  unshareMeal: (id: string) => request<void>(`/v1/cook/meals/${id}/share`, { method: "DELETE" }),
+  receipts: () => request<{ receipts: CookReceiptSummary[] }>("/v1/cook/receipts", noStore),
+  readReceipt: (image: string) => request<CookReceipt>("/v1/cook/receipts/read", { method: "POST", json: { image } }),
+  addReceipt: (body: CookReceiptBody) => request<CookReceipt>("/v1/cook/receipts", { method: "POST", json: body }),
+  receipt: (id: string) => request<CookReceipt>(`/v1/cook/receipts/${id}`, noStore),
+  saveReceipt: (id: string, body: CookReceiptBody) => request<CookReceipt>(`/v1/cook/receipts/${id}`, { method: "PUT", json: body }),
+  confirmReceipt: (id: string) => request<CookReceipt>(`/v1/cook/receipts/${id}/confirm`, { method: "POST" }),
+  reopenReceipt: (id: string) => request<CookReceipt>(`/v1/cook/receipts/${id}/reopen`, { method: "POST" }),
+  deleteReceipt: (id: string) => request<void>(`/v1/cook/receipts/${id}`, { method: "DELETE" }),
+  receiptImageUrl: (id: string) => `${API_URL}/v1/cook/receipts/${id}/image`,
+  prices: () => request<{ prices: CookPrice[]; currency: string }>("/v1/cook/prices", noStore),
+  setPrice: (foodId: string, centsPerKg: number) => request<void>(`/v1/cook/prices/${encodeURIComponent(foodId)}`, { method: "PUT", json: { centsPerKg } }),
+  removePrice: (foodId: string) => request<void>(`/v1/cook/prices/${encodeURIComponent(foodId)}`, { method: "DELETE" }),
+  statements: () => request<CookStatementList>("/v1/cook/statements", noStore),
+  createStatement: (body: { id: string; title: string; mealIds: string[] }) => request<CookStatement>("/v1/cook/statements", { method: "POST", json: body }),
+  statement: (id: string) => request<CookStatement>(`/v1/cook/statements/${id}`, noStore),
+  updateStatement: (id: string, body: { title?: string; mealIds?: string[] }) => request<CookStatement>(`/v1/cook/statements/${id}`, { method: "PATCH", json: body }),
+  deleteStatement: (id: string) => request<void>(`/v1/cook/statements/${id}`, { method: "DELETE" }),
+  statementAction: (id: string, action: "send" | "paid" | "void") => request<CookStatement>(`/v1/cook/statements/${id}/${action}`, { method: "POST" }),
+  statementCsvUrl: (id: string) => `${API_URL}/v1/cook/statements/${id}/csv`,
+  statementShare: (id: string) => request<CookShareStatus>(`/v1/cook/statements/${id}/share`, noStore),
+  shareStatement: (id: string, parts: CookShareParts, link: boolean) => request<CookShareStatus>(`/v1/cook/statements/${id}/share`, { method: "PUT", json: { parts, link } }),
+  unshareStatement: (id: string) => request<void>(`/v1/cook/statements/${id}/share`, { method: "DELETE" }),
+  publicShare: (token: string) => request<CookPublicShare>(`/v1/cooked/${token}`, noStore),
+  myInvites: () => request<{ invites: MyCookInvite[] }>("/v1/me/cook-invites", noStore),
+  acceptInvite: (id: string) => request<void>(`/v1/me/cook-invites/${id}/accept`, { method: "POST" }),
+  declineInvite: (id: string) => request<void>(`/v1/me/cook-invites/${id}`, { method: "DELETE" }),
+  myCooks: () => request<{ cooks: MyCook[] }>("/v1/me/cooks", noStore),
+  leaveCook: (clientId: string) => request<void>(`/v1/me/cooks/${clientId}`, { method: "DELETE" }),
+  groupCookedMeals: (groupId: string) => request<{ meals: GroupCookedMeal[]; memberShares: boolean }>(`/v1/groups/${groupId}/cooked-meals`, noStore),
+  setGroupCookSettings: (groupId: string, memberShares: boolean) => request<{ memberShares: boolean }>(`/v1/groups/${groupId}/cook-settings`, { method: "PUT", json: { memberShares } }),
+};
 
 export const api = {
   me: () => request<Me>("/v1/me"),
@@ -238,4 +323,6 @@ export const api = {
     return request<ShoppingList>(`/v1/shopping-list?${q}`, { cache: "no-store" });
   },
   feedback: (report: FeedbackReport) => request<{ id: string; receivedAt: string; duplicate: boolean }>("/v1/feedback", { method: "POST", json: report }),
+  cook: cookApi,
 };
+
