@@ -151,10 +151,14 @@ test("a cook cooks for a client, adds a receipt, shares the meal and bills a sta
   await shot(page, info, "cook-statement", "Statement adding up the meal, marked sent and frozen; print, CSV and share");
 
   // The link, signed out: basics and groceries, no time or totals.
-  const guest = await browser.newContext();
+  // Phone width, where the page once ran edge to edge.
+  const guest = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const pub = await guest.newPage();
   await pub.goto(link);
   await expect(pub.getByTestId("public-cooked")).toContainText("Chicken and rice");
+  const card = await pub.getByTestId("shared-cooked-meal").boundingBox();
+  expect(card!.x).toBeGreaterThanOrEqual(12);
+  expect(card!.x + card!.width).toBeLessThanOrEqual(390 - 12);
   await expect(pub.getByTestId("shared-cooked-meal")).toContainText("CHICKEN BREAST");
   await expect(pub.getByTestId("shared-cooked-meal")).not.toContainText("Total:");
   await expect(pub.getByTestId("shared-cooked-meal")).not.toContainText("Time:");
