@@ -702,18 +702,26 @@ export function PublicCooked({ token }: { token: string }) {
   const { error, run } = useErrors();
   useEffect(() => void run(async () => setShare(await api.cook.publicShare(token))), [token, run]);
   return (
-    <main className="screen" data-testid="public-cooked">
-      <header className="screen-head">
-        <div>
-          <p className="eyebrow">{t("cooking.sharedWithYou")}</p>
-          <h1>{share?.meal?.name ?? share?.statement?.title ?? t("cooking.sharedTitle")}</h1>
-        </div>
+    // Outside the signed-in shell, so it brings its own page margins like the shared recipe page.
+    <div className="public-page">
+      <header className="public-head">
+        <a className="public-brand" href="#/home">
+          The Better Plate
+        </a>
       </header>
-      {error && <p className="hint">{t("cooking.shareGone")}</p>}
-      {share?.meal && <SharedMealView meal={share.meal} />}
-      {share?.statement && <SharedStatementView statement={share.statement} />}
-      <p className="fine">{t("cooking.publicNote")}</p>
-    </main>
+      <main id="main" className="public-main" data-testid="public-cooked">
+        <header className="screen-head">
+          <div>
+            <p className="eyebrow">{t("cooking.sharedWithYou")}</p>
+            <h1>{share?.meal?.name ?? share?.statement?.title ?? t("cooking.sharedTitle")}</h1>
+          </div>
+        </header>
+        {error && <p className="hint">{t("cooking.shareGone")}</p>}
+        {share?.meal && <SharedMealView meal={share.meal} />}
+        {share?.statement && <SharedStatementView statement={share.statement} />}
+        <p className="fine">{t("cooking.publicNote")}</p>
+      </main>
+    </div>
   );
 }
 
