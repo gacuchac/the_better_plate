@@ -24,6 +24,8 @@ import { Shopping } from "./Shopping.tsx";
 import { Companion, CompanionButton } from "./Companion.tsx";
 import { ConnectConsent, ResumeConnect, takePendingConnect } from "./Connect.tsx";
 import { useT, type MessageKey } from "../i18n.ts";
+import { ActingBanner, LinkedAccountsScreen, NotShared } from "./Linked.tsx";
+import type { LinkArea } from "@betterplate/contracts";
 
 const NAV: { path: string; label: MessageKey; icon: IconName }[] = [
   { path: "/home", label: "nav.home", icon: "kitchen" },
@@ -113,7 +115,10 @@ export function App() {
     );
   }
 
-  const cooking = !!account?.features?.cookProfile;
+  // In a linked account, cooking for others and connecting apps stay the owner's own.
+  const acting = account.acting ?? null;
+  const cooking = !!account?.features?.cookProfile && !acting;
+  const linked = !!account?.features?.linkedAccounts;
   const cookMatch = /^\/cook\/([0-9a-f-]{36})(?:\/meal\/([0-9a-f-]{36}))?$/.exec(route);
   if (cookMatch) {
     const mealId = cooking ? cookMatch[2] : undefined;
@@ -132,11 +137,30 @@ export function App() {
   // Kitchen is every recipe and what goes with them; Home is today (the plan, the meal log, cheers).
   const inKitchen = !!(recipeMatch || shoppingMatch || communityMatch) || ["/kitchen", "/recipes", "/explore"].includes(route);
   const inHome = !!mealsMatch || route === "/cheers";
-  const inYou = ["/goals", "/targets", "/ai", "/preferences"].includes(route) || !!cookingMatch || !!cookingItem || myCooks;
+  const inYou = ["/goals", "/targets", "/ai", "/preferences", "/linked"].includes(route) || !!cookingMatch || !!cookingItem || myCooks;
   const inGroups = route === "/groups" || !!groupMatch || !!joinMatch;
   const section = inKitchen ? "/kitchen" : inHome ? "/home" : inYou ? "/you" : inGroups ? "/groups" : route === "/create" ? route : "/home";
+  // Which area a screen shows, so a linked account that doesn't share it says so instead of looking empty.
+  const area: LinkArea | null = acting
+    ? recipeMatch || communityMatch || ["/kitchen", "/recipes", "/explore"].includes(route)
+      ? "recipes"
+      : shoppingMatch
+        ? shoppingMatch[1] ? "groups" : "shopping"
+        : route === "/preferences"
+          ? "preferences"
+          : route === "/groups" || groupMatch || joinMatch
+            ? "groups"
+            : route === "/ai"
+              ? "companion"
+              : route === "/cheers"
+                ? "milestones"
+                : null
+    : null;
   let screen;
-  if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
+  if (area && acting?.permissions.areas[area] === "off") screen = <NotShared area={area} />;
+  else if (acting && route === "/ai") screen = <NotShared area="companion" ownerOnly />;
+  else if (linked && route === "/linked") screen = <LinkedAccountsScreen />;
+  else if (recipeMatch) screen = <RecipeEditor key={recipeMatch[1]} id={recipeMatch[1]!} />;
   else if (mealsMatch) screen = <Meals date={mealsMatch[1]} />;
   else if (route === "/kitchen" || route === "/recipes") screen = <Kitchen />;
   else if (route === "/cheers") screen = <CheersPage />;
@@ -205,6 +229,7 @@ export function App() {
             <SignOutButton />
           </span>
         </div>
+        <ActingBanner />
         <UpdateBanner />
         <StorageBanner />
         <main id="main">{screen}</main>

@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { FoodRecord } from "@betterplate/nutrition";
-import { api, ApiRequestError, NetworkError, type CatalogBundle, type Me } from "./api.ts";
+import { api, ApiRequestError, NetworkError, setActingAs, LINK_ENDED_EVENT, type CatalogBundle, type Me } from "./api.ts";
 import { clearTargets, migrateTargets } from "./targets.ts";
 import { endSession } from "./agent.ts";
-import type { GroupSummary } from "@betterplate/contracts";
+import type { Acting, GroupSummary } from "@betterplate/contracts";
 import {
   deleteUserDb,
   isQuotaError,
@@ -29,13 +29,54 @@ const LIVE_PULL_MS = 5000;
 /** Fired after connecting or disconnecting an assistant, so live updates start or stop. */
 export const ASSISTANTS_CHANGED = "bp:assistants-changed";
 
-/** Last signed-in account, so the app opens offline. Holds no secrets (session is an httpOnly cookie). */
+/** Linked accounts whose copy is on this device, so it leaves with the person who signed in. */
+const LINKED_DBS_KEY = "bp.linkedDbs";
+/** When the owner last changed what a linked account shares, as this device's copy knows it. */
+const linkPermsKey = (ownerId: string) => `bp.linkPerms.${ownerId}`;
+
+/**
+ * The account the app works in, so it opens offline: the signed-in person's own, or a linked
+ * account they switched to (then `acting` is set). Holds no secrets (session is an httpOnly cookie).
+ */
 function rememberedAccount(): Me | null {
   try {
-    return JSON.parse(localStorage.getItem(ACCOUNT_KEY) ?? "null");
+    const me = JSON.parse(localStorage.getItem(ACCOUNT_KEY) ?? "null") as Me | null;
+    setActingAs(me?.acting ? me.id : null);
+    return me;
   } catch {
     return null;
   }
+}
+
+/** Who is signed in, whichever account the app is working in. */
+export const signedInIdOf = (me: Me) => me.acting?.actor.id ?? me.id;
+
+function linkedDbs(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(LINKED_DBS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function rememberLinkedDb(ownerId: string) {
+  const list = linkedDbs();
+  if (!list.includes(ownerId)) localStorage.setItem(LINKED_DBS_KEY, JSON.stringify([...list, ownerId]));
+}
+
+/** Copies of linked accounts leave the device with the person who signed in. */
+async function forgetLinkedDbs() {
+  for (const id of linkedDbs()) {
+    await deleteUserDb(id).catch(() => {});
+    localStorage.removeItem(linkPermsKey(id));
+  }
+  localStorage.removeItem(LINKED_DBS_KEY);
+}
+
+async function forgetLinkedDb(ownerId: string) {
+  await deleteUserDb(ownerId).catch(() => {});
+  localStorage.removeItem(linkPermsKey(ownerId));
+  localStorage.setItem(LINKED_DBS_KEY, JSON.stringify(linkedDbs().filter((id) => id !== ownerId)));
 }
 
 export type CatalogState =
@@ -47,7 +88,12 @@ export type CatalogState =
 export type StorageNotice = "evicted" | "full" | null;
 
 interface AppState {
+  /** The account the app works in: the signed-in person's, or a linked account they switched to. */
   account: Me | null;
+  /** Set while working in a linked account: who is signed in and what the owner shares. */
+  acting: Acting | null;
+  /** Work in a linked account (its owner's id), or back in your own (null). */
+  switchAccount: (ownerId: string | null) => Promise<void>;
   accountChecked: boolean;
   engine: SyncEngine | null;
   catalog: CatalogState;
@@ -166,16 +212,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     api
       .me()
+      .catch(async (err) => {
+        // The linked account this device was working in is gone or no longer shared: back to your own.
+        if (!(err instanceof ApiRequestError) || (err.status !== 403 && err.status !== 404)) throw err;
+        const prev = rememberedAccount();
+        if (!prev?.acting) throw err;
+        setActingAs(null);
+        await forgetLinkedDb(prev.id);
+        return api.me();
+      })
       .then((me) => {
         if (cancelled) return;
         const prev = rememberedAccount();
-        if (prev && prev.id !== me.id) {
-          void deleteUserDb(prev.id);
-          clearTargets(prev.id);
-      if (typeof caches !== "undefined") void caches.delete("recipe-images").catch(() => false);
+        if (prev && signedInIdOf(prev) !== signedInIdOf(me)) {
+          const prevId = signedInIdOf(prev);
+          void deleteUserDb(prevId);
+          void forgetLinkedDbs();
+          clearTargets(prevId);
           if (typeof caches !== "undefined") void caches.delete("recipe-images").catch(() => false);
         }
         localStorage.setItem(ACCOUNT_KEY, JSON.stringify(me));
+        setActingAs(me.acting ? me.id : null);
         setAccountState(me);
       })
       .catch((err) => {
@@ -207,9 +264,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     let disposed = false;
     let cleanup = () => {};
-    void openUserDb(account.id, () => setStorageNotice("evicted")).then((db) => {
+    // A linked account's copy starts over when its owner changes what they share, so nothing
+    // stays on this device that is no longer shared, and anything newly shared comes in.
+    const acting = account.acting;
+    const reset = acting && localStorage.getItem(linkPermsKey(account.id)) !== acting.permissionsUpdatedAt ? deleteUserDb(account.id).catch(() => {}) : Promise.resolve();
+    if (acting) {
+      rememberLinkedDb(account.id);
+      localStorage.setItem(linkPermsKey(account.id), acting.permissionsUpdatedAt);
+    }
+    void reset.then(() => openUserDb(account.id, () => setStorageNotice("evicted"))).then((db) => {
       if (disposed) return db.close();
-      const e = new SyncEngine(db);
+      // Sync is pinned to the account this copy belongs to, so switching accounts can never send
+      // one account's unsent changes to another.
+      const as = acting ? account.id : null;
+      const e = new SyncEngine(db, { syncBatch: (body) => api.syncBatch(body, as), changes: (cursor) => api.changes(cursor, as) });
       const refresh = () =>
         void Promise.all([e.listRecipes(), e.listAllPlans(), e.listAllLogs(), e.listGoals(), e.listPreferences(), e.listFeedback(), e.listProfiles(), e.listWater(), e.listFavorites()]).then(
           ([r, p, l, g, prefs, fb, profs, w, favs]) => {
@@ -266,7 +334,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       disposed = true;
       cleanup();
     };
-  }, [account?.id]);
+  }, [account?.id, account?.acting?.permissionsUpdatedAt]);
 
   // Which groups this account is in, when online. Copies of recipes from groups it has left go.
   const refreshGroups = useCallback(async () => {
@@ -291,19 +359,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setAccount = useCallback((me: Me) => {
     const prev = rememberedAccount();
-    if (prev && prev.id !== me.id) {
-      void deleteUserDb(prev.id);
-      clearTargets(prev.id);
+    if (prev && signedInIdOf(prev) !== signedInIdOf(me)) {
+      const prevId = signedInIdOf(prev);
+      void deleteUserDb(prevId);
+      void forgetLinkedDbs();
+      clearTargets(prevId);
       if (typeof caches !== "undefined") void caches.delete("recipe-images").catch(() => false);
     }
     localStorage.setItem(ACCOUNT_KEY, JSON.stringify(me));
+    setActingAs(me.acting ? me.id : null);
     setAccountState(me);
     setAccountChecked(true);
   }, []);
 
+  const switchAccount = useCallback(
+    async (ownerId: string | null) => {
+      const before = account;
+      setActingAs(ownerId);
+      try {
+        const me = await api.me();
+        localStorage.setItem(ACCOUNT_KEY, JSON.stringify(me));
+        setAccountState(me);
+      } catch (err) {
+        setActingAs(before?.acting ? before.id : null);
+        throw err;
+      }
+    },
+    [account],
+  );
+
+  // Any request answered "no access" means the owner ended the link: back to your own account.
+  useEffect(() => {
+    const ended = () => {
+      const current = rememberedAccount();
+      if (!current?.acting) return;
+      void forgetLinkedDb(current.id);
+      void switchAccount(null).catch(() => {});
+    };
+    addEventListener(LINK_ENDED_EVENT, ended);
+    return () => removeEventListener(LINK_ENDED_EVENT, ended);
+  }, [switchAccount]);
+
   const signOut = useCallback(async () => {
-    const id = account?.id;
+    const id = account ? signedInIdOf(account) : undefined;
     await api.signOut().catch(() => {});
+    setActingAs(null);
+    await forgetLinkedDbs();
     localStorage.removeItem(ACCOUNT_KEY);
     setAccountState(null);
     setEngine(null);
@@ -320,10 +421,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(() => {
     const own = <T extends { body: { profileId?: string | null } }>(list: T[]) => list.filter((x) => !x.body.profileId);
     return {
-      account, accountChecked, engine, catalog, recipes, plans: own(plans), logs: own(logs), allPlans: plans, allLogs: logs, goals, water, favorites,
+      account, acting: account?.acting ?? null, switchAccount, accountChecked, engine, catalog, recipes, plans: own(plans), logs: own(logs), allPlans: plans, allLogs: logs, goals, water, favorites,
       preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice,
       dismissStorageNotice: () => setStorageNotice(null),
     };
-  }, [account, accountChecked, engine, catalog, recipes, plans, logs, goals, water, favorites, preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice]);
+  }, [account, switchAccount, accountChecked, engine, catalog, recipes, plans, logs, goals, water, favorites, preferences, feedback, profiles, groups, refreshGroups, kitchenLoaded, online, setAccount, signOut, refreshRecipes, storageNotice]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
