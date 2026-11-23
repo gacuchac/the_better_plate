@@ -11,7 +11,8 @@ import {
 } from "@betterplate/contracts";
 import { calculateRecipe, withInferredCooking } from "@betterplate/nutrition";
 import { pool, withTransaction } from "../db/pool.ts";
-import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
+import { ApiError, type AppEnv, canUse, rateLimit, requireArea, requireUser } from "../lib/http.ts";
+import type { Context } from "hono";
 import { currentCatalog, foodsByIds } from "./catalog.ts";
 import { ErrorResponses, IdParam } from "./common.ts";
 import { resolveRecipeImage } from "./images.ts";
@@ -226,6 +227,19 @@ export const recipeRoutes = new OpenAPIHono<AppEnv>();
 recipeRoutes.use("/v1/recipes/*", rateLimit("recipe", 600, 60));
 recipeRoutes.use("/v1/recipes", rateLimit("recipe", 600, 60));
 
+/**
+ * In a linked account, a group's recipe someone else wrote is reached through the owner's groups,
+ * so it needs the groups area too: hidden from a view, refused for a change (ADR-015).
+ */
+async function groupRecipeGate(c: Context<AppEnv>, ownerId: string, id: string, access: "view" | "change") {
+  if (!c.get("link") || canUse(c, "groups", access)) return;
+  const { rows } = await pool.query<{ user_id: string; group_id: string | null }>("select user_id, group_id from recipes where id = $1", [id]);
+  const r = rows[0];
+  if (!r || r.user_id === ownerId || !r.group_id) return;
+  if (access === "view") throw new ApiError(404, "not_found", "Recipe not found");
+  requireArea(c, "groups", "change");
+}
+
 recipeRoutes.openapi(
   createRoute({
     method: "get", path: "/v1/recipes", tags: ["recipes"], summary: "List my recipes and my groups' recipes",
@@ -233,8 +247,9 @@ recipeRoutes.openapi(
   }),
   async (c) => {
     const user = requireUser(c);
+    const groupsToo = canUse(c, "groups");
     const { rows } = await pool.query<RecipeRow>(
-      `select * from recipes where ${READABLE_RECIPES} and deleted_at is null order by updated_at desc limit 500`,
+      `select * from recipes where ${READABLE_RECIPES} and ${groupsToo ? "true" : "user_id = $1"} and deleted_at is null order by updated_at desc limit 500`,
       [user.id],
     );
     return c.json({ recipes: rows.map(toRecipe) }, 200);
@@ -289,6 +304,7 @@ recipeRoutes.openapi(
   }),
   async (c) => {
     const user = requireUser(c);
+    await groupRecipeGate(c, user.id, c.req.valid("param").id, "view");
     const recipe = await getReadableRecipe(user.id, c.req.valid("param").id);
     if (!recipe) throw new ApiError(404, "not_found", "Recipe not found");
     c.header("ETag", `"v${recipe.version}"`);
@@ -310,6 +326,7 @@ recipeRoutes.openapi(
   }),
   async (c) => {
     const user = requireUser(c);
+    await groupRecipeGate(c, user.id, c.req.valid("param").id, "change");
     const base = parseIfMatch(c.req.header("if-match"));
     const outcome = await withTransaction((client) => putRecipe(client, user.id, c.req.valid("param").id, base, c.req.valid("json")));
     if (outcome.status !== "applied") {
@@ -336,6 +353,7 @@ recipeRoutes.openapi(
   async (c) => {
     const user = requireUser(c);
     const id = c.req.valid("param").id;
+    await groupRecipeGate(c, user.id, id, "change");
     const base = parseIfMatch(c.req.header("if-match"));
     if (!(await getReadableRecipe(user.id, id))) throw new ApiError(404, "not_found", "Recipe not found");
     const outcome = await withTransaction((client) => deleteRecipe(client, user.id, id, base));

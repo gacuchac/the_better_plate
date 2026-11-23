@@ -13,7 +13,7 @@ import {
 } from "@betterplate/contracts";
 import { scaleTotals } from "@betterplate/nutrition";
 import { pool } from "../db/pool.ts";
-import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
+import { ApiError, type AppEnv, canUse, rateLimit, requireArea, requireUser } from "../lib/http.ts";
 import { ErrorResponses } from "./common.ts";
 import { computeNutrition, lockUser } from "./recipes.ts";
 import { isAdminRole, isManagedPerson, profileOwner, roleIn } from "./access.ts";
@@ -212,6 +212,11 @@ mealRoutes.openapi(
     const days = (Date.parse(to) - Date.parse(from)) / 86_400_000;
     if (!(days >= 0 && days <= 30)) throw new ApiError(400, "invalid_range", "Use a range of 1 to 31 days with from ≤ to");
     if (profileId && (await profileOwner(pool, profileId)) !== user.id) throw new ApiError(404, "not_found", "Profile not found");
+    // In a linked account: a child's meals need children; the owner's plans and eaten meals each need their own area.
+    if (profileId) requireArea(c, "children");
+    const showPlans = !!profileId || canUse(c, "plans");
+    const showEaten = !!profileId || canUse(c, "eaten");
+    if (!showPlans && !showEaten) throw new ApiError(403, "not_shared", "This isn't shared with you", { areas: ["plans", "eaten"] });
     const [plans, logs] = await Promise.all([
       pool.query<PlanRow>(
         `select ${PLAN_COLUMNS} from planned_meals where user_id = $1 and profile_id is not distinct from $4 and deleted_at is null and local_date between $2 and $3 order by local_date, slot`,
@@ -222,6 +227,6 @@ mealRoutes.openapi(
         [user.id, from, to, profileId],
       ),
     ]);
-    return c.json({ from, to, planned: plans.rows.map(toPlan), eaten: logs.rows.map(toLog) }, 200);
+    return c.json({ from, to, planned: showPlans ? plans.rows.map(toPlan) : [], eaten: showEaten ? logs.rows.map(toLog) : [] }, 200);
   },
 );

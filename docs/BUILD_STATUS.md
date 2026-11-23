@@ -9,4 +9,5 @@
 - **Redesign (2026-11-09):** Manrope tokens, raised Create nav button, Today trail with Eat/Undo, photo recipe grid, meal-plan week strip, "your own goal" note and Gentle mode. See the Hybrid redesign entry in `docs/MILESTONE_STATUS.md`.
 - **Home and Kitchen (2026-11-17, ADR-013):** the landing tab is Home (today, Plan a meal and I ate something in three taps, no photos); Kitchen holds every recipe with the shopping list and food lookup; Explore folds into Kitchen.
 - **Groups, part two (2026-11-17):** add people by email before they have an account (they join automatically on first sign-in, with a Leave option on Home), shared meals as a quick thumbs-up list, and planning one meal for the whole group; all behind flags that are off in production. See `docs/MILESTONE_STATUS.md`.
+- **Linked accounts (2026-11-23, ADR-015):** API for sharing parts of an account with someone, one toggle per area, acting in it with your own sign-in, and an activity log; behind a flag that is off in production. App screens and the connector follow.
 - **Ledger:** `docs/requirements-ledger.md`.

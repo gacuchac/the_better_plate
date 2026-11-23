@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { RecipeImportRequestSchema, RecipeImportSchema, type ImportedLine, type RecipeImport } from "@betterplate/contracts";
 import { amountFromText } from "@betterplate/nutrition";
 import { config } from "../config.ts";
-import { ApiError, type AppEnv, type AuthUser, rateLimit, requireUser } from "../lib/http.ts";
+import { ApiError, type AppEnv, type AuthUser, rateLimit, requireUser, signedInUser } from "../lib/http.ts";
 import { foodsByIds, searchFoods } from "./catalog.ts";
 import { ErrorResponses } from "./common.ts";
 import { countRead, readKeyFor, readStructured, type ReadKey, type ReadResult } from "./ai/vision.ts";
@@ -211,7 +211,9 @@ importRoutes.openapi(
     responses: { 200: { description: "The recipe as read, for review", content: { "application/json": { schema: RecipeImportSchema } } }, ...ErrorResponses },
   }),
   async (c) => {
-    const user = requireUser(c);
-    return c.json(await importRecipe(user, c.req.valid("json").images), 200);
+    requireUser(c);
+    // Reading a photo uses the signed-in person's own AI provider and daily reads, also in a linked account;
+    // the draft is saved to the account later through the usual recipe save.
+    return c.json(await importRecipe(signedInUser(c), c.req.valid("json").images), 200);
   },
 );

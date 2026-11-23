@@ -130,3 +130,17 @@
 6. **Plan changes:** pending members instead of pre-created accounts (consent and Google account-linking); see `plans/groups-shared-meals-plan.md` in project files.
 7. **Next:** hosted pass on dev, owner review there, privacy notice approval before production.
 
+
+## Linked accounts, part 1: API (2026-11-23)
+
+1. **Status:** PARTIAL. API and tests done locally; the app screens (part 2) and the connector (part 3) follow. Production: not deployed, flag off there.
+2. **Delivered:**
+   - Requests by email with one toggle per area, each off, view or change, plus an AI-apps toggle, all off by default; accept, decline, change toggles, remove, leave (`/v1/linked-accounts*`).
+   - Acting in a linked account with `X-Act-As`, checked on every request against a policy for every route (default deny, no chaining); routes that span areas drop what isn't shared; sync checks each operation and filters the pull per area.
+   - Activity log of every change made through a link and every change to a link, for both people, 12 months, in the export.
+   - Privacy notice version 2026-11-23 with the linked-accounts lines.
+3. **Verification:** `pnpm test` passes, including `apps/api/test/linked.test.ts` (7 tests).
+4. **Deployment:** reaches the cloud dev environment when merged into `dev`.
+5. **Defects and limitations:** nothing to see in the app until part 2; activity is written after the change succeeds, so a database failure between the two can miss an entry (logged).
+6. **Plan changes:** one `account_links` table, and the activity log records who acted instead of author columns on each record; see ADR-015.
+7. **Next:** part 2 (account switcher, banner, Linked accounts settings and activity), part 3 (connector), then a check on dev with a second test account.

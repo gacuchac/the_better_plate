@@ -4,7 +4,7 @@
  * by a lawyer (preflight P3), and says so.
  */
 export const PRIVACY_NOTICE = {
-  version: "2026-11-22",
+  version: "2026-11-23",
   reviewStatus: "draft" as "draft" | "reviewed",
   title: "How The Better Plate handles your data",
   sections: [
@@ -24,7 +24,8 @@ export const PRIVACY_NOTICE = {
         "If someone adds you to a group by email before you have an account, we keep your email and the name they gave for up to 30 days and send you one email about it. " +
         "When you first sign in with that email and agree to this notice, you are in that group, and you can leave it at any time. " +
         "If you cook for others: your cooking profile, the people you cook for and your notes about them, the meals you cook with their recipes, time and costs, grocery receipts with their photos, your ingredient prices and your statements. " +
-        "Only you see your notes and receipt photos. If a cook invites you by email, we keep that email for up to 30 days and send you one email about it.",
+        "Only you see your notes and receipt photos. If a cook invites you by email, we keep that email for up to 30 days and send you one email about it. " +
+        "If you link accounts with someone: the email you shared yours with, what you chose to share, and a log of what was done through the link, kept 12 months.",
     },
     {
       heading: "What we don't collect",
@@ -49,12 +50,15 @@ export const PRIVACY_NOTICE = {
         "If an admin added you by email, you join when you first sign in with that email, and you can leave right away. " +
         "If someone cooks for you in the app, they see your food preferences, never your meals or goals. A cook in your group sees the group's allergies; only the group's owner and admins see them by name. " +
         "When you accept a cook's invite, you see every meal they cooked for you and whatever they choose to share, and they see your food preferences. " +
-        "A cook can also share a meal or statement by a link that shows only the parts they chose, until they stop sharing.",
+        "A cook can also share a meal or statement by a link that shows only the parts they chose, until they stop sharing. " +
+        "You can let someone you trust use parts of your account with their own sign-in, such as your recipes, plans or groups, each turned on separately, to view or to change. " +
+        "Nothing is shared until they accept, and they can let their AI apps use it only if you allow that too. " +
+        "If you share your groups, they act in them as you, and the group sees it as you; your activity log shows what they did.",
     },
     {
       heading: "Your choices",
       body:
-        "You can download everything we keep about you at any time, revoke share links, stop sharing community recipes, leave a group or turn down an invite, take back your answer to a shared meal, unlink from a cook who cooks for you, stop sharing a cooked meal or statement, and delete your account, which deletes your data from our database.",
+        "You can download everything we keep about you at any time, revoke share links, stop sharing community recipes, leave a group or turn down an invite, take back your answer to a shared meal, unlink from a cook who cooks for you, stop sharing a cooked meal or statement, change or end what you share with a linked account, and delete your account, which deletes your data from our database.",
     },
     {
       heading: "About the numbers",

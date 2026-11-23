@@ -34,6 +34,13 @@ export async function runMaintenance(): Promise<{ syncOperations: number; sessio
       // Client invites nobody accepted: the address goes after 30 days.
       await client.query("update cook_clients set invite_email = null where invite_email is not null and invited_at < now() - interval '30 days'");
       await client.query("delete from cook_invite_sends where sent_at < now() - interval '2 days'");
+      // Linked accounts (ADR-015): requests nobody answered lapse; a request that never reached anyone
+      // keeps the typed email 30 days after it ended, other ended links and activity 12 months.
+      await client.query("update account_links set status = 'expired', updated_at = now(), ended_at = now() where status = 'requested' and expires_at <= now()");
+      await client.query("delete from account_links where ended_at is not null and delegate_user_id is null and ended_at < now() - interval '30 days'");
+      await client.query("delete from account_links where ended_at is not null and ended_at < now() - interval '12 months'");
+      await client.query("delete from linked_activity where created_at < now() - interval '12 months'");
+      await client.query("delete from account_link_sends where sent_at < now() - interval '2 days'");
       return { syncOperations: ops.rowCount ?? 0, sessions: sessions.rowCount ?? 0, images: images.rowCount ?? 0, expiredInvites: invites.rowCount ?? 0 };
     } finally {
       await client.query("select pg_advisory_unlock(hashtext('betterplate:maintenance'))");
