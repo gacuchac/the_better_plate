@@ -120,7 +120,9 @@ export function registerAccountTool(server: McpServer, session: ConnectorAuth, t
         }
         const image = (output as { image?: { bytes: Buffer; type: string } } | null)?.image;
         if (image && Buffer.isBuffer(image.bytes)) return { content: [{ type: "image", data: image.bytes.toString("base64"), mimeType: image.type || "image/webp" }] };
-        return { content: [{ type: "text", text: JSON.stringify(output) }] };
+        // In a linked account, every answer says whose account it came from.
+        const answer = ctx.link && output && typeof output === "object" && !Array.isArray(output) ? { account: { accountId: ctx.accountId, name: ctx.link.owner.name || null }, ...output } : output;
+        return { content: [{ type: "text", text: JSON.stringify(answer) }] };
       } catch (err) {
         return failure(err instanceof ApiError || err instanceof Error ? err.message : "Something went wrong");
       }

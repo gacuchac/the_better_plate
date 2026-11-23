@@ -109,6 +109,7 @@ describe("connector: linked accounts", () => {
     expect((await ann.request(`/v1/linked-accounts/${linkId}`, { method: "PATCH", json: { permissions: perms({ recipes: "change", plans: "view" }, true) } })).status).toBe(200);
     const saved = await ok(token, "save_recipe", { account: annId, title: "Ann's rice", servings: 2, ingredients });
     expect((await pool.query("select user_id from recipes where id = $1", [saved.recipeId])).rows[0].user_id).toBe(annId);
+    expect(saved.account.accountId).toBe(annId);
     expect((await ok(token, "list_recipes", { account: annId })).recipes.map((r: { id: string }) => r.id)).toContain(saved.recipeId);
     // Without account, Ben's own kitchen.
     expect((await ok(token, "list_recipes")).recipes).toEqual([]);

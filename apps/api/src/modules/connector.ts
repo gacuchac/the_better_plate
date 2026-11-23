@@ -39,7 +39,7 @@ export const CONNECTOR_INSTRUCTIONS = `The Better Plate is a home-cooking app wi
 - read_recipe_photo returns a draft only; save it with save_recipe after the person checks the foods and amounts.`;
 
 const LINKED_INSTRUCTIONS = `
-- Linked accounts: without account, every tool works in the person's own account. When they ask you to do something in someone else's account (for example their partner's), call list_accounts and pass that accountId as account. Only what its owner shared is allowed; a refusal means it isn't shared, so tell them rather than trying another way. Say whose account you changed.`;
+- Linked accounts: without account, every tool works in the person's own account. When they ask you to do something in someone else's account (for example their partner's), call list_accounts and pass that accountId as account. Use account only for the account they name, ask which one when it's unclear, and never copy anything between accounts unless they ask. Only what its owner shared is allowed; a refusal means it isn't shared, so tell them rather than trying another way. Say whose account you changed.`;
 
 /** Rolls back the first half of a goal edit when the second half isn't saved. */
 class GoalNotSaved extends Error {
