@@ -1,6 +1,6 @@
 # Draft: privacy notice change for cooking for others
 
-Status: **draft for the owner's approval. Not published.** `packages/contracts/src/privacy.ts` is unchanged.
+Status: **approved by the owner on 2026-11-22** and published as notice version `2026-11-22` in `packages/contracts/src/privacy.ts`. Points 1 to 3 below kept the draft's defaults: no extra warning on notes, receipt photos kept until the cook deletes them, admins see preferences by name as today. Production flags stay off until turned on separately.
 AGENTS.md requires explicit owner approval for any change to privacy or data-collection scope.
 
 ## Why it changes
