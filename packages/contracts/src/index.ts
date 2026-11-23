@@ -7,6 +7,7 @@ export * from "./ai.ts";
 export * from "./groups.ts";
 export * from "./imports.ts";
 export * from "./cooks.ts";
+export * from "./linked.ts";
 
 export const MAX_INGREDIENTS = 100;
 export const MAX_SYNC_OPS = 100;

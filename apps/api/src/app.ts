@@ -33,6 +33,8 @@ import { mealShareRoutes } from "./modules/mealshares.ts";
 import { importRoutes } from "./modules/imports.ts";
 import { cookRoutes } from "./modules/cooks/routes.ts";
 import { cookBillingRoutes } from "./modules/cooks/billing.ts";
+import { actingMiddleware } from "./modules/linked/acting.ts";
+import { linkedRoutes } from "./modules/linked/routes.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -54,7 +56,7 @@ export function createApp() {
       origin: config.corsOrigins,
       credentials: true,
       allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowHeaders: ["Content-Type", "If-Match", "If-None-Match", "X-Request-Id"],
+      allowHeaders: ["Content-Type", "If-Match", "If-None-Match", "X-Request-Id", "X-Act-As"],
       exposeHeaders: ["ETag", "X-Request-Id", "Retry-After"],
       maxAge: 600,
     }),
@@ -106,6 +108,8 @@ export function createApp() {
 
   app.use("/v1/*", csrfMiddleware);
   app.use("/v1/*", sessionMiddleware);
+  // X-Act-As: act in an account linked to the signed-in person (ADR-015); checked on every request.
+  app.use("/v1/*", actingMiddleware);
 
   // Unreleased chef commerce: rejected server-side unless explicitly enabled (never in production).
   app.all("/v1/chef/*", (c) => {
@@ -134,6 +138,7 @@ export function createApp() {
   app.route("/", importRoutes);
   app.route("/", cookRoutes);
   app.route("/", cookBillingRoutes);
+  app.route("/", linkedRoutes);
   app.route("/", accountRoutes);
   app.route("/", devRoutes);
 

@@ -12,7 +12,7 @@ import {
 } from "@betterplate/contracts";
 import { config } from "../../config.ts";
 import { pool } from "../../db/pool.ts";
-import { ApiError, type AppEnv, type AuthUser, rateLimit, requireUser } from "../../lib/http.ts";
+import { ApiError, type AppEnv, type AuthUser, rateLimit, requireUser, signedInUser } from "../../lib/http.ts";
 import { ErrorResponses } from "../common.ts";
 import { keyHint, openKey, sealKey } from "./byok.ts";
 import { adapterFor, checkConversation, type Native } from "./providers.ts";
@@ -118,7 +118,11 @@ const SettingsResponse = { 200: { description: "Companion settings (keys are nev
 
 aiRoutes.openapi(
   createRoute({ method: "get", path: "/v1/ai/settings", tags: ["ai"], summary: "AI companion settings and today's usage", responses: SettingsResponse }),
-  async (c) => c.json(await loadSettings(requireUser(c)), 200),
+  // In a linked account the companion runs on the signed-in person's own provider and limits.
+  async (c) => {
+    requireUser(c);
+    return c.json(await loadSettings(signedInUser(c)), 200);
+  },
 );
 
 aiRoutes.openapi(
@@ -211,7 +215,10 @@ aiRoutes.openapi(
     },
   }),
   async (c) => {
-    const user = requireUser(c);
+    requireUser(c);
+    // The turn stores nothing in the account (tools run on the device), so it always runs on the
+    // signed-in person's own provider, key and limits, also while acting in a linked account.
+    const user = signedInUser(c);
     const body = c.req.valid("json");
     const input = (b: typeof body) =>
       b.input.type === "message" ? { type: "message" as const, text: b.input.text + contextBlock(b.input.context) } : b.input;

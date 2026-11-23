@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { LocalDateSchema, ShoppingListSchema, type RecipeBody } from "@betterplate/contracts";
 import { buildShoppingList, type ShoppingPlan } from "@betterplate/nutrition";
 import { pool } from "../db/pool.ts";
-import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
+import { ApiError, type AppEnv, rateLimit, requireArea, requireUser } from "../lib/http.ts";
 import { isAdminRole, profileOwner, roleIn } from "./access.ts";
 import { foodsByIds } from "./catalog.ts";
 import { ErrorResponses } from "./common.ts";
@@ -43,6 +43,8 @@ shoppingRoutes.openapi(
     const days = (Date.parse(to) - Date.parse(from)) / 86_400_000;
     if (!(days >= 0 && days <= 30)) throw new ApiError(400, "invalid_range", "Use a range of 1 to 31 days with from ≤ to");
     if (profileId && groupId) throw new ApiError(400, "invalid_request", "Ask for a profile's list or a group's, not both");
+    // In a linked account: a group's list needs groups, a child's needs children, the owner's own needs shopping.
+    requireArea(c, groupId ? "groups" : profileId ? "children" : "shopping");
 
     let rows: Row[];
     if (groupId) {

@@ -1,11 +1,11 @@
 import type pg from "pg";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { createHash } from "node:crypto";
-import { PRIVACY_NOTICE } from "@betterplate/contracts";
+import { ActingSchema, PRIVACY_NOTICE } from "@betterplate/contracts";
 import { config } from "../config.ts";
 import { pool } from "../db/pool.ts";
 import { devOutbox } from "../lib/mailer.ts";
-import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
+import { ApiError, type AppEnv, rateLimit, requireUser, signedInUser } from "../lib/http.ts";
 import { ErrorResponses } from "./common.ts";
 import { LOG_COLUMNS, PLAN_COLUMNS, toLog, toPlan } from "./meals.ts";
 import { toRecipe } from "./recipes.ts";
@@ -29,7 +29,9 @@ const MeSchema = z
     displayName: z.string().nullable(),
     privacy: PrivacyStatusSchema,
     /** Which optional screens the app shows; the server refuses their routes when off. */
-    features: z.object({ recipePhotoImport: z.boolean(), cookProfile: z.boolean() }),
+    features: z.object({ recipePhotoImport: z.boolean(), cookProfile: z.boolean(), linkedAccounts: z.boolean() }),
+    /** Set while acting in someone else's linked account (X-Act-As); the fields above are that account's, except privacy, which is always the signed-in person's own. */
+    acting: ActingSchema.nullable(),
   })
   .openapi("Me");
 const ConsentSchema = z.object({ noticeVersion: z.string().max(40), adultConfirmed: z.literal(true) });
@@ -56,8 +58,19 @@ accountRoutes.openapi(
   }),
   async (c) => {
     const user = requireUser(c);
+    const me = signedInUser(c);
+    const link = c.get("link");
     return c.json(
-      { id: user.id, email: user.email, displayName: user.name || null, privacy: await privacyStatus(user.id), features: { recipePhotoImport: config.features.recipePhotoImport, cookProfile: config.features.cookProfile } },
+      {
+        id: user.id,
+        email: user.email,
+        displayName: user.name || null,
+        privacy: await privacyStatus(me.id),
+        features: { recipePhotoImport: config.features.recipePhotoImport, cookProfile: config.features.cookProfile, linkedAccounts: config.features.linkedAccounts },
+        acting: link
+          ? { linkId: link.id, actor: { id: me.id, name: me.name || null, email: me.email }, permissions: link.permissions, permissionsUpdatedAt: link.updatedAt.toISOString() }
+          : null,
+      },
       200,
     );
   },
@@ -107,6 +120,25 @@ accountRoutes.openapi(
 );
 
 export const EXPORT_FORMAT = "betterplate.export/1" as const;
+
+async function exportLinked(userId: string) {
+  type L = { id: string; owner_user_id: string; email: string; status: string; permissions: unknown; created_at: Date; accepted_at: Date | null; ended_at: Date | null; owner_email: string };
+  type A = { account_user_id: string; actor_name: string; via: string; app_name: string | null; action: string; target_id: string | null; created_at: Date };
+  const [given, received, inMine, byMe] = await Promise.all([
+    pool.query<L>(`select l.*, u.email as owner_email from account_links l join "users" u on u.id = l.owner_user_id where l.owner_user_id = $1 order by l.created_at`, [userId]),
+    pool.query<L>(`select l.*, u.email as owner_email from account_links l join "users" u on u.id = l.owner_user_id where l.delegate_user_id = $1 order by l.created_at`, [userId]),
+    pool.query<A>("select * from linked_activity where account_user_id = $1 order by created_at", [userId]),
+    pool.query<A>("select * from linked_activity where actor_user_id = $1 and account_user_id <> $1 order by created_at", [userId]),
+  ]);
+  const link = (l: L, person: string) => ({ id: l.id, person, status: l.status, permissions: l.permissions, createdAt: l.created_at.toISOString(), acceptedAt: l.accepted_at?.toISOString() ?? null, endedAt: l.ended_at?.toISOString() ?? null });
+  const entry = (a: A) => ({ account: a.account_user_id, by: a.actor_name, via: a.via, appName: a.app_name, action: a.action, targetId: a.target_id, at: a.created_at.toISOString() });
+  return {
+    given: given.rows.map((l) => link(l, l.email)),
+    received: received.rows.map((l) => link(l, l.owner_email)),
+    activityInMyAccount: inMine.rows.map(entry),
+    activityByMe: byMe.rows.map(entry),
+  };
+}
 
 /** Everything stored about one account, as data the person can keep or take elsewhere. */
 export async function exportAccount(userId: string) {
@@ -179,6 +211,7 @@ export async function exportAccount(userId: string) {
     ),
   ]);
   const cooking = await exportCooking(userId);
+  const linked = await exportLinked(userId);
   const user = users[0]!;
   return {
     format: EXPORT_FORMAT,
@@ -195,6 +228,8 @@ export async function exportAccount(userId: string) {
       dailyUsage: aiUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens) })),
       includedDailyUsage: houseUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), model: u.model, requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens), images: u.images, imports: (u as { imports?: number }).imports ?? 0 })),
     },
+    // People I shared parts of my account with, accounts shared with me, and what was done through those links.
+    linkedAccounts: linked,
     // Assistants (Claude, ChatGPT) allowed to reach this kitchen; tokens themselves are never exported.
     connectedApps: connectedApps.map((a) => ({ name: a.name, redirectUris: a.redirect_uris ?? [], scopes: a.scopes, connectedAt: a.created_at.toISOString() })),
     recipes: recipes.map(toRecipe),

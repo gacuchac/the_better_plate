@@ -142,6 +142,9 @@ function loadConfig() {
   const cookProfileEnabled = cookRaw ? cookRaw === "true" : appEnv !== "production";
   const cookInvitesRaw = process.env.FEATURE_COOK_CLIENT_INVITES_ENABLED?.trim();
   const cookClientInvitesEnabled = cookInvitesRaw ? cookInvitesRaw === "true" : appEnv !== "production";
+  // Linked accounts (ADR-015): same default as community recipes; off in production until the owner says.
+  const linkedRaw = process.env.FEATURE_LINKED_ACCOUNTS_ENABLED?.trim();
+  const linkedAccountsEnabled = linkedRaw ? linkedRaw === "true" : appEnv !== "production";
   const chefEnabled = process.env.FEATURE_CHEF_ENABLED === "true";
   if (appEnv === "production" && chefEnabled) throw new Error("FEATURE_CHEF_ENABLED must stay false in production");
 
@@ -164,7 +167,7 @@ function loadConfig() {
     serveWeb: process.env.SERVE_WEB === "true",
     google: googleConfig(),
     emailProvider: (process.env.EMAIL_PROVIDER ?? "") as "" | "resend" | "brevo",
-    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled, groupPlanning: groupPlanningEnabled, recipePhotoImport: recipePhotoImportEnabled, cookProfile: cookProfileEnabled, cookClientInvites: cookClientInvitesEnabled },
+    features: { chef: chefEnabled, aiCompanion: aiEnabled, connector: connectorEnabled, community: communityEnabled, milestones: milestonesEnabled, groupEmailInvites: groupEmailInvitesEnabled, groupMealShares: groupMealSharesEnabled, groupPlanning: groupPlanningEnabled, recipePhotoImport: recipePhotoImportEnabled, cookProfile: cookProfileEnabled, cookClientInvites: cookClientInvitesEnabled, linkedAccounts: linkedAccountsEnabled },
     /** 32-byte AES key for stored provider keys; null when the AI companion is off. */
     byokKey,
     house: houseConfig(),

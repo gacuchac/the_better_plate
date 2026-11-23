@@ -1,7 +1,9 @@
 import type { Context, MiddlewareHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { allows, type LinkArea, type LinkPermissions } from "@betterplate/contracts";
 import { auth } from "../auth.ts";
 import { config } from "../config.ts";
+import { policyFor, type RoutePolicy } from "../modules/linked/policy.ts";
 
 export interface AuthUser {
   id: string;
@@ -11,12 +13,29 @@ export interface AuthUser {
   emailVerified?: boolean;
 }
 
+/** Someone signed in is acting in an account linked to them (ADR-015). */
+export interface ActingLink {
+  id: string;
+  /** The account being acted in; requireUser returns it once the route allows it. */
+  owner: AuthUser;
+  permissions: LinkPermissions;
+  updatedAt: Date;
+  via: "app" | "connector";
+  appName: string | null;
+  clientId: string | null;
+}
+
 export type AppEnv = {
   Variables: {
     requestId: string;
+    /** Always the signed-in person, also while they act in a linked account. */
     user: AuthUser | null;
     /** Set on connector (MCP) requests after the access token is verified. */
     connector?: { userId: string; clientId: string; scopes: Set<string> };
+    /** Set when the request acts in a linked account (X-Act-As). */
+    link?: ActingLink;
+    /** The route's policy, once requireUser allowed a delegate through it. */
+    linkPolicy?: RoutePolicy;
   };
 };
 
@@ -42,10 +61,47 @@ export const sessionMiddleware: MiddlewareHandler<AppEnv> = async (c, next) => {
   await next();
 };
 
+/**
+ * The account a request works in: the signed-in person's own, or, while they act in a linked
+ * account, that account, but only through routes its owner shared (modules/linked/policy.ts).
+ * Every route reads its account here, so a route nobody marked stays the owner's (default deny).
+ */
 export function requireUser(c: Context<AppEnv>): AuthUser {
   const user = c.get("user");
   if (!user) throw new ApiError(401, "unauthenticated", "Sign in to continue");
+  const link = c.get("link");
+  if (!link) return user;
+  const policy = policyFor(c.req.method, c.req.routePath);
+  if (!policy || policy.kind === "owner") throw new ApiError(403, "owner_only", `Only ${link.owner.name || "the account's owner"} can do this`);
+  if (policy.kind === "area") {
+    const levels = policy.areas.map((a) => link.permissions.areas[a]);
+    if (!levels.some((l) => allows(l, policy.access))) {
+      const viewOnly = policy.access === "change" && levels.some((l) => allows(l, "view"));
+      throw new ApiError(403, viewOnly ? "view_only" : "not_shared", viewOnly ? "This is shared with you to view only" : "This isn't shared with you", { areas: policy.areas });
+    }
+  }
+  c.set("linkPolicy", policy);
+  return link.owner;
+}
+
+/** The person signed in, whatever account they act in: for their own limits, keys and reports. */
+export function signedInUser(c: Context<AppEnv>): AuthUser {
+  const user = c.get("user");
+  if (!user) throw new ApiError(401, "unauthenticated", "Sign in to continue");
   return user;
+}
+
+/** True unless the request acts in a linked account that doesn't share this area at that level. */
+export function canUse(c: Context<AppEnv>, area: LinkArea, access: "view" | "change" = "view"): boolean {
+  const link = c.get("link");
+  return !link || allows(link.permissions.areas[area], access);
+}
+
+/** Throws the same errors as requireUser when an area isn't shared at that level. */
+export function requireArea(c: Context<AppEnv>, area: LinkArea, access: "view" | "change" = "view") {
+  if (canUse(c, area, access)) return;
+  const viewOnly = access === "change" && canUse(c, area, "view");
+  throw new ApiError(403, viewOnly ? "view_only" : "not_shared", viewOnly ? "This is shared with you to view only" : "This isn't shared with you", { areas: [area] });
 }
 
 /**
@@ -75,6 +131,7 @@ export function rateLimit(name: string, limit: number, windowSeconds: number): M
   const buckets = new Map<string, { count: number; resetAt: number }>();
   const max = Math.round(limit * config.rateLimitMultiplier);
   return async (c, next) => {
+    // The signed-in person, also while acting in a linked account: their own limits, never the owner's.
     const user = c.get("user");
     // Railway's edge sets X-Real-IP; the first X-Forwarded-For entry is whatever the client sent.
     const ip = c.req.header("x-real-ip")?.trim() || c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "local";

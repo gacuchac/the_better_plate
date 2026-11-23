@@ -9,7 +9,7 @@ import {
   type MealFeedbackBody,
 } from "@betterplate/contracts";
 import { pool } from "../db/pool.ts";
-import { type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
+import { type AppEnv, canUse, rateLimit, requireUser } from "../lib/http.ts";
 import { foodsByIds } from "./catalog.ts";
 import { ErrorResponses } from "./common.ts";
 import { lockUsers, profileOwner } from "./access.ts";
@@ -157,7 +157,14 @@ preferenceRoutes.openapi(
       "Writes go through POST /v1/sync/batch (prefs.put).",
     responses: { 200: { description: "Preferences", content: { "application/json": { schema: z.object({ preferences: z.array(FoodPreferencesSchema) }) } } }, ...ErrorResponses },
   }),
-  async (c) => c.json({ preferences: await preferencesIn(requireUser(c).id) }, 200),
+  async (c) => {
+    const user = requireUser(c);
+    // In a linked account: the owner's own record needs preferences, a child's needs children.
+    const own = canUse(c, "preferences");
+    const kids = canUse(c, "children");
+    const all = await preferencesIn(user.id);
+    return c.json({ preferences: all.filter((p) => (p.id === user.id ? own : kids)) }, 200);
+  },
 );
 
 preferenceRoutes.openapi(
@@ -168,7 +175,14 @@ preferenceRoutes.openapi(
     responses: { 200: { description: "Feedback", content: { "application/json": { schema: z.object({ feedback: z.array(MealFeedbackSchema) }) } } }, ...ErrorResponses },
   }),
   async (c) => {
-    const { rows } = await pool.query<FeedbackRow>("select * from meal_feedback where user_id = $1 and deleted_at is null order by updated_at desc limit 1000", [requireUser(c).id]);
+    const user = requireUser(c);
+    // In a linked account: feedback on the owner's meals needs eaten, on a child's needs children.
+    const own = canUse(c, "eaten");
+    const kids = canUse(c, "children");
+    const { rows } = await pool.query<FeedbackRow>(
+      "select * from meal_feedback where user_id = $1 and deleted_at is null and (($2 and profile_id is null) or ($3 and profile_id is not null)) order by updated_at desc limit 1000",
+      [user.id, own, kids],
+    );
     return c.json({ feedback: rows.map(toFeedback) }, 200);
   },
 );

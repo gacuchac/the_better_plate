@@ -13,7 +13,7 @@ import {
 } from "@betterplate/contracts";
 import { config } from "../config.ts";
 import { pool } from "../db/pool.ts";
-import { ApiError, type AppEnv, rateLimit, requireUser } from "../lib/http.ts";
+import { ApiError, type AppEnv, rateLimit, requireUser, signedInUser } from "../lib/http.ts";
 import { openKey } from "./ai/byok.ts";
 import { isFakeKey } from "./ai/fake.ts";
 import { openaiFetch } from "./ai/providers.ts";
@@ -371,7 +371,9 @@ imageRoutes.openapi(
     responses: ImageResponse,
   }),
   async (c) => {
-    const user = requireUser(c);
+    const owner = requireUser(c);
+    // Made on the signed-in person's own key and limits; stored in the account it is for (a linked one too).
+    const user = signedInUser(c);
     if (!config.features.aiCompanion) throw new ApiError(404, "feature_disabled", "AI images are not available");
     const { prompt, alt } = c.req.valid("json");
     const { rows } = await pool.query<{ ciphertext: Buffer; iv: Buffer; auth_tag: Buffer }>(
@@ -402,7 +404,7 @@ imageRoutes.openapi(
         [user.id, model],
       );
     }
-    return c.json(await store(user.id, { kind: "generated", credit: null, generator: { provider: "openai", model }, bytes, mime }, alt), 201);
+    return c.json(await store(owner.id, { kind: "generated", credit: null, generator: { provider: "openai", model }, bytes, mime }, alt), 201);
   },
 );
 

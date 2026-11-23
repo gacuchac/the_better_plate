@@ -395,11 +395,166 @@
               },
               "cookProfile": {
                 "type": "boolean"
+              },
+              "linkedAccounts": {
+                "type": "boolean"
               }
             },
             "required": [
               "recipePhotoImport",
-              "cookProfile"
+              "cookProfile",
+              "linkedAccounts"
+            ]
+          },
+          "acting": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "actor": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "email": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "email"
+                ]
+              },
+              "permissions": {
+                "type": "object",
+                "properties": {
+                  "areas": {
+                    "type": "object",
+                    "properties": {
+                      "recipes": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "plans": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "eaten": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "goals": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "preferences": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "shopping": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "children": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "milestones": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "groups": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      },
+                      "companion": {
+                        "type": "string",
+                        "enum": [
+                          "off",
+                          "view",
+                          "change"
+                        ],
+                        "default": "off"
+                      }
+                    }
+                  },
+                  "aiApps": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "areas"
+                ]
+              },
+              "permissionsUpdatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "linkId",
+              "actor",
+              "permissions",
+              "permissionsUpdatedAt"
             ]
           }
         },
@@ -408,7 +563,8 @@
           "email",
           "displayName",
           "privacy",
-          "features"
+          "features",
+          "acting"
         ]
       },
       "SignInMethods": {
@@ -50679,6 +50835,2371 @@
           },
           "403": {
             "description": "Not the owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/linked-accounts": {
+      "get": {
+        "tags": [
+          "linked accounts"
+        ],
+        "summary": "Accounts I share mine with, and accounts shared with me",
+        "description": "Live links only: requests waiting for an answer and active links. A request I sent shows only the email I typed until it's accepted.",
+        "responses": {
+          "200": {
+            "description": "Links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "given": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "given",
+                              "received"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "requested",
+                              "active",
+                              "declined",
+                              "cancelled",
+                              "removed",
+                              "expired"
+                            ]
+                          },
+                          "person": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "email": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "email"
+                            ]
+                          },
+                          "permissions": {
+                            "type": "object",
+                            "properties": {
+                              "areas": {
+                                "type": "object",
+                                "properties": {
+                                  "recipes": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "plans": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "eaten": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "goals": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "preferences": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "shopping": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "children": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "milestones": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "groups": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "companion": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  }
+                                }
+                              },
+                              "aiApps": {
+                                "type": "boolean",
+                                "default": false
+                              }
+                            },
+                            "required": [
+                              "areas"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "expiresAt": {
+                            "type": "string"
+                          },
+                          "acceptedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "direction",
+                          "status",
+                          "person",
+                          "permissions",
+                          "createdAt",
+                          "expiresAt",
+                          "acceptedAt",
+                          "updatedAt"
+                        ]
+                      }
+                    },
+                    "received": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "given",
+                              "received"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "requested",
+                              "active",
+                              "declined",
+                              "cancelled",
+                              "removed",
+                              "expired"
+                            ]
+                          },
+                          "person": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "email": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "email"
+                            ]
+                          },
+                          "permissions": {
+                            "type": "object",
+                            "properties": {
+                              "areas": {
+                                "type": "object",
+                                "properties": {
+                                  "recipes": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "plans": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "eaten": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "goals": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "preferences": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "shopping": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "children": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "milestones": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "groups": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  },
+                                  "companion": {
+                                    "type": "string",
+                                    "enum": [
+                                      "off",
+                                      "view",
+                                      "change"
+                                    ],
+                                    "default": "off"
+                                  }
+                                }
+                              },
+                              "aiApps": {
+                                "type": "boolean",
+                                "default": false
+                              }
+                            },
+                            "required": [
+                              "areas"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "expiresAt": {
+                            "type": "string"
+                          },
+                          "acceptedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "direction",
+                          "status",
+                          "person",
+                          "permissions",
+                          "createdAt",
+                          "expiresAt",
+                          "acceptedAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "given",
+                    "received"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "linked accounts"
+        ],
+        "summary": "Give someone access to parts of my account (sends a request)",
+        "description": "The person gets an email if the address has an account, and the request waits 14 days for them to accept. The answer is the same whether or not the email has an account. Up to 5 requests a day and 10 live links.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "permissions": {
+                    "type": "object",
+                    "properties": {
+                      "areas": {
+                        "type": "object",
+                        "properties": {
+                          "recipes": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "plans": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "eaten": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "goals": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "preferences": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "shopping": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "children": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "milestones": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "groups": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "companion": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          }
+                        }
+                      },
+                      "aiApps": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    },
+                    "required": [
+                      "areas"
+                    ]
+                  }
+                },
+                "required": [
+                  "email",
+                  "permissions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Request sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "received"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "requested",
+                        "active",
+                        "declined",
+                        "cancelled",
+                        "removed",
+                        "expired"
+                      ]
+                    },
+                    "person": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "email": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email"
+                      ]
+                    },
+                    "permissions": {
+                      "type": "object",
+                      "properties": {
+                        "areas": {
+                          "type": "object",
+                          "properties": {
+                            "recipes": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "plans": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "eaten": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "goals": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "preferences": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "shopping": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "children": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "milestones": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "groups": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "companion": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            }
+                          }
+                        },
+                        "aiApps": {
+                          "type": "boolean",
+                          "default": false
+                        }
+                      },
+                      "required": [
+                        "areas"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "acceptedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "direction",
+                    "status",
+                    "person",
+                    "permissions",
+                    "createdAt",
+                    "expiresAt",
+                    "acceptedAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already linked, or the privacy notice must be agreed to first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {}
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/linked-accounts/{id}": {
+      "patch": {
+        "tags": [
+          "linked accounts"
+        ],
+        "summary": "Change what I share (owner)",
+        "description": "Takes effect on the other person's next request, in the app and through their AI apps.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "permissions": {
+                    "type": "object",
+                    "properties": {
+                      "areas": {
+                        "type": "object",
+                        "properties": {
+                          "recipes": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "plans": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "eaten": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "goals": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "preferences": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "shopping": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "children": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "milestones": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "groups": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          },
+                          "companion": {
+                            "type": "string",
+                            "enum": [
+                              "off",
+                              "view",
+                              "change"
+                            ],
+                            "default": "off"
+                          }
+                        }
+                      },
+                      "aiApps": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    },
+                    "required": [
+                      "areas"
+                    ]
+                  }
+                },
+                "required": [
+                  "permissions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "received"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "requested",
+                        "active",
+                        "declined",
+                        "cancelled",
+                        "removed",
+                        "expired"
+                      ]
+                    },
+                    "person": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "email": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email"
+                      ]
+                    },
+                    "permissions": {
+                      "type": "object",
+                      "properties": {
+                        "areas": {
+                          "type": "object",
+                          "properties": {
+                            "recipes": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "plans": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "eaten": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "goals": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "preferences": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "shopping": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "children": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "milestones": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "groups": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "companion": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            }
+                          }
+                        },
+                        "aiApps": {
+                          "type": "boolean",
+                          "default": false
+                        }
+                      },
+                      "required": [
+                        "areas"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "acceptedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "direction",
+                    "status",
+                    "person",
+                    "permissions",
+                    "createdAt",
+                    "expiresAt",
+                    "acceptedAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "linked accounts"
+        ],
+        "summary": "End a link: cancel or remove (owner), decline or leave (the other person)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ended"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/linked-accounts/{id}/accept": {
+      "post": {
+        "tags": [
+          "linked accounts"
+        ],
+        "summary": "Accept a request someone sent me",
+        "description": "Only the person whose verified email the request was sent to. Afterwards they can act in the owner's account through what it shares.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "received"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "requested",
+                        "active",
+                        "declined",
+                        "cancelled",
+                        "removed",
+                        "expired"
+                      ]
+                    },
+                    "person": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "email": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email"
+                      ]
+                    },
+                    "permissions": {
+                      "type": "object",
+                      "properties": {
+                        "areas": {
+                          "type": "object",
+                          "properties": {
+                            "recipes": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "plans": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "eaten": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "goals": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "preferences": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "shopping": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "children": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "milestones": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "groups": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            },
+                            "companion": {
+                              "type": "string",
+                              "enum": [
+                                "off",
+                                "view",
+                                "change"
+                              ],
+                              "default": "off"
+                            }
+                          }
+                        },
+                        "aiApps": {
+                          "type": "boolean",
+                          "default": false
+                        }
+                      },
+                      "required": [
+                        "areas"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "acceptedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "direction",
+                    "status",
+                    "person",
+                    "permissions",
+                    "createdAt",
+                    "expiresAt",
+                    "acceptedAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (or not yours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The privacy notice must be agreed to first, or too many links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {}
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/linked-accounts/activity": {
+      "get": {
+        "tags": [
+          "linked accounts"
+        ],
+        "summary": "What was done in my account by people I linked, or what I did in others'",
+        "description": "who=others (default): changes made in my account by people I shared it with, and changes to my links. who=me: what I did in accounts shared with me. Newest first; kept 12 months.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "others",
+                "me"
+              ],
+              "default": "others"
+            },
+            "required": false,
+            "name": "who",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": false,
+            "name": "before",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "entries": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "account": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ]
+                          },
+                          "actor": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ]
+                          },
+                          "via": {
+                            "type": "string",
+                            "enum": [
+                              "app",
+                              "connector"
+                            ]
+                          },
+                          "appName": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "recipe.save",
+                              "recipe.delete",
+                              "recipe.photo",
+                              "recipe.copy",
+                              "plan.save",
+                              "plan.delete",
+                              "meal.log",
+                              "meal.remove",
+                              "water.log",
+                              "water.remove",
+                              "feedback.save",
+                              "favorite.add",
+                              "favorite.remove",
+                              "goal.save",
+                              "goal.delete",
+                              "prefs.save",
+                              "profile.rename",
+                              "group.plan",
+                              "group.plan.change",
+                              "group.plan.remove",
+                              "group.plan.approve",
+                              "group.plan.decline",
+                              "group.recipe",
+                              "group.share",
+                              "group.share.change",
+                              "group.share.remove",
+                              "group.react",
+                              "group.comment.remove",
+                              "group.preferences",
+                              "group.welcome",
+                              "companion.turn",
+                              "link.created",
+                              "link.accepted",
+                              "link.permissions",
+                              "link.ended"
+                            ]
+                          },
+                          "targetId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "account",
+                          "actor",
+                          "via",
+                          "appName",
+                          "action",
+                          "targetId",
+                          "at"
+                        ]
+                      }
+                    },
+                    "before": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "entries",
+                    "before"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {}
+                      },
+                      "required": [
+                        "code",
+                        "message",
+                        "requestId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
             "content": {
               "application/json": {
                 "schema": {
