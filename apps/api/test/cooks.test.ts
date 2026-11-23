@@ -77,6 +77,11 @@ afterAll(async () => {
 });
 
 describe("cook profile", () => {
+  it("lets the app send PATCH from its own origin (meal and statement edits)", async () => {
+    const res = await call("/v1/cook/meals/00000000-0000-4000-8000-000000000000", { method: "OPTIONS", headers: { "access-control-request-method": "PATCH", "access-control-request-headers": "content-type" } });
+    expect(res.headers.get("access-control-allow-methods") ?? "").toContain("PATCH");
+  });
+
   it("is behind its flag, and needs setting up before anything else", async () => {
     const someone = await signIn();
     expect((await call("/v1/cook")).status).toBe(401);

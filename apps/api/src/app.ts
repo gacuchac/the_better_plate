@@ -53,7 +53,7 @@ export function createApp() {
     cors({
       origin: config.corsOrigins,
       credentials: true,
-      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowHeaders: ["Content-Type", "If-Match", "If-None-Match", "X-Request-Id"],
       exposeHeaders: ["ETag", "X-Request-Id", "Retry-After"],
       maxAge: 600,
