@@ -55,3 +55,13 @@ The owner asked for `upload_recipe_photo` to accept images ChatGPT generates, wi
 - **Claude:** no file-param mechanism. Attached images are not handed to connector tools, and the model can't reproduce an image's bytes as base64. In practice Claude can send a public link, or base64 only when it has the bytes as text. This is inferred from the MCP specification having no file-input primitive yet; proposals SEP-2356 (base64 primitive) and SEP-2361 (file handling) are open.
 
 When a client adds a file primitive (the MCP proposals above, or ChatGPT exposing generated images as file params), the `image` input is where it plugs in.
+
+## Addendum (2026-11-23): cooking for others and recipes from photos
+
+The owner asked for the connector to "upload the recipes and manage everything related to" the cook profile, and approved the tool list (receipt photos included) on 2026-11-23.
+
+- **Tools:** `read_recipe_photo` (the app's recipe reader; returns a draft, saves nothing; needs `kitchen:write`) and 45 cooking tools covering the profile, clients and invites, cooked meals (recipes, timer, minutes, other costs, shopping list), ingredient prices, receipts (read from a photo, type in, change, confirm, reopen, delete, get the saved photo), statements (create, change, delete a draft, mark sent, paid or void) and sharing, plus the client's side (cooks who cook for me, invites, unlink) and a group's cooked meals. Left out: the statement CSV and the group owner's cook settings.
+- **Same routes as the app:** each tool calls the REST route in process as the verified person (`connector-cooking.ts`), so checks, limits, flags, the receipt reader's payment-line filter and answers are the app's. Edits from an assistant send only what changes; the tool reads the current profile, client or receipt and fills in the rest, so nothing is reset by a partial call.
+- **Permissions:** new `cooking:read` and `cooking:write`. A connection approved before them keeps its kitchen tools and gets a "reconnect and allow it" answer from the cooking tools, so clients, notes, receipts and statements are never reached without the person approving them.
+- **Flags:** cooking tools are listed only while `FEATURE_COOK_PROFILE_ENABLED` is on, `read_recipe_photo` only while `FEATURE_RECIPE_PHOTO_IMPORT_ENABLED` is on.
+- **Care:** tool descriptions and the server instructions ask the assistant to get the person's yes before an invite email, a public link, freezing a statement or a delete; `get_receipt_photo` returns the photo as an image and warns not to repeat card or loyalty numbers it may show.
