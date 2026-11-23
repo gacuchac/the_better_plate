@@ -1,3 +1,4 @@
+import type pg from "pg";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { createHash } from "node:crypto";
 import { PRIVACY_NOTICE } from "@betterplate/contracts";
@@ -28,7 +29,7 @@ const MeSchema = z
     displayName: z.string().nullable(),
     privacy: PrivacyStatusSchema,
     /** Which optional screens the app shows; the server refuses their routes when off. */
-    features: z.object({ recipePhotoImport: z.boolean() }),
+    features: z.object({ recipePhotoImport: z.boolean(), cookProfile: z.boolean() }),
   })
   .openapi("Me");
 const ConsentSchema = z.object({ noticeVersion: z.string().max(40), adultConfirmed: z.literal(true) });
@@ -56,7 +57,7 @@ accountRoutes.openapi(
   async (c) => {
     const user = requireUser(c);
     return c.json(
-      { id: user.id, email: user.email, displayName: user.name || null, privacy: await privacyStatus(user.id), features: { recipePhotoImport: config.features.recipePhotoImport } },
+      { id: user.id, email: user.email, displayName: user.name || null, privacy: await privacyStatus(user.id), features: { recipePhotoImport: config.features.recipePhotoImport, cookProfile: config.features.cookProfile } },
       200,
     );
   },
@@ -177,6 +178,7 @@ export async function exportAccount(userId: string) {
       "select group_id, email, display_name, role, created_at, expires_at from group_pending_members where invited_by = $1 order by created_at",
     ),
   ]);
+  const cooking = await exportCooking(userId);
   const user = users[0]!;
   return {
     format: EXPORT_FORMAT,
@@ -191,7 +193,7 @@ export async function exportAccount(userId: string) {
       connections: aiKeys.map((k) => ({ provider: k.provider, keyHint: k.key_hint, model: k.model, connectedAt: k.created_at.toISOString() })),
       settings: aiSettings[0] ? { activeProvider: aiSettings[0].active_provider, dailyRequestLimit: aiSettings[0].daily_request_limit } : null,
       dailyUsage: aiUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens) })),
-      includedDailyUsage: houseUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), model: u.model, requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens), images: u.images })),
+      includedDailyUsage: houseUsage.map((u) => ({ day: u.day.toISOString().slice(0, 10), model: u.model, requests: u.requests, inputTokens: Number(u.input_tokens), outputTokens: Number(u.output_tokens), images: u.images, imports: (u as { imports?: number }).imports ?? 0 })),
     },
     // Assistants (Claude, ChatGPT) allowed to reach this kitchen; tokens themselves are never exported.
     connectedApps: connectedApps.map((a) => ({ name: a.name, redirectUris: a.redirect_uris ?? [], scopes: a.scopes, connectedAt: a.created_at.toISOString() })),
@@ -236,6 +238,9 @@ export async function exportAccount(userId: string) {
       createdAt: s.created_at.toISOString(), expiresAt: s.expires_at?.toISOString() ?? null, revokedAt: s.revoked_at?.toISOString() ?? null,
       snapshot: s.revoked_at ? null : s.snapshot,
     })),
+    // Cook profile: clients, cooked meals with their recipes and costs, receipts (with photos), prices,
+    // statements and shares; and meals cooks shared with you as their client.
+    cooking,
     issueReports: reports.map((r) => ({
       id: r.id, kind: r.kind, message: r.message, activity: r.activity, context: r.context, status: r.status, createdAt: r.created_at.toISOString(),
       screenshot: r.screenshot ? `data:${r.screenshot_type};base64,${r.screenshot.toString("base64")}` : null,
@@ -248,7 +253,8 @@ accountRoutes.openapi(
     method: "get", path: "/v1/me/export", tags: ["account"], summary: "Download all my data as JSON",
     description:
       "Account, sign-in methods, sessions, recipes with every revision, planned and eaten meals (yours and your profiles'), goals, water logged, food preferences, " +
-      "meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, milestones you shared and cheers you gave, meals you shared with a group and your reactions to shared meals, people you added to a group by email, and issue reports. Rate limited to 10 per hour.",
+      "meal feedback, favorite recipes, profiles, group memberships, share links, community recipes, saves and reports, milestones you shared and cheers you gave, meals you shared with a group and your reactions to shared meals, people you added to a group by email, " +
+      "cooking for others (clients, cooked meals, receipts, prices, statements, shares, and what cooks shared with you), and issue reports. Rate limited to 10 per hour.",
     responses: { 200: { description: "Export (betterplate.export/1)", content: { "application/json": { schema: z.object({ format: z.literal(EXPORT_FORMAT) }).passthrough() } } }, ...ErrorResponses },
   }),
   async (c) => {
@@ -319,3 +325,33 @@ devRoutes.get("/v1/dev/mailbox", (c) => {
   if (!config.isLocal) throw new ApiError(404, "not_found", "Not found");
   return c.json({ messages: devOutbox(c.req.query("email")).slice(0, 20) });
 });
+
+async function exportCooking(userId: string) {
+  const q = <T extends pg.QueryResultRow>(sql: string) => pool.query<T>(sql, [userId]).then((r) => r.rows);
+  const [profile, clients, meals, mealRecipes, expenses, receipts, lines, prices, statements, shares, asClient] = await Promise.all([
+    q("select business_name, currency, hourly_rate_cents, flat_fee_cents, created_at from cooks where user_id = $1"),
+    q("select id, name, notes, hourly_rate_cents, invite_email, invited_at, linked_at, created_at from cook_clients where cook_id = $1 order by created_at"),
+    q("select id, name, to_char(cooked_on, 'YYYY-MM-DD') as cooked_on, target_kind, group_id, member_id, client_id, target_name, hourly_rate_cents, flat_fee_cents, cooking_seconds, shopping_minutes, travel_minutes, notes, created_at from cook_meals where cook_id = $1 order by cooked_on"),
+    q("select r.meal_id, r.recipe_id, r.title, r.description, r.servings, r.ingredients from cook_meal_recipes r join cook_meals m on m.id = r.meal_id where m.cook_id = $1 order by r.created_at"),
+    q("select e.meal_id, e.label, e.amount_cents from cook_expenses e join cook_meals m on m.id = e.meal_id where m.cook_id = $1 order by e.created_at"),
+    q<{ image: Buffer | null; image_mime: string | null } & Record<string, unknown>>("select id, store, to_char(purchased_on, 'YYYY-MM-DD') as purchased_on, subtotal_cents, tax_cents, total_cents, status, image, image_mime, created_at from cook_receipts where cook_id = $1 order by created_at"),
+    q("select l.receipt_id, l.position, l.text, l.price_cents, l.tax_cents, l.food_id, l.grams, l.meal_id, l.personal from cook_receipt_lines l join cook_receipts r on r.id = l.receipt_id where r.cook_id = $1 order by l.receipt_id, l.position"),
+    q("select food_id, cents_per_kg, source, updated_at from ingredient_prices where cook_id = $1 order by food_id"),
+    q("select id, title, target_kind, target_name, status, snapshot, sent_at, paid_at, voided_at, created_at, (select array_agg(meal_id) from cook_statement_meals s where s.statement_id = cook_statements.id) as meal_ids from cook_statements where cook_id = $1 order by created_at"),
+    q("select meal_id, statement_id, parts, snapshot, link_token is not null as has_link, created_at, updated_at from cook_shares where cook_id = $1 order by created_at"),
+    q("select c.id as client_id, c.linked_at, s.meal_id, s.statement_id, s.snapshot from cook_clients c join cook_shares s on s.meal_id in (select id from cook_meals where client_id = c.id) or s.statement_id in (select id from cook_statements where client_id = c.id and status in ('sent', 'paid')) where c.linked_user_id = $1"),
+  ]);
+  return {
+    profile: profile[0] ?? null,
+    clients,
+    meals,
+    mealRecipes,
+    expenses,
+    receipts: receipts.map(({ image, image_mime, ...r }) => ({ ...r, image: image ? `data:${image_mime ?? "image/webp"};base64,${image.toString("base64")}` : null })),
+    receiptLines: lines,
+    prices,
+    statements,
+    shares,
+    sharedWithMeAsClient: asClient,
+  };
+}

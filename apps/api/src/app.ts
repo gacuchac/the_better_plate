@@ -31,6 +31,8 @@ import { milestoneRoutes } from "./modules/milestones.ts";
 import { inviteRoutes } from "./modules/invites.ts";
 import { mealShareRoutes } from "./modules/mealshares.ts";
 import { importRoutes } from "./modules/imports.ts";
+import { cookRoutes } from "./modules/cooks/routes.ts";
+import { cookBillingRoutes } from "./modules/cooks/billing.ts";
 
 export const API_VERSION = "0.1.0";
 
@@ -51,7 +53,7 @@ export function createApp() {
     cors({
       origin: config.corsOrigins,
       credentials: true,
-      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowHeaders: ["Content-Type", "If-Match", "If-None-Match", "X-Request-Id"],
       exposeHeaders: ["ETag", "X-Request-Id", "Retry-After"],
       maxAge: 600,
@@ -70,7 +72,7 @@ export function createApp() {
       ? turnLimit(c, next)
       : c.req.path === "/v1/images/upload" || c.req.path === "/mcp"
         ? uploadLimit(c, next)
-        : c.req.path === "/v1/recipe-imports"
+        : c.req.path === "/v1/recipe-imports" || c.req.path === "/v1/cook/receipts/read"
           ? importLimit(c, next)
           : defaultLimit(c, next),
   );
@@ -130,6 +132,8 @@ export function createApp() {
   app.route("/", aiRoutes);
   app.route("/", imageRoutes);
   app.route("/", importRoutes);
+  app.route("/", cookRoutes);
+  app.route("/", cookBillingRoutes);
   app.route("/", accountRoutes);
   app.route("/", devRoutes);
 

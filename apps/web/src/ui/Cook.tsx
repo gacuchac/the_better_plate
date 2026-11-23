@@ -12,6 +12,9 @@ import {
 } from "@betterplate/nutrition";
 import type { LocalRecipe } from "../localdb.ts";
 import { useApp } from "../store.tsx";
+import { api } from "../api.ts";
+import { navigate } from "./common.tsx";
+import { MealTimerBar } from "./Cooking.tsx";
 import { Icon } from "./icons.tsx";
 import { tOr, useT } from "../i18n.ts";
 
@@ -166,7 +169,8 @@ function Techniques({ techniques }: { techniques: Technique[] }) {
   );
 }
 
-export function Cook({ id, report }: { id: string; report?: ReactNode }) {
+/** Cook mode. With a meal (cooking for someone), its timer runs on top and exit goes back to the meal. */
+export function Cook({ id, mealId, report }: { id: string; mealId?: string; report?: ReactNode }) {
   const { engine, catalog, account } = useApp();
   const [recipe, setRecipe] = useState<LocalRecipe | null | undefined>(undefined);
   const t = useT();
@@ -199,7 +203,7 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
     return [...byRule.values()];
   }, [recipe, catalog]);
 
-  const exit = `#/recipe/${id}`;
+  const exit = mealId ? `#/cooking/meal/${mealId}` : `#/recipe/${id}`;
   if (recipe === undefined) return <div className="cook"><p>{t("common.loading")}</p></div>;
   if (recipe === null) {
     return (
@@ -244,6 +248,8 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
           ))}
         </div>
       )}
+
+      {mealId && <MealTimerBar mealId={mealId} />}
 
       <div>
         <div className="cook-eyebrow">{recipe.body.title}</div>
@@ -291,7 +297,17 @@ export function Cook({ id, report }: { id: string; report?: ReactNode }) {
             <button type="button" className="cook-ghost" onClick={() => update(new Set())}>
               {t("cook.startOver")}
             </button>
-            <a className="cook-accent" href={exit} onClick={() => writeProgress(key, fingerprint, new Set())}>
+            <a
+              className="cook-accent"
+              href={exit}
+              onClick={(e) => {
+                writeProgress(key, fingerprint, new Set());
+                if (!mealId) return;
+                // Stop the meal's timer before showing the meal, so its time is final there.
+                e.preventDefault();
+                void api.cook.timer(mealId, "stop").catch(() => {}).finally(() => navigate(`/cooking/meal/${mealId}`));
+              }}
+            >
               {t("cook.finish")}
             </a>
           </div>

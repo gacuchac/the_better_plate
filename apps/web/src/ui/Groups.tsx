@@ -10,6 +10,7 @@ import { ServingsStepper, SlotPicker } from "./MealSheets.tsx";
 import { ALLERGEN_LABEL, AllergenAlert, listedAllergens, PreferencesForm } from "./People.tsx";
 import { weekStart } from "./Shopping.tsx";
 import { AddByEmailSheet, InvitesForMe, PendingRows, SharedMeals } from "./SharedMeals.tsx";
+import { GroupCookedMeals } from "./CookBilling.tsx";
 
 const ROLE_LABEL: Record<GroupMember["role"], MessageKey> = { owner: "groups.roleOwner", admin: "groups.roleAdmin", member: "groups.roleMember" };
 
@@ -150,7 +151,7 @@ export function JoinGroup({ token }: { token: string }) {
 }
 
 export function GroupScreen({ id }: { id: string }) {
-  const { refreshGroups, engine, online, recipes, catalog } = useApp();
+  const { refreshGroups, engine, online, recipes, catalog, account } = useApp();
   const t = useT();
   const offline = useOnlineNote();
   const [group, setGroup] = useState<GroupDetail | null>(null);
@@ -350,6 +351,7 @@ export function GroupScreen({ id }: { id: string }) {
       </section>
 
       {group.features.mealShares && <SharedMeals group={group} groupRecipes={groupRecipes} onPlan={admin && group.features.planning ? (recipeId) => setSheet({ kind: "planAll", recipeId }) : undefined} />}
+      {account?.features?.cookProfile && <GroupCookedMeals groupId={id} isOwner={group.role === "owner"} />}
 
       {admin && (
         <section className="card" aria-labelledby="week-title" data-testid="group-week">

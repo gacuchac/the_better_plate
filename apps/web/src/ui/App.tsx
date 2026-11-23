@@ -4,6 +4,8 @@ import { useApp } from "../store.tsx";
 import { navigate, StorageBanner, SyncChip, UpdateBanner, useRoute } from "./common.tsx";
 import { CheersPage } from "./Milestones.tsx";
 import { Cook } from "./Cook.tsx";
+import { CookingHome, CookMealScreen } from "./Cooking.tsx";
+import { MyCooks, PublicCooked, ReceiptScreen, StatementScreen } from "./CookBilling.tsx";
 import { Icon, type IconName } from "./icons.tsx";
 import { Meals } from "./Meals.tsx";
 import { ReportIssue } from "./ReportIssue.tsx";
@@ -60,6 +62,17 @@ export function App() {
     );
   }
 
+  // A meal or statement a cook shared by link opens for anyone, signed in or not.
+  const cookedMatch = /^\/cooked\/([0-9a-f-]{36})$/.exec(route);
+  if (cookedMatch) {
+    return (
+      <>
+        <PublicCooked key={cookedMatch[1]} token={cookedMatch[1]!} />
+        <ReportIssue route="/cooked" />
+      </>
+    );
+  }
+
   if (route === "/privacy") {
     return (
       <>
@@ -100,8 +113,12 @@ export function App() {
     );
   }
 
-  const cookMatch = /^\/cook\/([0-9a-f-]{36})$/.exec(route);
-  if (cookMatch) return <Cook key={cookMatch[1]} id={cookMatch[1]!} report={<ReportIssue route={route} className="report-btn icon-btn" />} />;
+  const cooking = !!account?.features?.cookProfile;
+  const cookMatch = /^\/cook\/([0-9a-f-]{36})(?:\/meal\/([0-9a-f-]{36}))?$/.exec(route);
+  if (cookMatch) {
+    const mealId = cooking ? cookMatch[2] : undefined;
+    return <Cook key={route} id={cookMatch[1]!} mealId={mealId} report={<ReportIssue route={route} className="report-btn icon-btn" />} />;
+  }
 
   const recipeMatch = /^\/recipe\/([0-9a-f-]{36})$/.exec(route);
   const mealsMatch = /^\/meals(?:\/(\d{4}-\d{2}-\d{2}))?$/.exec(route);
@@ -109,10 +126,13 @@ export function App() {
   const groupMatch = /^\/groups\/([0-9a-f-]{36})$/.exec(route);
   const joinMatch = /^\/join\/([0-9a-f-]{36})$/.exec(route);
   const communityMatch = /^\/community\/([0-9a-f-]{36})$/.exec(route);
+  const cookingMatch = cooking ? /^\/cooking(?:\/(clients|receipts|statements|prices|profile))?$/.exec(route) : null;
+  const cookingItem = cooking ? /^\/cooking\/(meal|receipt|statement)\/([0-9a-f-]{36})$/.exec(route) : null;
+  const myCooks = cooking && route === "/cooks";
   // Kitchen is every recipe and what goes with them; Home is today (the plan, the meal log, cheers).
   const inKitchen = !!(recipeMatch || shoppingMatch || communityMatch) || ["/kitchen", "/recipes", "/explore"].includes(route);
   const inHome = !!mealsMatch || route === "/cheers";
-  const inYou = ["/goals", "/targets", "/ai", "/preferences"].includes(route);
+  const inYou = ["/goals", "/targets", "/ai", "/preferences"].includes(route) || !!cookingMatch || !!cookingItem || myCooks;
   const inGroups = route === "/groups" || !!groupMatch || !!joinMatch;
   const section = inKitchen ? "/kitchen" : inHome ? "/home" : inYou ? "/you" : inGroups ? "/groups" : route === "/create" ? route : "/home";
   let screen;
@@ -129,6 +149,11 @@ export function App() {
   else if (route === "/groups") screen = <Groups />;
   else if (groupMatch) screen = <GroupScreen key={groupMatch[1]} id={groupMatch[1]!} />;
   else if (joinMatch) screen = <JoinGroup key={joinMatch[1]} token={joinMatch[1]!} />;
+  else if (cookingMatch) screen = <CookingHome key={route} tab={(cookingMatch[1] ?? "meals") as Parameters<typeof CookingHome>[0]["tab"]} />;
+  else if (cookingItem?.[1] === "meal") screen = <CookMealScreen key={route} id={cookingItem[2]!} />;
+  else if (cookingItem?.[1] === "receipt") screen = <ReceiptScreen key={route} id={cookingItem[2]!} />;
+  else if (cookingItem) screen = <StatementScreen key={route} id={cookingItem[2]!} />;
+  else if (myCooks) screen = <MyCooks />;
   else screen = <Home />;
 
   return (
@@ -162,6 +187,10 @@ export function App() {
           ) : groupMatch ? (
             <a className="back" href="#/groups">
               <Icon name="back" /> {t("groups.title")}
+            </a>
+          ) : cookingItem ? (
+            <a className="back" href="#/cooking">
+              <Icon name="back" /> {t("cooking.title")}
             </a>
           ) : inYou && route !== "/goals" && route !== "/targets" ? (
             <a className="back" href="#/you">

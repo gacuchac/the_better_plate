@@ -26,8 +26,29 @@ export const FAKE_RECIPE = {
     "3. Season with salt and serve over the rice.",
 };
 
+/**
+ * Every receipt photo reads as this labelled fixture: four grocery lines (two weighed), one
+ * household line the cook will mark personal, tax, and a total that adds up.
+ */
+export const FAKE_RECEIPT = {
+  readable: true,
+  store: "Test fixture: Corner Market",
+  purchased_on: "2026-11-20",
+  lines: [
+    { text: "CHICKEN BREAST 1.10 LB", food_name: "chicken breast meat only raw", price: 6.49, grams: 499 },
+    { text: "LONG GRAIN RICE 2 LB", food_name: "rice white long grain raw", price: 3.29, grams: 907 },
+    { text: "OLIVE OIL 500ML", food_name: "olive oil", price: 8.99, grams: null },
+    { text: "GARLIC", food_name: "garlic raw", price: 0.8, grams: null },
+    { text: "PAPER TOWELS 6PK", food_name: "", price: 4.5, grams: null },
+  ],
+  subtotal: 24.07,
+  tax: 1.2,
+  total: 25.27,
+};
+
 export function fakeRead(args: ReadArgs): unknown {
   if (args.name === "recipe_from_photo") return FAKE_RECIPE;
+  if (args.name === "receipt_from_photo") return FAKE_RECEIPT;
   if (args.name === "pick_foods") {
     // Picks the first candidate for every line that has any.
     const asked = JSON.parse(args.text.slice(args.text.indexOf("{"))) as { lines: { i: number; candidates: unknown[] }[] };
