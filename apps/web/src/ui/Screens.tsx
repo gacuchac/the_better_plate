@@ -233,7 +233,7 @@ export function Explore() {
 }
 
 export function You() {
-  const { account, engine, signOut, online, groups, profiles } = useApp();
+  const { account, acting, engine, signOut, online, groups, profiles } = useApp();
   const ai = useAiSettings(account?.id, online);
   const t = useT();
   const status = useSyncStatus(engine);
@@ -320,7 +320,16 @@ export function You() {
               <Icon name="forward" size={18} />
             </a>
           </li>
-          {account?.features?.cookProfile && (
+          {account?.features?.linkedAccounts && (
+            <li>
+              <a className="row-item row-link" href="#/linked" data-testid="linked-row">
+                <span className="row-icon"><Icon name="people" size={20} /></span>
+                <span className="row-text"><span className="row-label">{t("linked.title")}</span><span className="row-value">{t("linked.rowHint")}</span></span>
+                <Icon name="forward" size={18} />
+              </a>
+            </li>
+          )}
+          {account?.features?.cookProfile && !acting && (
             <>
               <li>
                 <a className="row-item row-link" href="#/cooking" data-testid="cooking-row">
@@ -359,15 +368,19 @@ export function You() {
         <button type="button" className="btn-secondary" onClick={() => void engine?.syncNow()}>
           {t("sync.now")}
         </button>
-        <button type="button" className="btn-secondary" disabled={!online} onClick={() => void exportAll()}>
-          {t("you.downloadAll")}
-        </button>
+        {!acting && (
+          <button type="button" className="btn-secondary" disabled={!online} onClick={() => void exportAll()}>
+            {t("you.downloadAll")}
+          </button>
+        )}
         <button type="button" className="btn-secondary" onClick={() => void exportUnsynced()}>
           {t("you.exportUnsynced")}
         </button>
-        <button type="button" className="btn-link danger" disabled={busy || !online} onClick={() => void deleteAccount()}>
-          {t("you.deleteAccount")}
-        </button>
+        {!acting && (
+          <button type="button" className="btn-link danger" disabled={busy || !online} onClick={() => void deleteAccount()}>
+            {t("you.deleteAccount")}
+          </button>
+        )}
       </div>
       {note && <p className="error">{note}</p>}
       <p className="fine">

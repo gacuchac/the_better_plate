@@ -913,3 +913,14 @@ label.btn-primary.disabled { opacity: 0.6; pointer-events: none; }
   .content, .screen { padding: 0 !important; margin: 0 !important; }
   .statement .card { border: 0; box-shadow: none; }
 }
+
+/* Linked accounts (ADR-015) */
+ul.plain { list-style: none; padding: 0; margin: 0; }
+.link-card { display: grid; gap: 6px; }
+.link-card p { margin: 0; }
+.link-area { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.link-area-name { font-weight: 550; }
+.check-row { display: flex; gap: 10px; align-items: flex-start; }
+.check-row input { margin-top: 4px; }
+.fine.block { display: block; }
+.acting-banner { border: 1px solid var(--line-strong); }
